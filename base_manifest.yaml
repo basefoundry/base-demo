@@ -1,0 +1,18 @@
+schema_version: 1
+
+project:
+  name: base-demo
+
+brewfile: Brewfile
+
+activate:
+  source:
+    - .base/activate.sh
+
+commands:
+  hello: ./src/hello.sh
+
+test:
+  command: ./tests/validate.sh
+
+artifacts: []
