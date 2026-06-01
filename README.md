@@ -24,6 +24,7 @@ basectl check base-demo
 basectl doctor base-demo
 basectl run base-demo hello
 basectl test base-demo
+basectl demo base-demo
 ```
 
 ## Repository Shape
@@ -33,7 +34,11 @@ basectl test base-demo
 - `Brewfile` is the Homebrew-owned place for ordinary macOS tools.
 - `.base/activate.sh` demonstrates project activation state.
 - `src/hello.sh` is a tiny command target for `basectl run`.
+- `demo/demo.sh` is the interactive walkthrough.
 - `tests/validate.sh` verifies that the repository baseline is intact.
 
-The interactive `basectl demo base-demo` walkthrough lands in a follow-up change
-after the Base demo command is available in a released Base version.
+For CI or scripted validation, run the walkthrough without prompts:
+
+```bash
+basectl demo base-demo -- --non-interactive
+```
