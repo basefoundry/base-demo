@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_DEMO_PROJECT="${BASE_PROJECT:-base-demo}"
+BASE_DEMO_ROOT="${BASE_PROJECT_ROOT:-}"
+BASE_DEMO_BASECTL="${BASE_DEMO_BASECTL:-basectl}"
+BASE_DEMO_NON_INTERACTIVE=0
+
+demo_script_dir() {
+  cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P
+}
+
+demo_project_root() {
+  if [[ -n "$BASE_DEMO_ROOT" ]]; then
+    cd -- "$BASE_DEMO_ROOT" && pwd -P
+    return
+  fi
+
+  cd -- "$(demo_script_dir)/.." && pwd -P
+}
+
+BASE_DEMO_ROOT="$(demo_project_root)"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  demo/demo.sh [--non-interactive] [-h|--help]
+
+Run the base-demo interactive walkthrough.
+EOF
+}
+
+parse_args() {
+  while (($#)); do
+    case "$1" in
+      --non-interactive)
+        BASE_DEMO_NON_INTERACTIVE=1
+        ;;
+      -h|--help|help)
+        usage
+        return 2
+        ;;
+      *)
+        printf 'ERROR: Unknown demo option %q\n' "$1" >&2
+        usage >&2
+        return 1
+        ;;
+    esac
+    shift
+  done
+}
+
+pause() {
+  if [[ "$BASE_DEMO_NON_INTERACTIVE" == "1" || ! -t 0 ]]; then
+    return 0
+  fi
+
+  printf '\nPress Enter to continue...'
+  read -r _
+  printf '\n'
+}
+
+step() {
+  printf '\n== Step %s: %s ==\n\n' "$1" "$2"
+}
+
+run_command() {
+  printf '  $'
+  printf ' %q' "$@"
+  printf '\n'
+
+  if ! "$@"; then
+    printf '\nDemo step failed while running the command above.\n' >&2
+    printf 'Run it manually from %s, fix the issue, and retry the demo.\n' "$BASE_DEMO_ROOT" >&2
+    return 1
+  fi
+}
+
+capture_command() {
+  local output
+
+  printf '  $'
+  printf ' %q' "$@"
+  printf '\n'
+
+  if ! output="$("$@" 2>&1)"; then
+    printf '%s\n' "$output" >&2
+    printf '\nDemo step failed while running the command above.\n' >&2
+    return 1
+  fi
+
+  printf '%s\n' "$output"
+}
+
+require_contains() {
+  local label="$1"
+  local output="$2"
+  local expected="$3"
+
+  if [[ "$output" != *"$expected"* ]]; then
+    printf 'ERROR: Expected %s output to contain %q.\n' "$label" "$expected" >&2
+    return 1
+  fi
+}
+
+intro() {
+  printf '\nbase-demo Walkthrough\n\n'
+  printf 'This demo shows the smallest useful Base-managed project shape.\n'
+  printf 'Each step runs a real command or validates a real file in this repo.\n'
+  pause
+}
+
+project_shape_step() {
+  step 1 "Project Shape"
+  run_command test -f "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command test -f "$BASE_DEMO_ROOT/Brewfile"
+  run_command test -x "$BASE_DEMO_ROOT/src/hello.sh"
+  run_command test -x "$BASE_DEMO_ROOT/tests/validate.sh"
+  pause
+}
+
+manifest_step() {
+  step 2 "Manifest Contracts"
+  run_command grep -n "name: base-demo" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "hello: ./src/hello.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "command: ./tests/validate.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "script: ./demo/demo.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  pause
+}
+
+activation_step() {
+  step 3 "Project Activation Source"
+  # shellcheck source=/dev/null
+  source "$BASE_DEMO_ROOT/.base/activate.sh"
+  printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
+  require_contains "activation" "${BASE_DEMO_ENV:-}" "baseline"
+  pause
+}
+
+run_step() {
+  local output
+
+  step 4 "Declared Command"
+  output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" hello)"
+  printf '%s\n' "$output"
+  require_contains "run command" "$output" "hello from base-demo"
+  pause
+}
+
+test_step() {
+  local output
+
+  step 5 "Test Contract"
+  output="$(capture_command "$BASE_DEMO_BASECTL" test "$BASE_DEMO_PROJECT")"
+  printf '%s\n' "$output"
+  require_contains "test command" "$output" "Repository baseline is present."
+  pause
+}
+
+demo_step() {
+  local output
+
+  step 6 "Demo Contract"
+  output="$(capture_command "$BASE_DEMO_BASECTL" demo "$BASE_DEMO_PROJECT" --dry-run -- --non-interactive)"
+  printf '%s\n' "$output"
+  require_contains "demo command" "$output" "Would run demo"
+  pause
+}
+
+main() {
+  parse_args "$@" || {
+    local status=$?
+    [[ "$status" -eq 2 ]] && return 0
+    return "$status"
+  }
+
+  cd -- "$BASE_DEMO_ROOT"
+  intro
+  project_shape_step
+  manifest_step
+  activation_step
+  run_step
+  test_step
+  demo_step
+  printf '\nbase-demo walkthrough complete.\n'
+}
+
+main "$@"

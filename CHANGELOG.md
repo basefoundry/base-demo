@@ -12,3 +12,4 @@ and versions are tracked in the repo-root `VERSION` file.
 - Initialized the repository with the Base-managed repo baseline.
 - Added a Base manifest, Brewfile, activation source, example command, and
   baseline validation script.
+- Added the interactive `basectl demo base-demo` walkthrough and BATS coverage.

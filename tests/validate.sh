@@ -11,6 +11,8 @@ required_files=(
   Brewfile
   .base/activate.sh
   src/hello.sh
+  demo/demo.sh
+  tests/demo_test.bats
   .github/workflows/tests.yml
 )
 
@@ -21,7 +23,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh .base/activate.sh src/hello.sh; do
+for executable in tests/validate.sh .base/activate.sh src/hello.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -45,6 +47,11 @@ grep -Fq '.base/activate.sh' base_manifest.yaml || {
 
 grep -Fq 'hello: ./src/hello.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the hello command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'script: ./demo/demo.sh' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the demo script.\n' >&2
   exit 1
 }
 
