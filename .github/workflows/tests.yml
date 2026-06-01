@@ -1,4 +1,4 @@
-name: Tests
+name: Validate Demo
 
 on:
   push:
@@ -7,7 +7,55 @@ on:
 jobs:
   validate:
     runs-on: macos-latest
+    env:
+      BASE_CACHE_DIR: ${{ runner.temp }}/base-cache
+      BASE_SETUP_NOTIFY: "false"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install BATS
+        run: brew install bats-core
+
       - name: Validate repository baseline
         run: ./tests/validate.sh
+
+      - name: Run demo script tests
+        run: bats tests/demo_test.bats
+
+      - name: Check out Base
+        run: git clone --depth 1 https://github.com/codeforester/base.git ../base
+
+      - name: Detect Base demo support
+        id: base-demo
+        run: |
+          if ../base/bin/basectl demo --help >/dev/null 2>&1; then
+            echo "supported=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "supported=false" >> "$GITHUB_OUTPUT"
+            echo "Base master does not support basectl demo yet; skipping full Base-backed validation."
+          fi
+
+      - name: Set up Base
+        if: steps.base-demo.outputs.supported == 'true'
+        run: ../base/bin/basectl setup base --no-notify
+
+      - name: Set up base-demo
+        if: steps.base-demo.outputs.supported == 'true'
+        run: ../base/bin/basectl setup base-demo --no-notify
+
+      - name: Check base-demo
+        if: steps.base-demo.outputs.supported == 'true'
+        run: ../base/bin/basectl check base-demo
+
+      - name: Doctor base-demo
+        if: steps.base-demo.outputs.supported == 'true'
+        run: ../base/bin/basectl doctor base-demo
+
+      - name: Test base-demo
+        if: steps.base-demo.outputs.supported == 'true'
+        run: ../base/bin/basectl test base-demo
+
+      - name: Run base-demo non-interactively
+        if: steps.base-demo.outputs.supported == 'true'
+        run: ../base/bin/basectl demo base-demo -- --non-interactive

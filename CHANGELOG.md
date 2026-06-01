@@ -13,3 +13,5 @@ and versions are tracked in the repo-root `VERSION` file.
 - Added a Base manifest, Brewfile, activation source, example command, and
   baseline validation script.
 - Added the interactive `basectl demo base-demo` walkthrough and BATS coverage.
+- Expanded GitHub Actions validation for the demo script and Base-backed demo
+  flow.
