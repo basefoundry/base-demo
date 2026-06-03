@@ -30,15 +30,29 @@ teardown() {
 #!/usr/bin/env bash
 printf 'basectl %s\n' "$*" >> "${BASE_DEMO_TEST_STATE:?}"
 case "$*" in
-  run\ base-demo\ hello)
+  projects\ list\ --workspace\ *)
+    printf 'PROJECT     PATH\n'
+    printf 'base-demo   %s\n' "${BASE_PROJECT_ROOT:?}"
+    ;;
+  check\ base-demo)
+    printf 'Base CLI environment check passed.\n'
+    ;;
+  doctor\ base-demo)
+    printf 'Base doctor\n'
+    printf 'ok     project base-demo is healthy.\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ --list)
+    printf 'hello    ./src/hello.sh\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ hello)
     printf 'hello from base-demo\n'
     printf 'BASE_PROJECT=base-demo\n'
     printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
     ;;
-  test\ base-demo)
+  test\ base-demo\ --workspace\ *)
     printf 'Repository baseline is present.\n'
     ;;
-  demo\ base-demo\ --dry-run\ --\ --non-interactive)
+  demo\ base-demo\ --workspace\ *\ --dry-run\ --\ --non-interactive)
     printf '[DRY-RUN] Would run demo for project base-demo.\n'
     ;;
   *)
@@ -58,11 +72,18 @@ EOF
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"base-demo Walkthrough"* ]]
+  [[ "$output" == *"Workspace Discovery"* ]]
+  [[ "$output" == *"Project Diagnostics"* ]]
+  [[ "$output" == *"Declared Commands"* ]]
   [[ "$output" == *"BASE_DEMO_ENV=baseline"* ]]
   [[ "$output" == *"hello from base-demo"* ]]
   [[ "$output" == *"Repository baseline is present."* ]]
   [[ "$output" == *"base-demo walkthrough complete."* ]]
-  grep -Fqx "basectl run base-demo hello" "$state_file"
-  grep -Fqx "basectl test base-demo" "$state_file"
-  grep -Fqx "basectl demo base-demo --dry-run -- --non-interactive" "$state_file"
+  grep -Fq "basectl projects list --workspace " "$state_file"
+  grep -Fqx "basectl check base-demo" "$state_file"
+  grep -Fqx "basectl doctor base-demo" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ --list$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"
+  grep -Eq "^basectl test base-demo --workspace .+$" "$state_file"
+  grep -Eq "^basectl demo base-demo --workspace .+ --dry-run -- --non-interactive$" "$state_file"
 }

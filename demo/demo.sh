@@ -21,6 +21,12 @@ demo_project_root() {
 
 BASE_DEMO_ROOT="$(demo_project_root)"
 
+demo_workspace_root() {
+  cd -- "$BASE_DEMO_ROOT/.." && pwd -P
+}
+
+BASE_DEMO_WORKSPACE="$(demo_workspace_root)"
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -129,7 +135,7 @@ manifest_step() {
 }
 
 activation_step() {
-  step 3 "Project Activation Source"
+  step 5 "Project Activation Source"
   # shellcheck source=/dev/null
   source "$BASE_DEMO_ROOT/.base/activate.sh"
   printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
@@ -137,11 +143,38 @@ activation_step() {
   pause
 }
 
+discovery_step() {
+  local output
+
+  step 3 "Workspace Discovery"
+  output="$(capture_command "$BASE_DEMO_BASECTL" projects list --workspace "$BASE_DEMO_WORKSPACE")"
+  printf '%s\n' "$output"
+  require_contains "projects list" "$output" "$BASE_DEMO_PROJECT"
+  pause
+}
+
+diagnostics_step() {
+  step 4 "Project Diagnostics"
+  run_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT"
+  run_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT"
+  pause
+}
+
+command_discovery_step() {
+  local output
+
+  step 6 "Declared Commands"
+  output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --list)"
+  printf '%s\n' "$output"
+  require_contains "run command list" "$output" "hello"
+  pause
+}
+
 run_step() {
   local output
 
-  step 4 "Declared Command"
-  output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" hello)"
+  step 7 "Declared Command Execution"
+  output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" hello)"
   printf '%s\n' "$output"
   require_contains "run command" "$output" "hello from base-demo"
   pause
@@ -150,8 +183,8 @@ run_step() {
 test_step() {
   local output
 
-  step 5 "Test Contract"
-  output="$(capture_command "$BASE_DEMO_BASECTL" test "$BASE_DEMO_PROJECT")"
+  step 8 "Test Contract"
+  output="$(capture_command "$BASE_DEMO_BASECTL" test "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE")"
   printf '%s\n' "$output"
   require_contains "test command" "$output" "Repository baseline is present."
   pause
@@ -160,8 +193,8 @@ test_step() {
 demo_step() {
   local output
 
-  step 6 "Demo Contract"
-  output="$(capture_command "$BASE_DEMO_BASECTL" demo "$BASE_DEMO_PROJECT" --dry-run -- --non-interactive)"
+  step 9 "Demo Contract"
+  output="$(capture_command "$BASE_DEMO_BASECTL" demo "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --dry-run -- --non-interactive)"
   printf '%s\n' "$output"
   require_contains "demo command" "$output" "Would run demo"
   pause
@@ -178,7 +211,10 @@ main() {
   intro
   project_shape_step
   manifest_step
+  discovery_step
+  diagnostics_step
   activation_step
+  command_discovery_step
   run_step
   test_step
   demo_step
