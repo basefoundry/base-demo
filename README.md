@@ -55,11 +55,14 @@ hello
 $ basectl run base-demo hello
 hello from base-demo
 BASE_PROJECT=base-demo
-BASE_DEMO_ENV=baseline
+BASE_DEMO_ENV=unset
 
 $ basectl test base-demo
 Repository baseline is present.
 ```
+
+`BASE_DEMO_ENV` becomes `baseline` inside `basectl activate base-demo`,
+because activation sources `.base/activate.sh` into the project shell.
 
 ## Repository Shape
 

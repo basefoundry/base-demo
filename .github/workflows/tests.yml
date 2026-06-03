@@ -52,10 +52,22 @@ jobs:
         if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl doctor base-demo
 
+      - name: Check repository baseline through Base
+        if: steps.base_demo.outputs.supported == 'true'
+        run: ../base/bin/basectl repo check .
+
+      - name: List base-demo commands
+        if: steps.base_demo.outputs.supported == 'true'
+        run: ../base/bin/basectl run base-demo --workspace .. --list
+
+      - name: Run base-demo hello command
+        if: steps.base_demo.outputs.supported == 'true'
+        run: ../base/bin/basectl run base-demo --workspace .. hello
+
       - name: Test base-demo
         if: steps.base_demo.outputs.supported == 'true'
-        run: ../base/bin/basectl test base-demo
+        run: ../base/bin/basectl test base-demo --workspace ..
 
       - name: Run base-demo non-interactively
         if: steps.base_demo.outputs.supported == 'true'
-        run: ../base/bin/basectl demo base-demo -- --non-interactive
+        run: ../base/bin/basectl demo base-demo --workspace .. -- --non-interactive
