@@ -13,6 +13,7 @@ commands:
   hello: ./src/hello.sh
   env: ./src/env.sh
   manifest: ./src/manifest.sh
+  python-info: PYTHONPATH=lib/python python -m base_demo_cli
 
 test:
   command: ./tests/validate.sh

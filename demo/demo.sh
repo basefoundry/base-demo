@@ -133,6 +133,7 @@ manifest_step() {
   run_command grep -n "hello: ./src/hello.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "env: ./src/env.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "manifest: ./src/manifest.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "python-info: PYTHONPATH=lib/python python -m base_demo_cli" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "command: ./tests/validate.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "script: ./demo/demo.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   pause
@@ -177,6 +178,7 @@ command_discovery_step() {
   require_contains "run command list" "$output" "hello"
   require_contains "run command list" "$output" "env"
   require_contains "run command list" "$output" "manifest"
+  require_contains "run command list" "$output" "python-info"
   pause
 }
 
@@ -191,7 +193,7 @@ run_step() {
 }
 
 inspection_step() {
-  local env_output manifest_output
+  local env_output manifest_output python_output
 
   step 8 "Inspection Commands"
   env_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" env)"
@@ -203,6 +205,11 @@ inspection_step() {
   printf '%s\n' "$manifest_output"
   require_contains "manifest command" "$manifest_output" "base-demo manifest"
   require_contains "manifest command" "$manifest_output" "commands:"
+
+  python_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" python-info)"
+  printf '%s\n' "$python_output"
+  require_contains "python command" "$python_output" "base-demo python cli"
+  require_contains "python command" "$python_output" "BASE_PROJECT=base-demo"
   pause
 }
 

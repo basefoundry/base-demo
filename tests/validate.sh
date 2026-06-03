@@ -13,6 +13,8 @@ required_files=(
   src/hello.sh
   src/env.sh
   src/manifest.sh
+  lib/python/base_demo_cli/__init__.py
+  lib/python/base_demo_cli/__main__.py
   demo/demo.sh
   tests/demo_test.bats
   .github/workflows/tests.yml
@@ -59,6 +61,11 @@ grep -Fq 'env: ./src/env.sh' base_manifest.yaml || {
 
 grep -Fq 'manifest: ./src/manifest.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the manifest command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python-info: PYTHONPATH=lib/python python -m base_demo_cli' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the python-info command.\n' >&2
   exit 1
 }
 

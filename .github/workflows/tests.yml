@@ -64,6 +64,10 @@ jobs:
         if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl run base-demo --workspace .. hello
 
+      - name: Run base-demo Python command
+        if: steps.base_demo.outputs.supported == 'true'
+        run: ../base/bin/basectl run base-demo --workspace .. python-info
+
       - name: Test base-demo
         if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl test base-demo --workspace ..

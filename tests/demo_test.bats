@@ -45,6 +45,7 @@ case "$*" in
     printf 'hello       ./src/hello.sh\n'
     printf 'env         ./src/env.sh\n'
     printf 'manifest    ./src/manifest.sh\n'
+    printf 'python-info PYTHONPATH=lib/python python -m base_demo_cli\n'
     ;;
   run\ base-demo\ --workspace\ *\ hello)
     printf 'hello from base-demo\n'
@@ -58,6 +59,10 @@ case "$*" in
   run\ base-demo\ --workspace\ *\ manifest)
     printf 'base-demo manifest\n'
     printf 'commands:\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ python-info)
+    printf 'base-demo python cli\n'
+    printf 'BASE_PROJECT=base-demo\n'
     ;;
   test\ base-demo\ --workspace\ *)
     printf 'Repository baseline is present.\n'
@@ -90,6 +95,7 @@ EOF
   [[ "$output" == *"BASE_DEMO_PROJECT_KIND=reference-demo"* ]]
   [[ "$output" == *"hello from base-demo"* ]]
   [[ "$output" == *"base-demo manifest"* ]]
+  [[ "$output" == *"base-demo python cli"* ]]
   [[ "$output" == *"Repository baseline is present."* ]]
   [[ "$output" == *"base-demo walkthrough complete."* ]]
   grep -Fq "basectl projects list --workspace " "$state_file"
@@ -99,6 +105,7 @@ EOF
   grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ env$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ manifest$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ python-info$" "$state_file"
   grep -Eq "^basectl test base-demo --workspace .+$" "$state_file"
   grep -Eq "^basectl demo base-demo --workspace .+ --dry-run -- --non-interactive$" "$state_file"
 }
