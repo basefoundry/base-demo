@@ -42,12 +42,22 @@ case "$*" in
     printf 'ok     project base-demo is healthy.\n'
     ;;
   run\ base-demo\ --workspace\ *\ --list)
-    printf 'hello    ./src/hello.sh\n'
+    printf 'hello       ./src/hello.sh\n'
+    printf 'env         ./src/env.sh\n'
+    printf 'manifest    ./src/manifest.sh\n'
     ;;
   run\ base-demo\ --workspace\ *\ hello)
     printf 'hello from base-demo\n'
     printf 'BASE_PROJECT=base-demo\n'
     printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
+    ;;
+  run\ base-demo\ --workspace\ *\ env)
+    printf 'BASE_PROJECT=base-demo\n'
+    printf 'BASE_DEMO_PROJECT_KIND=%s\n' "${BASE_DEMO_PROJECT_KIND:-unset}"
+    ;;
+  run\ base-demo\ --workspace\ *\ manifest)
+    printf 'base-demo manifest\n'
+    printf 'commands:\n'
     ;;
   test\ base-demo\ --workspace\ *)
     printf 'Repository baseline is present.\n'
@@ -75,8 +85,11 @@ EOF
   [[ "$output" == *"Workspace Discovery"* ]]
   [[ "$output" == *"Project Diagnostics"* ]]
   [[ "$output" == *"Declared Commands"* ]]
+  [[ "$output" == *"Inspection Commands"* ]]
   [[ "$output" == *"BASE_DEMO_ENV=baseline"* ]]
+  [[ "$output" == *"BASE_DEMO_PROJECT_KIND=reference-demo"* ]]
   [[ "$output" == *"hello from base-demo"* ]]
+  [[ "$output" == *"base-demo manifest"* ]]
   [[ "$output" == *"Repository baseline is present."* ]]
   [[ "$output" == *"base-demo walkthrough complete."* ]]
   grep -Fq "basectl projects list --workspace " "$state_file"
@@ -84,6 +97,8 @@ EOF
   grep -Fqx "basectl doctor base-demo" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ env$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ manifest$" "$state_file"
   grep -Eq "^basectl test base-demo --workspace .+$" "$state_file"
   grep -Eq "^basectl demo base-demo --workspace .+ --dry-run -- --non-interactive$" "$state_file"
 }

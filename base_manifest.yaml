@@ -11,6 +11,8 @@ activate:
 
 commands:
   hello: ./src/hello.sh
+  env: ./src/env.sh
+  manifest: ./src/manifest.sh
 
 test:
   command: ./tests/validate.sh
