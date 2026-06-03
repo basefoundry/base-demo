@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 required_files=(
   README.md
@@ -10,6 +9,7 @@ required_files=(
   base_manifest.yaml
   Brewfile
   .base/activate.sh
+  bin/base-demo-python-info
   src/hello.sh
   src/env.sh
   src/manifest.sh
@@ -27,7 +27,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh .base/activate.sh src/hello.sh src/env.sh src/manifest.sh demo/demo.sh; do
+for executable in tests/validate.sh .base/activate.sh bin/base-demo-python-info src/hello.sh src/env.sh src/manifest.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -64,7 +64,7 @@ grep -Fq 'manifest: ./src/manifest.sh' base_manifest.yaml || {
   exit 1
 }
 
-grep -Fq 'python-info: PYTHONPATH=lib/python python -m base_demo_cli' base_manifest.yaml || {
+grep -Fq 'python-info: ./bin/base-demo-python-info' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the python-info command.\n' >&2
   exit 1
 }

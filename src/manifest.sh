@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 manifest="${BASE_PROJECT_MANIFEST:-base_manifest.yaml}"
 

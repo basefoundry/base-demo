@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 BASE_DEMO_PROJECT="${BASE_PROJECT:-base-demo}"
 BASE_DEMO_ROOT="${BASE_PROJECT_ROOT:-}"
@@ -19,13 +18,19 @@ demo_project_root() {
   cd -- "$(demo_script_dir)/.." && pwd -P
 }
 
-BASE_DEMO_ROOT="$(demo_project_root)"
+BASE_DEMO_ROOT="$(demo_project_root)" || {
+  printf 'ERROR: Unable to resolve base-demo project root.\n' >&2
+  exit 1
+}
 
 demo_workspace_root() {
   cd -- "$BASE_DEMO_ROOT/.." && pwd -P
 }
 
-BASE_DEMO_WORKSPACE="$(demo_workspace_root)"
+BASE_DEMO_WORKSPACE="$(demo_workspace_root)" || {
+  printf 'ERROR: Unable to resolve base-demo workspace root.\n' >&2
+  exit 1
+}
 
 usage() {
   cat <<'EOF'
@@ -120,6 +125,7 @@ project_shape_step() {
   step 1 "Project Shape"
   run_command test -f "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command test -f "$BASE_DEMO_ROOT/Brewfile"
+  run_command test -x "$BASE_DEMO_ROOT/bin/base-demo-python-info"
   run_command test -x "$BASE_DEMO_ROOT/src/hello.sh"
   run_command test -x "$BASE_DEMO_ROOT/src/env.sh"
   run_command test -x "$BASE_DEMO_ROOT/src/manifest.sh"
@@ -133,7 +139,7 @@ manifest_step() {
   run_command grep -n "hello: ./src/hello.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "env: ./src/env.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "manifest: ./src/manifest.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
-  run_command grep -n "python-info: PYTHONPATH=lib/python python -m base_demo_cli" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "python-info: ./bin/base-demo-python-info" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "command: ./tests/validate.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "script: ./demo/demo.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   pause
@@ -142,7 +148,7 @@ manifest_step() {
 activation_step() {
   step 5 "Project Activation Source"
   # shellcheck source=/dev/null
-  source "$BASE_DEMO_ROOT/.base/activate.sh"
+  source "$BASE_DEMO_ROOT/.base/activate.sh" || return 1
   printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
   printf 'BASE_DEMO_ACTIVATED=%s\n' "${BASE_DEMO_ACTIVATED:-unset}"
   printf 'BASE_DEMO_PROJECT_KIND=%s\n' "${BASE_DEMO_PROJECT_KIND:-unset}"
@@ -240,7 +246,7 @@ main() {
     return "$status"
   }
 
-  cd -- "$BASE_DEMO_ROOT"
+  cd -- "$BASE_DEMO_ROOT" || return 1
   intro
   project_shape_step
   manifest_step

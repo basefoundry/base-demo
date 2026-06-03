@@ -45,7 +45,7 @@ case "$*" in
     printf 'hello       ./src/hello.sh\n'
     printf 'env         ./src/env.sh\n'
     printf 'manifest    ./src/manifest.sh\n'
-    printf 'python-info PYTHONPATH=lib/python python -m base_demo_cli\n'
+    printf 'python-info ./bin/base-demo-python-info\n'
     ;;
   run\ base-demo\ --workspace\ *\ hello)
     printf 'hello from base-demo\n'

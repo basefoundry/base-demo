@@ -56,7 +56,7 @@ test                 ./tests/validate.sh
 hello                ./src/hello.sh
 env                  ./src/env.sh
 manifest             ./src/manifest.sh
-python-info          PYTHONPATH=lib/python python -m base_demo_cli
+python-info          ./bin/base-demo-python-info
 
 $ basectl run base-demo hello
 hello from base-demo
@@ -80,6 +80,8 @@ because activation sources `.base/activate.sh` into the project shell.
   for `basectl run`.
 - `lib/python/base_demo_cli` is a tiny Python command target that runs inside
   the Base-managed project environment.
+- `bin/base-demo-python-info` is the Bash launcher that delegates the Python
+  package to `base-wrapper`.
 - `demo/demo.sh` is the interactive walkthrough.
 - `tests/validate.sh` verifies that the repository baseline is intact.
 
