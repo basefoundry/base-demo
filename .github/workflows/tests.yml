@@ -14,8 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install BATS
-        run: brew install bats-core
+      - name: Install Bash and BATS
+        run: brew install bash bats-core
 
       - name: Validate repository baseline
         run: ./tests/validate.sh
