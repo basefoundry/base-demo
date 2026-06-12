@@ -46,6 +46,12 @@ The commands above exercise the complete Base project loop:
   source applied.
 - `basectl demo base-demo` runs the project-owned walkthrough.
 
+`basectl activate base-demo` spawns a new subshell, sources `.base/activate.sh`,
+and updates the prompt to `[base-demo: <branch>] ~/path $`. Inside that shell,
+`BASE_DEMO_ENV` is `baseline` (set by activate.sh). Run `exit` or press Ctrl-D
+to return to the original shell. The environment changes disappear when the
+subshell exits — no explicit deactivation is needed.
+
 Expected command output includes:
 
 ```text
