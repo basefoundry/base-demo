@@ -2,3 +2,5 @@
 #
 # Keep this lightweight. The baseline intentionally has no required formulae;
 # follow-up demo work can add small tools when they teach a real Base workflow.
+
+brew "mise"
