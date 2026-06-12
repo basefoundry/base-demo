@@ -57,11 +57,9 @@ jobs:
         run: ../base/bin/basectl test base-demo --workspace ..
 
       - name: Build base-demo (list targets)
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl build base-demo --workspace .. --list
 
       - name: Build base-demo
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl build base-demo --workspace ..
 
       - name: Run base-demo non-interactively
