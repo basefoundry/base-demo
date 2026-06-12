@@ -23,55 +23,37 @@ jobs:
       - name: Run demo script tests
         run: bats tests/demo_test.bats
 
+      # Pin to a Base release tag so CI is not affected by Base master changes.
+      # Update this tag when a new Base release is made.
       - name: Check out Base
-        run: git clone --depth 1 https://github.com/codeforester/base.git ../base
-
-      - name: Detect Base demo support
-        id: base_demo
-        run: |
-          if ../base/bin/basectl demo --help >/dev/null 2>&1; then
-            echo "supported=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "supported=false" >> "$GITHUB_OUTPUT"
-            echo "Base master does not support basectl demo yet; skipping full Base-backed validation."
-          fi
+        run: git clone --depth 1 --branch v0.4.4 https://github.com/codeforester/base.git ../base
 
       - name: Set up Base
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl setup base --no-notify
 
       - name: Set up base-demo
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl setup base-demo --no-notify
 
       - name: Check base-demo
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl check base-demo
 
       - name: Doctor base-demo
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl doctor base-demo
 
       - name: Check repository baseline through Base
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl repo check .
 
       - name: List base-demo commands
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl run base-demo --workspace .. --list
 
       - name: Run base-demo hello command
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl run base-demo --workspace .. hello
 
       - name: Run base-demo Python command
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl run base-demo --workspace .. python-info
 
       - name: Test base-demo
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl test base-demo --workspace ..
 
       - name: Run base-demo non-interactively
-        if: steps.base_demo.outputs.supported == 'true'
         run: ../base/bin/basectl demo base-demo --workspace .. -- --non-interactive
