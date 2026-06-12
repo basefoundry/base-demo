@@ -9,6 +9,8 @@ health:
   required_env:
     - BASE_DEMO_ENV
 
+mise: .mise.toml
+
 activate:
   source:
     - .base/activate.sh
