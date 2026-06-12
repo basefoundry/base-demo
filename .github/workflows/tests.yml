@@ -32,13 +32,13 @@ jobs:
         run: ../base/bin/basectl setup base --no-notify
 
       - name: Set up base-demo
-        run: ../base/bin/basectl setup base-demo --no-notify
+        run: ../base/bin/basectl setup base-demo --manifest ./base_manifest.yaml --no-notify
 
       - name: Check base-demo
-        run: ../base/bin/basectl check base-demo
+        run: ../base/bin/basectl check base-demo --manifest ./base_manifest.yaml
 
       - name: Doctor base-demo
-        run: ../base/bin/basectl doctor base-demo
+        run: ../base/bin/basectl doctor base-demo --manifest ./base_manifest.yaml
 
       - name: Check repository baseline through Base
         run: ../base/bin/basectl repo check .
