@@ -145,19 +145,6 @@ manifest_step() {
   pause
 }
 
-activation_step() {
-  step 5 "Project Activation Source"
-  # shellcheck source=/dev/null
-  source "$BASE_DEMO_ROOT/.base/activate.sh" || return 1
-  printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
-  printf 'BASE_DEMO_ACTIVATED=%s\n' "${BASE_DEMO_ACTIVATED:-unset}"
-  printf 'BASE_DEMO_PROJECT_KIND=%s\n' "${BASE_DEMO_PROJECT_KIND:-unset}"
-  require_contains "activation" "${BASE_DEMO_ENV:-}" "baseline"
-  require_contains "activation" "${BASE_DEMO_ACTIVATED:-}" "true"
-  require_contains "activation" "${BASE_DEMO_PROJECT_KIND:-}" "reference-demo"
-  pause
-}
-
 discovery_step() {
   local output
 
@@ -172,6 +159,19 @@ diagnostics_step() {
   step 4 "Project Diagnostics"
   run_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT"
   run_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT"
+  pause
+}
+
+activation_step() {
+  step 5 "Project Activation Source"
+  # shellcheck source=/dev/null
+  source "$BASE_DEMO_ROOT/.base/activate.sh" || return 1
+  printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
+  printf 'BASE_DEMO_ACTIVATED=%s\n' "${BASE_DEMO_ACTIVATED:-unset}"
+  printf 'BASE_DEMO_PROJECT_KIND=%s\n' "${BASE_DEMO_PROJECT_KIND:-unset}"
+  require_contains "activation" "${BASE_DEMO_ENV:-}" "baseline"
+  require_contains "activation" "${BASE_DEMO_ACTIVATED:-}" "true"
+  require_contains "activation" "${BASE_DEMO_PROJECT_KIND:-}" "reference-demo"
   pause
 }
 
