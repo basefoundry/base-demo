@@ -1,0 +1,6 @@
+[tools]
+python = "3.13"
+
+[tasks.validate]
+description = "Run the repository baseline validation"
+run = "./tests/validate.sh"
