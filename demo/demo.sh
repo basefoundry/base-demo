@@ -157,6 +157,8 @@ discovery_step() {
 
 diagnostics_step() {
   step 4 "Project Diagnostics"
+  printf 'The manifest declares BASE_DEMO_ENV as a required_env health check.\n'
+  printf 'basectl check reports it as missing until basectl activate sources .base/activate.sh.\n\n'
   run_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT"
   run_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT"
   pause

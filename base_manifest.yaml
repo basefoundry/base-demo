@@ -5,6 +5,10 @@ project:
 
 brewfile: Brewfile
 
+health:
+  required_env:
+    - BASE_DEMO_ENV
+
 activate:
   source:
     - .base/activate.sh

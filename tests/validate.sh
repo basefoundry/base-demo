@@ -74,4 +74,9 @@ grep -Fq 'script: ./demo/demo.sh' base_manifest.yaml || {
   exit 1
 }
 
+grep -Fq 'required_env:' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare health.required_env.\n' >&2
+  exit 1
+}
+
 printf 'Repository baseline is present.\n'
