@@ -5,7 +5,10 @@ required_files=(
   VERSION
   CHANGELOG.md
   CONTRIBUTING.md
+  AGENTS.md
+  skills.md
   LICENSE
+  install.sh
   base_manifest.yaml
   Brewfile
   .base/activate.sh
@@ -19,6 +22,7 @@ required_files=(
   demo/demo.sh
   tests/demo_test.bats
   .github/workflows/tests.yml
+  .github/pull_request_template.md
 )
 
 for file in "${required_files[@]}"; do
@@ -28,7 +32,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh .base/activate.sh bin/base-demo-python-info src/hello.sh src/env.sh src/manifest.sh src/build-info.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info src/hello.sh src/env.sh src/manifest.sh src/build-info.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1

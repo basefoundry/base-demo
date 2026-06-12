@@ -7,6 +7,11 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ## [Unreleased]
 
+### Added
+
+- Added repo-local agent guidance, a project skills index, and a reusable
+  Base-backed installer script.
+
 ## [0.1.0] - 2026-06-12
 
 ### Added
