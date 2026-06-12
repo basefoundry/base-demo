@@ -4,19 +4,19 @@ from __future__ import annotations
 
 import os
 
+import base_cli
 
-def _print_env(name: str) -> None:
-    print(f"{name}={os.environ.get(name, 'unset')}")
+app = base_cli.App(name="base_demo_cli")
 
 
-def main() -> int:
+@app.command()
+def run(ctx: base_cli.Context) -> None:
+    """Show the Base project environment for base-demo."""
+    ctx.log.debug("base_demo_cli starting")
     print("base-demo python cli")
-    _print_env("BASE_PROJECT")
-    _print_env("BASE_PROJECT_ROOT")
-    _print_env("BASE_PROJECT_MANIFEST")
-    _print_env("BASE_PROJECT_VENV_DIR")
-    return 0
+    for var in ("BASE_PROJECT", "BASE_PROJECT_ROOT", "BASE_PROJECT_MANIFEST", "BASE_PROJECT_VENV_DIR"):
+        print(f"{var}={os.environ.get(var, 'unset')}")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    app()
