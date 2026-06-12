@@ -231,10 +231,24 @@ test_step() {
   pause
 }
 
+build_step() {
+  local output
+
+  step 10 "Build Targets"
+  output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --list)"
+  printf '%s\n' "$output"
+  require_contains "build list" "$output" "info"
+
+  output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE")"
+  printf '%s\n' "$output"
+  require_contains "build output" "$output" "project=base-demo"
+  pause
+}
+
 demo_step() {
   local output
 
-  step 10 "Demo Contract"
+  step 11 "Demo Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" demo "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --dry-run -- --non-interactive)"
   printf '%s\n' "$output"
   require_contains "demo command" "$output" "Would run demo"
@@ -259,6 +273,7 @@ main() {
   run_step
   inspection_step
   test_step
+  build_step
   demo_step
   printf '\nbase-demo walkthrough complete.\n'
 }

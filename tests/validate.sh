@@ -13,6 +13,7 @@ required_files=(
   src/hello.sh
   src/env.sh
   src/manifest.sh
+  src/build-info.sh
   lib/python/base_demo_cli/__init__.py
   lib/python/base_demo_cli/__main__.py
   demo/demo.sh
@@ -27,7 +28,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh .base/activate.sh bin/base-demo-python-info src/hello.sh src/env.sh src/manifest.sh demo/demo.sh; do
+for executable in tests/validate.sh .base/activate.sh bin/base-demo-python-info src/hello.sh src/env.sh src/manifest.sh src/build-info.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -76,6 +77,11 @@ grep -Fq 'script: ./demo/demo.sh' base_manifest.yaml || {
 
 grep -Fq 'required_env:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare health.required_env.\n' >&2
+  exit 1
+}
+
+grep -Fq 'build:' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare build targets.\n' >&2
   exit 1
 }
 

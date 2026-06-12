@@ -56,5 +56,11 @@ jobs:
       - name: Test base-demo
         run: ../base/bin/basectl test base-demo --workspace ..
 
+      - name: Build base-demo (list targets)
+        run: ../base/bin/basectl build base-demo --workspace .. --list
+
+      - name: Build base-demo
+        run: ../base/bin/basectl build base-demo --workspace ..
+
       - name: Run base-demo non-interactively
         run: ../base/bin/basectl demo base-demo --workspace .. -- --non-interactive

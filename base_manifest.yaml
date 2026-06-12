@@ -19,6 +19,14 @@ commands:
   manifest: ./src/manifest.sh
   python-info: ./bin/base-demo-python-info
 
+build:
+  default:
+    - info
+  targets:
+    info:
+      description: Print project build info.
+      command: ./src/build-info.sh
+
 test:
   command: ./tests/validate.sh
 
