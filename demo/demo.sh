@@ -125,10 +125,12 @@ project_shape_step() {
   step 1 "Project Shape"
   run_command test -f "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command test -f "$BASE_DEMO_ROOT/Brewfile"
+  run_command test -f "$BASE_DEMO_ROOT/.mise.toml"
   run_command test -x "$BASE_DEMO_ROOT/bin/base-demo-python-info"
   run_command test -x "$BASE_DEMO_ROOT/src/hello.sh"
   run_command test -x "$BASE_DEMO_ROOT/src/env.sh"
   run_command test -x "$BASE_DEMO_ROOT/src/manifest.sh"
+  run_command test -x "$BASE_DEMO_ROOT/src/build-info.sh"
   run_command test -x "$BASE_DEMO_ROOT/tests/validate.sh"
   pause
 }
@@ -136,10 +138,13 @@ project_shape_step() {
 manifest_step() {
   step 2 "Manifest Contracts"
   run_command grep -n "name: base-demo" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "required_env:" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "mise: .mise.toml" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "hello: ./src/hello.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "env: ./src/env.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "manifest: ./src/manifest.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "python-info: ./bin/base-demo-python-info" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "command: ./src/build-info.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "command: ./tests/validate.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "script: ./demo/demo.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   pause
