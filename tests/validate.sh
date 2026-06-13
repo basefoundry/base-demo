@@ -11,6 +11,7 @@ required_files=(
   install.sh
   base_manifest.yaml
   Brewfile
+  .mise.toml
   .base/activate.sh
   bin/base-demo-python-info
   src/hello.sh
@@ -86,6 +87,11 @@ grep -Fq 'required_env:' base_manifest.yaml || {
 
 grep -Fq 'build:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare build targets.\n' >&2
+  exit 1
+}
+
+grep -Fq 'mise:' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare mise configuration.\n' >&2
   exit 1
 }
 
