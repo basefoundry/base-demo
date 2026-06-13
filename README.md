@@ -26,6 +26,7 @@ basectl repo check .
 basectl run base-demo --list
 basectl run base-demo hello
 basectl test base-demo
+basectl build base-demo
 basectl activate base-demo
 basectl demo base-demo
 ```
@@ -42,6 +43,7 @@ The commands above exercise the complete Base project loop:
 - `basectl run base-demo --list` shows the manifest-declared project commands.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
 - `basectl test base-demo` runs the manifest-declared test command.
+- `basectl build base-demo` runs the default build target (`info`) declared in the manifest.
 - `basectl activate base-demo` starts a project shell with the activation
   source applied.
 - `basectl demo base-demo` runs the project-owned walkthrough.
@@ -82,12 +84,13 @@ because activation sources `.base/activate.sh` into the project shell.
   test command, and Brewfile location using current Base contracts.
 - `Brewfile` is the Homebrew-owned place for ordinary macOS tools.
 - `.base/activate.sh` demonstrates project activation state.
-- `src/hello.sh`, `src/env.sh`, and `src/manifest.sh` are tiny command targets
-  for `basectl run`.
+- `src/hello.sh`, `src/env.sh`, `src/manifest.sh`, and `src/build-info.sh` are
+  tiny command and build targets for `basectl run` and `basectl build`.
 - `lib/python/base_demo_cli` is a tiny Python command target that runs inside
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python
   package to `base-wrapper`.
+- `.mise.toml` declares tool versions (Python 3.13) managed by mise.
 - `demo/demo.sh` is the interactive walkthrough.
 - `tests/validate.sh` verifies that the repository baseline is intact.
 
@@ -100,9 +103,12 @@ each field maps to a visible Base workflow:
 | --- | --- | --- |
 | `schema_version` | `basectl setup base-demo` | Declares the manifest contract version Base should parse. |
 | `project.name` | `basectl projects list` | Gives Base the stable project name used by setup, check, doctor, run, test, activate, and demo. |
-| `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`. This demo keeps the Brewfile empty on purpose. |
+| `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`. |
+| `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; reported missing until `basectl activate` sources `.base/activate.sh`. |
+| `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
 | `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, and `python-info`. |
+| `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
 | `test.command` | `basectl test base-demo` | Defines the project-owned validation command. |
 | `demo.script` | `basectl demo base-demo` | Defines the project-owned interactive walkthrough. |
 | `artifacts` | `basectl setup base-demo` | Lists Base-managed artifacts. The baseline demo uses an empty list to avoid unnecessary installs. |
