@@ -16,4 +16,5 @@ Useful commands:
 basectl check base-demo
 basectl doctor base-demo
 basectl test base-demo
+basectl build base-demo
 ```
