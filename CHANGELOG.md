@@ -9,6 +9,7 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Added
 
+- Documented the MIT license decision in the README.
 - Added repo-local agent guidance, a project skills index, and a reusable
   Base-backed installer script.
 - Added `health.required_env: [BASE_DEMO_ENV]` to the manifest; `basectl check`

@@ -124,3 +124,9 @@ For CI or scripted validation, run the walkthrough without prompts:
 ```bash
 basectl demo base-demo -- --non-interactive
 ```
+
+## License
+
+base-demo is licensed under the MIT License so it can be freely copied as a
+small reference project for Base-managed workflows. See [LICENSE](LICENSE) for
+the full terms.
