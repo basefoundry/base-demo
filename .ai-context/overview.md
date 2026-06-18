@@ -3,13 +3,11 @@
 `base-demo` is the public reference project and representative environment for
 Base-managed repositories.
 
-It starts with a small Base project shape: a `base_manifest.yaml` that declares
-every current Base contract, a set of runnable commands, a Python CLI that uses
-`base_cli.App`, an interactive demo script, and a validation test.
-
-The next direction is to grow this baseline into a reduced-scale representative
-environment. It should include multiple language services, common build tools,
-one Dockerized service, one React/Vite UI, local databases and cache through
+It includes the Base project shape plus a reduced-scale representative
+environment: a `base_manifest.yaml` that declares every current Base contract,
+runnable commands, a Python CLI that uses `base_cli.App`, an interactive demo
+script, validation tests, multiple language services, common build tools, one
+Dockerized service, one React/Vite UI, local databases and cache through
 Compose, and JSON-modeled `dev`, `staging`, and `prod` configuration. Only local
 `dev` is operational by default; staging and prod are configuration examples.
 

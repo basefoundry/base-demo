@@ -152,25 +152,31 @@ requiring cloud accounts, Kubernetes, Terraform, or secret management.
 The representative stack should be part of the main demo, not hidden behind an
 advanced path.
 
-The completed walkthrough should show:
+The walkthrough shows:
 
 1. Base project discovery and setup.
 2. Manifest-declared commands.
 3. Environment configuration.
 4. Service catalog status.
 5. Build/test delegation across runtimes.
-6. Local infrastructure lifecycle through Compose.
-7. App-service health checks.
-8. React/Vite console as the human-facing view.
-9. Clean teardown.
+6. Service catalog checks across optional local dependencies and fixtures.
+7. Local infrastructure and service startup through a dry-run lifecycle path.
+8. React/Vite console registration as the human-facing view.
+9. Build-target discovery for every representative service.
 
 The default validation path should remain stable. Heavy checks can be skipped
 with a clear message when Docker or a language toolchain is unavailable, but the
 repo shape and command contracts should always be validated.
 
+CI runs the representative BATS suites, validates all environment files, checks
+the service catalog through Base, and exercises service startup with
+`BASE_DEMO_SERVICES_DRY_RUN=1`. That gives the main demo and CI the same
+operator surface without requiring every dependency to stay running during a
+baseline validation run.
+
 ## Implementation Train
 
-The implementation should move one issue at a time:
+The implementation moved one issue at a time:
 
 | Issue | Slice |
 | --- | --- |
