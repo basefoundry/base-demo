@@ -28,7 +28,7 @@ The target stack is broad enough to feel real and small enough to inspect:
 
 | Area | Representative choice | Intent |
 | --- | --- | --- |
-| Python | Tiny Python HTTP API plus the existing Python CLI | Demonstrate Python as both project command and app service runtime. |
+| Python | Tiny Python HTTP API on port 8020 plus the existing Python CLI | Demonstrate Python as both project command and app service runtime. |
 | Go | Tiny Go HTTP API on port 8010 | Demonstrate Go service development and native test/build flow. |
 | Docker | Dockerized Go service through Compose | Make Docker first-class without containerizing every app service. |
 | Java | One Gradle service and one Maven service | Demonstrate common Java build tools without Spring-scale complexity. |
@@ -103,6 +103,11 @@ still giving the main demo a real Compose-backed infrastructure surface.
 The first Dockerized application fixture is `services/go-api`. It exposes
 `/healthz`, `/hello`, and `/info` on port 8010 and is registered in both
 `services/catalog.json` and `infra/compose.yaml`.
+
+The first native process fixture is `services/python-api`. It exposes the same
+endpoint shape on port 8020 using only Python's standard library and is managed
+by the `services` command through a small process lifecycle entry in the
+catalog.
 
 ## Environment Model
 

@@ -6,12 +6,15 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import shlex
 import shutil
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -63,6 +66,59 @@ def compose_service_names(services: list[dict[str, Any]]) -> list[str]:
     return names
 
 
+def process_services(services: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        service
+        for service in services
+        if (service.get("lifecycle") or {}).get("type") == "process"
+    ]
+
+
+def process_command(service: dict[str, Any]) -> list[str]:
+    lifecycle = service.get("lifecycle") or {}
+    command = lifecycle.get("command")
+    if not isinstance(command, list) or not all(isinstance(item, str) for item in command):
+        raise ValueError(f"{service.get('name', '-')}: process lifecycle command must be a string array")
+    return command
+
+
+def state_dir(root: Path) -> Path:
+    configured = os.environ.get("BASE_DEMO_SERVICES_STATE_DIR")
+    if configured:
+        return Path(configured).resolve()
+    return root / "var" / "services"
+
+
+def process_state_path(root: Path, service: dict[str, Any]) -> Path:
+    return state_dir(root) / f"{service.get('name', 'service')}.json"
+
+
+def process_log_path(root: Path, service: dict[str, Any]) -> Path:
+    return state_dir(root) / f"{service.get('name', 'service')}.log"
+
+
+def read_process_state(root: Path, service: dict[str, Any]) -> dict[str, Any] | None:
+    path = process_state_path(root, service)
+    try:
+        with path.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def process_is_running(pid: int | None) -> bool:
+    if not pid:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
 def compose_command(root: Path, args: list[str]) -> list[str]:
     return [
         "docker",
@@ -84,6 +140,81 @@ def run_compose(root: Path, args: list[str]) -> int:
         print("ERROR: docker is not available; cannot manage Compose services.", file=sys.stderr)
         return 2
     return subprocess.run(command, check=False).returncode
+
+
+def start_process(service: dict[str, Any], root: Path) -> int:
+    name = str(service.get("name", "-"))
+    try:
+        command = process_command(service)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
+        print(f"DRY-RUN start {name}: {shlex.join(command)}")
+        return 0
+
+    state = read_process_state(root, service)
+    pid = state.get("pid") if state else None
+    if isinstance(pid, int) and process_is_running(pid):
+        print(f"{name} already running pid={pid}")
+        return 0
+
+    directory = state_dir(root)
+    directory.mkdir(parents=True, exist_ok=True)
+    log_path = process_log_path(root, service)
+    env = os.environ.copy()
+    env["BASE_PROJECT_ROOT"] = str(root)
+    port = service.get("port")
+    if port is not None:
+        env["PORT"] = str(port)
+
+    with log_path.open("ab") as log_handle:
+        process = subprocess.Popen(
+            command,
+            cwd=root,
+            env=env,
+            stdout=log_handle,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+    state_payload = {
+        "pid": process.pid,
+        "started_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "command": command,
+        "log": str(log_path),
+    }
+    with process_state_path(root, service).open("w", encoding="utf-8") as handle:
+        json.dump(state_payload, handle, indent=2)
+        handle.write("\n")
+    print(f"{name} started pid={process.pid}")
+    return 0
+
+
+def stop_process(service: dict[str, Any], root: Path) -> int:
+    name = str(service.get("name", "-"))
+    if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
+        print(f"DRY-RUN stop {name}")
+        return 0
+    state_path = process_state_path(root, service)
+    state = read_process_state(root, service)
+    pid = state.get("pid") if state else None
+    if not isinstance(pid, int) or not process_is_running(pid):
+        if state_path.exists():
+            state_path.unlink()
+        print(f"{name} stopped")
+        return 0
+
+    os.kill(pid, signal.SIGTERM)
+    for _ in range(20):
+        if not process_is_running(pid):
+            break
+        time.sleep(0.1)
+    if process_is_running(pid):
+        os.kill(pid, signal.SIGKILL)
+    if state_path.exists():
+        state_path.unlink()
+    print(f"{name} stopped")
+    return 0
 
 
 def check_service(service: dict[str, Any], root: Path) -> tuple[bool, str]:
@@ -141,6 +272,15 @@ def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, s
     rows: list[dict[str, str]] = []
     for service in services:
         ok, detail = check_service(service, root)
+        state = "healthy" if ok else "unhealthy"
+        if not ok and not service.get("required", False):
+            state = "stopped"
+        since = "-"
+        process_state = read_process_state(root, service)
+        if process_state:
+            started_at = process_state.get("started_at")
+            if isinstance(started_at, str) and started_at:
+                since = started_at
         rows.append(
             {
                 "name": str(service.get("name", "-")),
@@ -148,8 +288,8 @@ def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, s
                 "runtime": str(service.get("runtime", "-")),
                 "port": str(service.get("port") or "-"),
                 "health": health_label(service),
-                "state": "healthy" if ok else "unhealthy",
-                "since": "-",
+                "state": state,
+                "since": since,
                 "logs": str(service.get("logs") or "-"),
                 "detail": detail,
                 "required": "true" if service.get("required", False) else "false",
@@ -197,35 +337,46 @@ def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
 
 
 def cmd_lifecycle(services: list[dict[str, Any]], root: Path, action: str) -> int:
+    if action == "restart":
+        stop_result = cmd_lifecycle(services, root, "stop")
+        start_result = cmd_lifecycle(services, root, "start")
+        return stop_result or start_result
+
+    result = 0
     compose_names = compose_service_names(services)
     if compose_names:
         if action == "start":
-            return run_compose(root, ["up", "-d", *compose_names])
+            result = run_compose(root, ["up", "-d", *compose_names])
         if action == "stop":
-            return run_compose(root, ["down"])
-        if action == "restart":
-            stop_result = run_compose(root, ["down"])
-            if stop_result != 0:
-                return stop_result
-            return run_compose(root, ["up", "-d", *compose_names])
-    for service in services:
-        name = service.get("name", "-")
-        print(f"{name} {action} noop")
-    return 0
+            result = run_compose(root, ["down"])
+
+    for service in process_services(services):
+        if action == "start":
+            process_result = start_process(service, root)
+            result = result or process_result
+        if action == "stop":
+            process_result = stop_process(service, root)
+            result = result or process_result
+    return result
 
 
 def cmd_logs(services: list[dict[str, Any]], root: Path) -> int:
+    result = 0
     compose_names = compose_service_names(services)
     if compose_names:
-        return run_compose(root, ["logs", "--tail", "50", *compose_names])
-    for service in services:
+        result = run_compose(root, ["logs", "--tail", "50", *compose_names])
+    for service in process_services(services):
         name = service.get("name", "-")
-        logs = service.get("logs")
-        if logs:
-            print(f"{name} logs {logs}")
-        else:
+        log_path = process_log_path(root, service)
+        if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
+            print(f"DRY-RUN logs {name}: {log_path}")
+            continue
+        if not log_path.exists():
             print(f"{name} logs unavailable")
-    return 0
+            continue
+        print(f"==> {name} {log_path} <==")
+        print(log_path.read_text(encoding="utf-8")[-4000:], end="")
+    return result
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

@@ -75,6 +75,7 @@ case "$*" in
     printf 'mysql             database compose  3306  compose:mysql            stopped  -      docker compose logs mysql\n'
     printf 'redis             cache    compose  6379  compose:redis            stopped  -      docker compose logs redis\n'
     printf 'go-api            service  docker   8010  http://127.0.0.1:8010/healthz stopped  -      docker compose logs go-api\n'
+    printf 'python-api        service  python   8020  http://127.0.0.1:8020/healthz stopped  -      var/services/python-api.log\n'
     ;;
   run\ base-demo\ --workspace\ *\ environments\ --\ list)
     printf 'NAME     MODE         OPERATIONAL  BASE_URL\n'
@@ -129,7 +130,9 @@ EOF
   [[ "$output" == *"mysql"* ]]
   [[ "$output" == *"redis"* ]]
   [[ "$output" == *"go-api"* ]]
+  [[ "$output" == *"python-api"* ]]
   [[ "$output" == *"8010"* ]]
+  [[ "$output" == *"8020"* ]]
   [[ "$output" == *"healthy"* ]]
   [[ "$output" == *"staging"* ]]
   [[ "$output" == *"modeled"* ]]

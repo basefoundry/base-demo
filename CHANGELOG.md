@@ -19,6 +19,9 @@ and versions are tracked in the repo-root `VERSION` file.
   dependencies managed through the `services` command.
 - Added `services/go-api` as a tiny Go HTTP API and the representative
   Dockerized app service on port 8010.
+- Added `services/python-api` as a tiny standard-library Python HTTP API on
+  port 8020, including native process lifecycle wiring in the `services`
+  command.
 - Documented the MIT license decision in the README.
 - Added repo-local agent guidance, a project skills index, and a reusable
   Base-backed installer script.

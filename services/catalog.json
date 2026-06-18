@@ -68,6 +68,25 @@
         "type": "http"
       },
       "logs": "docker compose logs go-api"
+    },
+    {
+      "name": "python-api",
+      "kind": "service",
+      "runtime": "python",
+      "port": 8020,
+      "health_url": "http://127.0.0.1:8020/healthz",
+      "required": false,
+      "lifecycle": {
+        "type": "process",
+        "command": [
+          "python3",
+          "services/python-api/server.py"
+        ]
+      },
+      "check": {
+        "type": "http"
+      },
+      "logs": "var/services/python-api.log"
     }
   ]
 }

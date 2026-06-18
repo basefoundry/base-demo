@@ -7,3 +7,4 @@ dist/
 build/
 *.egg-info/
 services/go-api/go-api
+var/

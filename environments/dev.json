@@ -13,6 +13,9 @@
     },
     "go-api": {
       "required": false
+    },
+    "python-api": {
+      "required": false
     }
   },
   "infrastructure": {

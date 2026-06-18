@@ -33,6 +33,9 @@ build:
     go-api:
       description: Build the Go API service.
       command: ./services/go-api/build.sh
+    python-api:
+      description: Validate the Python API service.
+      command: ./services/python-api/build.sh
 
 test:
   command: ./tests/validate.sh
