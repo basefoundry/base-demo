@@ -48,6 +48,9 @@ build:
     cpp-service:
       description: Build the native C++ service.
       command: ./services/cpp-service/build.sh
+    demo-console:
+      description: Build the React/Vite demo console.
+      command: ./services/demo-console/build.sh
 
 test:
   command: ./tests/validate.sh

@@ -26,6 +26,8 @@ and versions are tracked in the repo-root `VERSION` file.
   Brewfile, service catalog, lifecycle, and build target wiring.
 - Added native C and C++ service fixtures on ports 8050 and 8060 with
   Makefile-backed build scripts and command health checks.
+- Added `services/demo-console`, a React/Vite operational UI on port 8070 for
+  browsing the representative service catalog.
 - Documented the MIT license decision in the README.
 - Added repo-local agent guidance, a project skills index, and a reusable
   Base-backed installer script.

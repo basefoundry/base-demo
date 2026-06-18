@@ -34,7 +34,7 @@ The target stack is broad enough to feel real and small enough to inspect:
 | Java | One Gradle service on port 8030 and one Maven service on port 8040 | Demonstrate common Java build tools without Spring-scale complexity. |
 | C | Tiny native service on port 8050 | Represent lower-level compiled components. |
 | C++ | Tiny native service on port 8060 | Represent C++ service/tooling presence in a mixed environment. |
-| JavaScript UI | React + Vite demo console | Provide a common frontend framework and human-facing operational surface. |
+| JavaScript UI | React + Vite demo console on port 8070 | Provide a common frontend framework and human-facing operational surface. |
 | Databases | Postgres and MySQL through Compose | Represent common data dependencies without cross-service dependency complexity. |
 | Cache | Redis through Compose | Represent cache infrastructure as a local dependency pattern. |
 
@@ -119,6 +119,11 @@ The native fixtures are `services/c-service` and `services/cpp-service`. They
 use small Makefiles and command-level health checks to avoid adding C/C++ HTTP
 frameworks solely for the demo. Their `/healthz`, `/hello`, and `/info` behavior
 is still visible through the compiled binaries and the shared services catalog.
+
+The UI fixture is `services/demo-console`, a React/Vite operational console that
+reads the checked-in service catalog copy generated from `services/catalog.json`.
+It is deliberately a dashboard surface, not a product app; the catalog remains
+the source of truth.
 
 ## Environment Model
 
