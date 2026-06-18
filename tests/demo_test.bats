@@ -71,6 +71,9 @@ case "$*" in
     printf 'mode=operational\n'
     printf 'NAME              KIND     RUNTIME  PORT  HEALTH                   STATE    SINCE  LOGS\n'
     printf 'project-baseline  project  base     -     file:base_manifest.yaml  healthy  -      -\n'
+    printf 'postgres          database compose  5432  compose:postgres         stopped  -      docker compose logs postgres\n'
+    printf 'mysql             database compose  3306  compose:mysql            stopped  -      docker compose logs mysql\n'
+    printf 'redis             cache    compose  6379  compose:redis            stopped  -      docker compose logs redis\n'
     ;;
   run\ base-demo\ --workspace\ *\ environments\ --\ list)
     printf 'NAME     MODE         OPERATIONAL  BASE_URL\n'
@@ -121,6 +124,9 @@ EOF
   [[ "$output" == *"base-demo manifest"* ]]
   [[ "$output" == *"base-demo python cli"* ]]
   [[ "$output" == *"project-baseline"* ]]
+  [[ "$output" == *"postgres"* ]]
+  [[ "$output" == *"mysql"* ]]
+  [[ "$output" == *"redis"* ]]
   [[ "$output" == *"healthy"* ]]
   [[ "$output" == *"staging"* ]]
   [[ "$output" == *"modeled"* ]]

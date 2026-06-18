@@ -13,6 +13,48 @@
         "path": "base_manifest.yaml"
       },
       "logs": null
+    },
+    {
+      "name": "postgres",
+      "kind": "database",
+      "runtime": "compose",
+      "port": 5432,
+      "health_url": null,
+      "required": false,
+      "compose_service": "postgres",
+      "check": {
+        "type": "compose",
+        "service": "postgres"
+      },
+      "logs": "docker compose logs postgres"
+    },
+    {
+      "name": "mysql",
+      "kind": "database",
+      "runtime": "compose",
+      "port": 3306,
+      "health_url": null,
+      "required": false,
+      "compose_service": "mysql",
+      "check": {
+        "type": "compose",
+        "service": "mysql"
+      },
+      "logs": "docker compose logs mysql"
+    },
+    {
+      "name": "redis",
+      "kind": "cache",
+      "runtime": "compose",
+      "port": 6379,
+      "health_url": null,
+      "required": false,
+      "compose_service": "redis",
+      "check": {
+        "type": "compose",
+        "service": "redis"
+      },
+      "logs": "docker compose logs redis"
     }
   ]
 }

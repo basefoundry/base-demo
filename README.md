@@ -112,6 +112,8 @@ because activation sources `.base/activate.sh` into the project shell.
   configuration.
 - `services/catalog.json` is the initial catalog for representative services,
   infrastructure, and lifecycle checks.
+- `infra/compose.yaml` defines local Postgres, MySQL, and Redis dependencies
+  for the representative dev environment.
 - `environments/dev.json`, `environments/staging.json`, and
   `environments/prod.json` model environment-specific configuration. Only
   `dev` is operational by default.
@@ -162,11 +164,14 @@ The first representative-environment command is:
 ```bash
 basectl run base-demo services -- status
 basectl run base-demo services -- check
+BASE_DEMO_SERVICES_DRY_RUN=1 basectl run base-demo services -- start
 ```
 
-It reads `services/catalog.json` and reports the current catalog health. Later
-service, infrastructure, UI, and environment slices will extend the same
-command surface instead of adding one-off lifecycle commands.
+It reads `services/catalog.json` and reports the current catalog health. Local
+Postgres, MySQL, and Redis are declared through `infra/compose.yaml`; they are
+representative dependencies and are optional in `services check` until started.
+Later service and UI slices will extend the same command surface instead of
+adding one-off lifecycle commands.
 
 For CI or scripted validation, run the walkthrough without prompts:
 

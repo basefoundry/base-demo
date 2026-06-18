@@ -6,6 +6,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
+import shutil
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -47,6 +50,43 @@ def load_environment(root: Path, name: str) -> dict[str, Any]:
     return payload
 
 
+def compose_file(root: Path) -> Path:
+    return root / "infra" / "compose.yaml"
+
+
+def compose_service_names(services: list[dict[str, Any]]) -> list[str]:
+    names: list[str] = []
+    for service in services:
+        if service.get("runtime") == "compose":
+            compose_name = service.get("compose_service") or service.get("name")
+            if isinstance(compose_name, str) and compose_name:
+                names.append(compose_name)
+    return names
+
+
+def compose_command(root: Path, args: list[str]) -> list[str]:
+    return [
+        "docker",
+        "compose",
+        "-f",
+        str(compose_file(root)),
+        "-p",
+        "base-demo",
+        *args,
+    ]
+
+
+def run_compose(root: Path, args: list[str]) -> int:
+    command = compose_command(root, args)
+    if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
+        print(f"DRY-RUN {shlex.join(command)}")
+        return 0
+    if shutil.which("docker") is None:
+        print("ERROR: docker is not available; cannot manage Compose services.", file=sys.stderr)
+        return 2
+    return subprocess.run(command, check=False).returncode
+
+
 def check_service(service: dict[str, Any], root: Path) -> tuple[bool, str]:
     check = service.get("check") or {"type": "none"}
     check_type = check.get("type")
@@ -73,6 +113,17 @@ def check_service(service: dict[str, Any], root: Path) -> tuple[bool, str]:
         except (OSError, urllib.error.URLError) as exc:
             return False, f"http:{url} ({exc})"
 
+    if check_type == "compose":
+        service_name = check.get("service") or service.get("compose_service") or service.get("name")
+        if not isinstance(service_name, str) or not service_name:
+            return False, "compose:<missing service>"
+        if shutil.which("docker") is None:
+            return False, f"compose:{service_name} unavailable"
+        command = compose_command(root, ["ps", "--services", "--status", "running"])
+        result = subprocess.run(command, check=False, capture_output=True, text=True)
+        running = set(result.stdout.splitlines())
+        return service_name in running, f"compose:{service_name}"
+
     return False, f"unsupported:{check_type}"
 
 
@@ -80,6 +131,8 @@ def health_label(service: dict[str, Any]) -> str:
     check = service.get("check") or {"type": "none"}
     if service.get("health_url"):
         return str(service["health_url"])
+    if check.get("type") == "compose":
+        return f"compose:{check.get('service', service.get('compose_service', '-'))}"
     if check.get("type") == "file":
         return f"file:{check.get('path', '-')}"
     return str(check.get("type") or "-")
@@ -136,20 +189,36 @@ def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
         if row["state"] == "healthy":
             print(f"{row['name']} ok")
             continue
-        print(f"{row['name']} fail {row['detail']}")
         if row["required"] == "true":
+            print(f"{row['name']} fail {row['detail']}")
             failed = True
+        else:
+            print(f"{row['name']} skip optional {row['detail']}")
     return 1 if failed else 0
 
 
-def cmd_lifecycle(services: list[dict[str, Any]], action: str) -> int:
+def cmd_lifecycle(services: list[dict[str, Any]], root: Path, action: str) -> int:
+    compose_names = compose_service_names(services)
+    if compose_names:
+        if action == "start":
+            return run_compose(root, ["up", "-d", *compose_names])
+        if action == "stop":
+            return run_compose(root, ["down"])
+        if action == "restart":
+            stop_result = run_compose(root, ["down"])
+            if stop_result != 0:
+                return stop_result
+            return run_compose(root, ["up", "-d", *compose_names])
     for service in services:
         name = service.get("name", "-")
         print(f"{name} {action} noop")
     return 0
 
 
-def cmd_logs(services: list[dict[str, Any]]) -> int:
+def cmd_logs(services: list[dict[str, Any]], root: Path) -> int:
+    compose_names = compose_service_names(services)
+    if compose_names:
+        return run_compose(root, ["logs", "--tail", "50", *compose_names])
     for service in services:
         name = service.get("name", "-")
         logs = service.get("logs")
@@ -184,9 +253,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "check":
         return cmd_check(services, root)
     if args.command in {"start", "stop", "restart"}:
-        return cmd_lifecycle(services, args.command)
+        return cmd_lifecycle(services, root, args.command)
     if args.command == "logs":
-        return cmd_logs(services)
+        return cmd_logs(services, root)
 
     raise AssertionError(f"unhandled command: {args.command}")
 

@@ -88,6 +88,18 @@ fake distributed-system dependency graph.
 Compose should manage local infrastructure. The language build tools should
 still remain visible through native build and test commands.
 
+The local infrastructure layer is:
+
+| Name | Kind | Port | Scope |
+| --- | --- | --- | --- |
+| `postgres` | Database | 5432 | Local dev, representative dependency |
+| `mysql` | Database | 3306 | Local dev, representative dependency |
+| `redis` | Cache | 6379 | Local dev, representative dependency |
+
+These dependencies are optional for `services check` until they are started.
+That keeps the default validation path stable on machines without Docker while
+still giving the main demo a real Compose-backed infrastructure surface.
+
 ## Environment Model
 
 `base-demo` should model three environments:

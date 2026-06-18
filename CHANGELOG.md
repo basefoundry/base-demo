@@ -15,6 +15,8 @@ and versions are tracked in the repo-root `VERSION` file.
   representative environment lifecycle status and checks.
 - Added JSON-modeled `dev`, `staging`, and `prod` environment configuration
   with an `environments` inspection and validation command.
+- Added `infra/compose.yaml` with representative Postgres, MySQL, and Redis
+  dependencies managed through the `services` command.
 - Documented the MIT license decision in the README.
 - Added repo-local agent guidance, a project skills index, and a reusable
   Base-backed installer script.

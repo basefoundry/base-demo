@@ -14,15 +14,15 @@
   },
   "infrastructure": {
     "postgres": {
-      "enabled": false,
+      "enabled": true,
       "port": 5432
     },
     "mysql": {
-      "enabled": false,
+      "enabled": true,
       "port": 3306
     },
     "redis": {
-      "enabled": false,
+      "enabled": true,
       "port": 6379
     }
   }
