@@ -127,6 +127,8 @@ project_shape_step() {
   run_command test -f "$BASE_DEMO_ROOT/Brewfile"
   run_command test -f "$BASE_DEMO_ROOT/.mise.toml"
   run_command test -x "$BASE_DEMO_ROOT/bin/base-demo-python-info"
+  run_command test -x "$BASE_DEMO_ROOT/bin/base-demo-services"
+  run_command test -f "$BASE_DEMO_ROOT/services/catalog.json"
   run_command test -x "$BASE_DEMO_ROOT/src/hello.sh"
   run_command test -x "$BASE_DEMO_ROOT/src/env.sh"
   run_command test -x "$BASE_DEMO_ROOT/src/manifest.sh"
@@ -144,6 +146,7 @@ manifest_step() {
   run_command grep -n "env: ./src/env.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "manifest: ./src/manifest.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "python-info: ./bin/base-demo-python-info" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "services: ./bin/base-demo-services" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "command: ./src/build-info.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "command: ./tests/validate.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "script: ./demo/demo.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
@@ -192,6 +195,7 @@ command_discovery_step() {
   require_contains "run command list" "$output" "env"
   require_contains "run command list" "$output" "manifest"
   require_contains "run command list" "$output" "python-info"
+  require_contains "run command list" "$output" "services"
   pause
 }
 
@@ -206,7 +210,7 @@ run_step() {
 }
 
 inspection_step() {
-  local env_output manifest_output python_output
+  local env_output manifest_output python_output services_output
 
   step 8 "Inspection Commands"
   env_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" env)"
@@ -223,6 +227,11 @@ inspection_step() {
   printf '%s\n' "$python_output"
   require_contains "python command" "$python_output" "base-demo python cli"
   require_contains "python command" "$python_output" "BASE_PROJECT=base-demo"
+
+  services_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- status)"
+  printf '%s\n' "$services_output"
+  require_contains "services command" "$services_output" "project-baseline"
+  require_contains "services command" "$services_output" "healthy"
   pause
 }
 

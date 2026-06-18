@@ -33,6 +33,7 @@ basectl doctor base-demo
 basectl repo check .
 basectl run base-demo --list
 basectl run base-demo hello
+basectl run base-demo services -- status
 basectl test base-demo
 basectl build base-demo
 basectl activate base-demo
@@ -50,6 +51,8 @@ The commands above exercise the complete Base project loop:
 - `basectl repo check .` validates the standard repository baseline files.
 - `basectl run base-demo --list` shows the manifest-declared project commands.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
+- `basectl run base-demo services -- status` shows the representative service
+  catalog and current health state.
 - `basectl test base-demo` runs the manifest-declared test command.
 - `basectl build base-demo` runs the default build target (`info`) declared in the manifest.
 - `basectl activate base-demo` starts a project shell with the activation
@@ -73,6 +76,7 @@ hello                ./src/hello.sh
 env                  ./src/env.sh
 manifest             ./src/manifest.sh
 python-info          ./bin/base-demo-python-info
+services             ./bin/base-demo-services
 
 $ basectl run base-demo hello
 hello from base-demo
@@ -98,6 +102,10 @@ because activation sources `.base/activate.sh` into the project shell.
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python
   package to `base-wrapper`.
+- `bin/base-demo-services` reads `services/catalog.json` and provides the
+  `services` lifecycle command for the representative environment.
+- `services/catalog.json` is the initial catalog for representative services,
+  infrastructure, and lifecycle checks.
 - `.mise.toml` declares tool versions (Python 3.13) managed by mise.
 - `demo/demo.sh` is the interactive walkthrough.
 - `tests/validate.sh` verifies that the repository baseline is intact.
@@ -115,7 +123,7 @@ each field maps to a visible Base workflow:
 | `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; reported missing until `basectl activate` sources `.base/activate.sh`. |
 | `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
-| `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, and `python-info`. |
+| `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, and `services`. |
 | `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
 | `test.command` | `basectl test base-demo` | Defines the project-owned validation command. |
 | `demo.script` | `basectl demo base-demo` | Defines the project-owned interactive walkthrough. |
@@ -128,6 +136,17 @@ fixtures, one Dockerized app service, a React/Vite UI, Compose-backed local
 databases and cache, and a lightweight `dev`/`staging`/`prod` configuration
 model. Those additions should stay shallow and readable; deeper product and
 platform complexity belongs in Banyan Labs.
+
+The first representative-environment command is:
+
+```bash
+basectl run base-demo services -- status
+basectl run base-demo services -- check
+```
+
+It reads `services/catalog.json` and reports the current catalog health. Later
+service, infrastructure, UI, and environment slices will extend the same
+command surface instead of adding one-off lifecycle commands.
 
 For CI or scripted validation, run the walkthrough without prompts:
 

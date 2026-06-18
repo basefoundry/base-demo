@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Service lifecycle command for the base-demo representative environment."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+from typing import Any
+
+
+def project_root() -> Path:
+    root = os.environ.get("BASE_PROJECT_ROOT")
+    if root:
+        return Path(root).resolve()
+    return Path(__file__).resolve().parents[1]
+
+
+def load_catalog(path: Path) -> list[dict[str, Any]]:
+    try:
+        with path.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except FileNotFoundError:
+        raise SystemExit(f"ERROR: service catalog not found: {path}") from None
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"ERROR: service catalog is not valid JSON: {exc}") from None
+
+    services = payload.get("services")
+    if not isinstance(services, list):
+        raise SystemExit("ERROR: service catalog must contain a services array.")
+    return services
+
+
+def check_service(service: dict[str, Any], root: Path) -> tuple[bool, str]:
+    check = service.get("check") or {"type": "none"}
+    check_type = check.get("type")
+
+    if check_type == "none":
+        return True, "none"
+
+    if check_type == "file":
+        path_value = check.get("path")
+        if not isinstance(path_value, str) or not path_value:
+            return False, "file:<missing path>"
+        path = Path(path_value)
+        if not path.is_absolute():
+            path = root / path
+        return path.exists(), f"file:{path_value}"
+
+    if check_type == "http":
+        url = service.get("health_url")
+        if not isinstance(url, str) or not url:
+            return False, "http:<missing health_url>"
+        try:
+            with urllib.request.urlopen(url, timeout=1.0) as response:
+                return 200 <= response.status < 400, f"http:{url}"
+        except (OSError, urllib.error.URLError) as exc:
+            return False, f"http:{url} ({exc})"
+
+    return False, f"unsupported:{check_type}"
+
+
+def health_label(service: dict[str, Any]) -> str:
+    check = service.get("check") or {"type": "none"}
+    if service.get("health_url"):
+        return str(service["health_url"])
+    if check.get("type") == "file":
+        return f"file:{check.get('path', '-')}"
+    return str(check.get("type") or "-")
+
+
+def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for service in services:
+        ok, detail = check_service(service, root)
+        rows.append(
+            {
+                "name": str(service.get("name", "-")),
+                "kind": str(service.get("kind", "-")),
+                "runtime": str(service.get("runtime", "-")),
+                "port": str(service.get("port") or "-"),
+                "health": health_label(service),
+                "state": "healthy" if ok else "unhealthy",
+                "since": "-",
+                "logs": str(service.get("logs") or "-"),
+                "detail": detail,
+                "required": "true" if service.get("required", False) else "false",
+            }
+        )
+    return rows
+
+
+def print_table(rows: list[dict[str, str]]) -> None:
+    headers = ("NAME", "KIND", "RUNTIME", "PORT", "HEALTH", "STATE", "SINCE", "LOGS")
+    keys = ("name", "kind", "runtime", "port", "health", "state", "since", "logs")
+    widths = {
+        key: max(len(header), *(len(row[key]) for row in rows)) if rows else len(header)
+        for key, header in zip(keys, headers)
+    }
+    print("  ".join(header.ljust(widths[key]) for key, header in zip(keys, headers)))
+    for row in rows:
+        print("  ".join(row[key].ljust(widths[key]) for key in keys))
+
+
+def cmd_status(services: list[dict[str, Any]], root: Path, env_name: str) -> int:
+    print(f"environment={env_name}")
+    rows = service_rows(services, root)
+    if not rows:
+        print("No services configured.")
+        return 0
+    print_table(rows)
+    return 0
+
+
+def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
+    failed = False
+    for row in service_rows(services, root):
+        if row["state"] == "healthy":
+            print(f"{row['name']} ok")
+            continue
+        print(f"{row['name']} fail {row['detail']}")
+        if row["required"] == "true":
+            failed = True
+    return 1 if failed else 0
+
+
+def cmd_lifecycle(services: list[dict[str, Any]], action: str) -> int:
+    for service in services:
+        name = service.get("name", "-")
+        print(f"{name} {action} noop")
+    return 0
+
+
+def cmd_logs(services: list[dict[str, Any]]) -> int:
+    for service in services:
+        name = service.get("name", "-")
+        logs = service.get("logs")
+        if logs:
+            print(f"{name} logs {logs}")
+        else:
+            print(f"{name} logs unavailable")
+    return 0
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    root = project_root()
+    parser = argparse.ArgumentParser(description="Manage base-demo representative services.")
+    parser.add_argument("--catalog", default=str(root / "services" / "catalog.json"))
+    parser.add_argument("--env", default="dev")
+    parser.add_argument("command", choices=("status", "start", "stop", "restart", "check", "logs"))
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv or sys.argv[1:])
+    root = project_root()
+    services = load_catalog(Path(args.catalog))
+
+    if args.command == "status":
+        return cmd_status(services, root, args.env)
+    if args.command == "check":
+        return cmd_check(services, root)
+    if args.command in {"start", "stop", "restart"}:
+        return cmd_lifecycle(services, args.command)
+    if args.command == "logs":
+        return cmd_logs(services)
+
+    raise AssertionError(f"unhandled command: {args.command}")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

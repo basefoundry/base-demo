@@ -13,7 +13,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `health.required_env` | `basectl check` / `doctor` | `BASE_DEMO_ENV` missing until `activate` |
 | `mise` | `basectl setup` | Declares `.mise.toml`; setup installs tool versions (Python 3.13) via mise |
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
-| `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info |
+| `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, services |
 | `build.targets` | `basectl build` | `info` target runs `src/build-info.sh` |
 | `test.command` | `basectl test` | Runs `tests/validate.sh` |
 | `demo.script` | `basectl demo` | Runs `demo/demo.sh` |
