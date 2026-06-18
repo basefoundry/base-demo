@@ -182,8 +182,9 @@ discovery_step() {
 diagnostics_step() {
   step 4 "Project Diagnostics"
   printf 'The manifest declares BASE_DEMO_ENV as a required_env health check.\n'
-  printf 'basectl check can report it missing until basectl activate sources .base/activate.sh.\n'
-  printf 'CI gates check and doctor separately; the walkthrough displays them as diagnostics.\n\n'
+  printf 'The green path has BASE_DEMO_ENV=baseline from activation or CI.\n'
+  printf 'Before activation, check and doctor can report a useful diagnostic instead.\n'
+  printf 'The walkthrough displays those diagnostic commands without making them the success gate.\n\n'
   run_observed_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_observed_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml"
   pause

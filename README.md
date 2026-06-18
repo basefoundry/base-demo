@@ -28,6 +28,7 @@ From the `base-demo` repository root on a machine where Base is already set up:
 ```bash
 basectl projects list
 basectl setup base-demo
+basectl activate base-demo
 basectl check base-demo
 basectl doctor base-demo
 basectl repo check .
@@ -37,7 +38,6 @@ basectl run base-demo services -- status
 basectl run base-demo environments -- list
 basectl test base-demo
 basectl build base-demo
-basectl activate base-demo
 basectl demo base-demo
 ```
 
@@ -47,8 +47,10 @@ The commands above exercise the complete Base project loop:
   workspace.
 - `basectl setup base-demo` reconciles the project manifest, Brewfile, and
   project virtual environment.
+- `basectl activate base-demo` starts a project shell with the activation
+  source applied.
 - `basectl check base-demo` and `basectl doctor base-demo` validate the local
-  project environment.
+  project environment from that activated shell.
 - `basectl repo check .` validates the standard repository baseline files.
 - `basectl run base-demo --list` shows the manifest-declared project commands.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
@@ -58,8 +60,6 @@ The commands above exercise the complete Base project loop:
   `dev`/`staging`/`prod` configuration set.
 - `basectl test base-demo` runs the manifest-declared test command.
 - `basectl build base-demo` runs the default build target (`info`) declared in the manifest.
-- `basectl activate base-demo` starts a project shell with the activation
-  source applied.
 - `basectl demo base-demo` runs the project-owned walkthrough.
 
 `basectl activate base-demo` spawns a new subshell, sources `.base/activate.sh`,
@@ -85,14 +85,26 @@ environments         ./bin/base-demo-environments
 $ basectl run base-demo hello
 hello from base-demo
 BASE_PROJECT=base-demo
-BASE_DEMO_ENV=unset
+BASE_DEMO_ENV=baseline
 
 $ basectl test base-demo
 Repository baseline is present.
 ```
 
-`BASE_DEMO_ENV` becomes `baseline` inside `basectl activate base-demo`,
-because activation sources `.base/activate.sh` into the project shell.
+## BASE_DEMO_ENV Health Check
+
+Normal green path: run `basectl check base-demo` and
+`basectl doctor base-demo` from the activated project shell, where
+`BASE_DEMO_ENV=baseline` has been set by `.base/activate.sh`.
+
+Pre-activation diagnostic: if `BASE_DEMO_ENV` is missing, `check` and `doctor`
+can report that finding intentionally. That output teaches how
+`health.required_env` works; it does not mean the repository is corrupt.
+Activate the project shell, or export `BASE_DEMO_ENV=baseline`, before using
+`check` and `doctor` as green-path validation commands.
+
+CI sets BASE_DEMO_ENV=baseline at the workflow level so automated validation is
+deterministic without needing an interactive activated shell.
 
 ## Repository Shape
 
@@ -141,7 +153,7 @@ each field maps to a visible Base workflow:
 | `schema_version` | `basectl setup base-demo` | Declares the manifest contract version Base should parse. |
 | `project.name` | `basectl projects list` | Gives Base the stable project name used by setup, check, doctor, run, test, activate, and demo. |
 | `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`. |
-| `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; reported missing until `basectl activate` sources `.base/activate.sh`. |
+| `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; green in an activated shell and intentionally reported missing as a pre-activation diagnostic. |
 | `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
 | `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, `services`, and `environments`. |

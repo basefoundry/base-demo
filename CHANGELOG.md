@@ -46,6 +46,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Clarified the `BASE_DEMO_ENV` health-check story across README, demo text,
+  and AI context: activated shells and CI are the green path, while missing
+  pre-activation state is an intentional diagnostic example.
 - Rewrote `lib/python/base_demo_cli/__main__.py` to use the `base_cli.App`
   pattern (`@app.command()`, `base_cli.Context`) instead of raw Click.
 

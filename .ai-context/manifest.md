@@ -10,7 +10,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `schema_version` | `basectl setup` | Manifest compatibility marker |
 | `project.name` | `basectl projects list` | Stable name for all Base commands |
 | `brewfile` | `basectl setup` | Delegates ordinary macOS dependencies to `brew bundle`; currently includes `mise` |
-| `health.required_env` | `basectl check` / `doctor` | `BASE_DEMO_ENV` missing until `activate` |
+| `health.required_env` | `basectl check` / `doctor` | `BASE_DEMO_ENV=baseline` on the green path; missing before activation as a diagnostic example |
 | `mise` | `basectl setup` | Declares `.mise.toml`; setup installs tool versions (Python 3.13) via mise |
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
 | `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, services, environments |

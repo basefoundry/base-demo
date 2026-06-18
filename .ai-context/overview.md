@@ -55,10 +55,15 @@ Banyan Labs remains the full platform engineering lab.
 
 ```bash
 basectl setup base-demo
+basectl activate base-demo
 basectl check base-demo
 basectl run base-demo hello
 basectl build base-demo
 basectl test base-demo
-basectl activate base-demo
 basectl demo base-demo
 ```
+
+`BASE_DEMO_ENV=baseline` is the green-path health-check value. It is set by
+`.base/activate.sh` in the activated project shell and by CI at the workflow
+level. Running `check` or `doctor` before activation can intentionally report
+the missing variable as a diagnostic example.

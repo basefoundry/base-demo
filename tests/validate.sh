@@ -253,6 +253,21 @@ grep -Fq 'required_env:' base_manifest.yaml || {
   exit 1
 }
 
+grep -Fq 'Normal green path' README.md || {
+  printf 'README.md does not document the BASE_DEMO_ENV normal green path.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Pre-activation diagnostic' README.md || {
+  printf 'README.md does not document the BASE_DEMO_ENV pre-activation diagnostic.\n' >&2
+  exit 1
+}
+
+grep -Fq 'CI sets BASE_DEMO_ENV=baseline' README.md || {
+  printf 'README.md does not document the CI BASE_DEMO_ENV contract.\n' >&2
+  exit 1
+}
+
 grep -Fq 'build:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare build targets.\n' >&2
   exit 1
