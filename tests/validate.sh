@@ -18,6 +18,7 @@ required_files=(
   bin/base-demo-services
   bin/base-demo-environments
   services/catalog.json
+  infra/compose.yaml
   environments/dev.json
   environments/staging.json
   environments/prod.json
@@ -31,6 +32,7 @@ required_files=(
   tests/demo_test.bats
   tests/services_test.bats
   tests/environments_test.bats
+  tests/infra_test.bats
   .github/workflows/tests.yml
   .github/pull_request_template.md
 )
@@ -103,6 +105,17 @@ grep -Fq '"name": "project-baseline"' services/catalog.json || {
   printf 'services/catalog.json does not declare the project-baseline entry.\n' >&2
   exit 1
 }
+
+for service in postgres mysql redis; do
+  grep -Fq "\"name\": \"$service\"" services/catalog.json || {
+    printf 'services/catalog.json does not declare %s.\n' "$service" >&2
+    exit 1
+  }
+  grep -Fq "  $service:" infra/compose.yaml || {
+    printf 'infra/compose.yaml does not declare %s.\n' "$service" >&2
+    exit 1
+  }
+done
 
 for environment in dev staging prod; do
   grep -Fq "\"name\": \"$environment\"" "environments/$environment.json" || {

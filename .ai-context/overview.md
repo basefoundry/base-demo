@@ -39,6 +39,7 @@ Banyan Labs remains the full platform engineering lab.
 | `bin/base-demo-services` | Service lifecycle command backed by `services/catalog.json` |
 | `bin/base-demo-environments` | Environment configuration inspection and validation command |
 | `services/catalog.json` | Representative environment service catalog |
+| `infra/compose.yaml` | Local Postgres, MySQL, and Redis infrastructure |
 | `environments/*.json` | `dev`, `staging`, and `prod` environment configuration |
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |
 | `demo/demo.sh` | Interactive walkthrough |

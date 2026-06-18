@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: base-demo-postgres
+    environment:
+      POSTGRES_DB: base_demo
+      POSTGRES_USER: base_demo
+      POSTGRES_PASSWORD: base_demo
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U base_demo -d base_demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mysql:
+    image: mysql:8.4
+    container_name: base-demo-mysql
+    environment:
+      MYSQL_DATABASE: base_demo
+      MYSQL_USER: base_demo
+      MYSQL_PASSWORD: base_demo
+      MYSQL_ROOT_PASSWORD: base_demo_root
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: base-demo-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
