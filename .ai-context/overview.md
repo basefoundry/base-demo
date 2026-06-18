@@ -36,6 +36,8 @@ Banyan Labs remains the full platform engineering lab.
 | `src/manifest.sh` | Prints manifest fields |
 | `src/build-info.sh` | Build target: prints project and version |
 | `bin/base-demo-python-info` | Bash launcher for the Python CLI |
+| `bin/base-demo-services` | Service lifecycle command backed by `services/catalog.json` |
+| `services/catalog.json` | Representative environment service catalog |
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |
 | `demo/demo.sh` | Interactive walkthrough |
 | `tests/validate.sh` | Baseline validation (the declared test command) |

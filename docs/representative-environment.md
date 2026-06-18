@@ -52,12 +52,12 @@ build, and explain a realistic mix of tools.
 The main operator surface should be one manifest command:
 
 ```bash
-basectl run base-demo services status
-basectl run base-demo services start
-basectl run base-demo services stop
-basectl run base-demo services restart
-basectl run base-demo services check
-basectl run base-demo services logs
+basectl run base-demo services -- status
+basectl run base-demo services -- start
+basectl run base-demo services -- stop
+basectl run base-demo services -- restart
+basectl run base-demo services -- check
+basectl run base-demo services -- logs
 ```
 
 The command should read a catalog rather than hard-code each service in the

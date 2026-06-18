@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "services": [
+    {
+      "name": "project-baseline",
+      "kind": "project",
+      "runtime": "base",
+      "port": null,
+      "health_url": null,
+      "required": true,
+      "check": {
+        "type": "file",
+        "path": "base_manifest.yaml"
+      },
+      "logs": null
+    }
+  ]
+}

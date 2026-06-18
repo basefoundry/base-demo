@@ -20,6 +20,7 @@ commands:
   env: ./src/env.sh
   manifest: ./src/manifest.sh
   python-info: ./bin/base-demo-python-info
+  services: ./bin/base-demo-services
 
 build:
   default:
