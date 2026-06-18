@@ -46,6 +46,8 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Aligned Brewfile documentation with the current `mise`, Gradle, and Maven
+  dependency set.
 - Clarified the `BASE_DEMO_ENV` health-check story across README, demo text,
   and AI context: activated shells and CI are the green path, while missing
   pre-activation state is an intentional diagnostic example.

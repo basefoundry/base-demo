@@ -110,7 +110,9 @@ deterministic without needing an interactive activated shell.
 
 - `base_manifest.yaml` declares the project name, activation source, command,
   test command, and Brewfile location using current Base contracts.
-- `Brewfile` is the Homebrew-owned place for ordinary macOS tools.
+- `Brewfile` is the Homebrew-owned place for ordinary macOS tools. The
+  Brewfile currently installs mise, Gradle, and Maven so setup can demonstrate
+  tool-version management and representative Java build tools.
 - `.base/activate.sh` demonstrates project activation state.
 - `src/hello.sh`, `src/env.sh`, `src/manifest.sh`, and `src/build-info.sh` are
   tiny command and build targets for `basectl run` and `basectl build`.
@@ -152,7 +154,7 @@ each field maps to a visible Base workflow:
 | --- | --- | --- |
 | `schema_version` | `basectl setup base-demo` | Declares the manifest contract version Base should parse. |
 | `project.name` | `basectl projects list` | Gives Base the stable project name used by setup, check, doctor, run, test, activate, and demo. |
-| `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`. |
+| `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`; currently installs mise, Gradle, and Maven. |
 | `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; green in an activated shell and intentionally reported missing as a pre-activation diagnostic. |
 | `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
