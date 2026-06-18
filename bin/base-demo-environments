@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+"""Inspect and validate base-demo environment configuration."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from pathlib import Path
+from typing import Any
+
+
+REQUIRED_FIELDS = ("name", "mode", "operational", "base_url", "logging", "services", "infrastructure")
+
+
+def project_root() -> Path:
+    root = os.environ.get("BASE_PROJECT_ROOT")
+    if root:
+        return Path(root).resolve()
+    return Path(__file__).resolve().parents[1]
+
+
+def environments_dir() -> Path:
+    return project_root() / "environments"
+
+
+def environment_names() -> list[str]:
+    return ["dev", "staging", "prod"]
+
+
+def load_environment(name: str) -> dict[str, Any]:
+    path = environments_dir() / f"{name}.json"
+    try:
+        with path.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except FileNotFoundError:
+        raise ValueError(f"environment not found: {name}") from None
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"environment {name} is not valid JSON: {exc}") from None
+    return payload
+
+
+def validate_environment(name: str, payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for field in REQUIRED_FIELDS:
+        if field not in payload:
+            errors.append(f"missing field: {field}")
+    if payload.get("name") != name:
+        errors.append(f"name must be {name}")
+    if payload.get("mode") not in {"operational", "modeled"}:
+        errors.append("mode must be operational or modeled")
+    if not isinstance(payload.get("operational"), bool):
+        errors.append("operational must be a boolean")
+    if payload.get("mode") == "modeled" and payload.get("operational") is True:
+        errors.append("modeled environments must not be operational")
+    if not isinstance(payload.get("logging"), dict):
+        errors.append("logging must be an object")
+    if not isinstance(payload.get("services"), dict):
+        errors.append("services must be an object")
+    if not isinstance(payload.get("infrastructure"), dict):
+        errors.append("infrastructure must be an object")
+    return errors
+
+
+def load_validated(name: str) -> tuple[dict[str, Any], list[str]]:
+    payload = load_environment(name)
+    return payload, validate_environment(name, payload)
+
+
+def cmd_list() -> int:
+    print("NAME     MODE         OPERATIONAL  BASE_URL")
+    for name in environment_names():
+        payload, errors = load_validated(name)
+        if errors:
+            print(f"{name:<8} invalid      false        -")
+            continue
+        print(
+            f"{name:<8} {payload['mode']:<12} "
+            f"{str(payload['operational']).lower():<11} {payload['base_url']}"
+        )
+    return 0
+
+
+def cmd_show(name: str) -> int:
+    try:
+        payload, errors = load_validated(name)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    if errors:
+        for error in errors:
+            print(f"{name} invalid {error}", file=sys.stderr)
+        return 1
+    print(f"name={payload['name']}")
+    print(f"mode={payload['mode']}")
+    print(f"operational={str(payload['operational']).lower()}")
+    print(f"base_url={payload['base_url']}")
+    print(f"logging.level={payload['logging'].get('level', '-')}")
+    print(f"logging.format={payload['logging'].get('format', '-')}")
+    return 0
+
+
+def cmd_validate(name: str | None, all_envs: bool) -> int:
+    names = environment_names() if all_envs else [name or "dev"]
+    failed = False
+    for env_name in names:
+        try:
+            _, errors = load_validated(env_name)
+        except ValueError as exc:
+            print(f"{env_name} fail {exc}")
+            failed = True
+            continue
+        if errors:
+            failed = True
+            for error in errors:
+                print(f"{env_name} fail {error}")
+        else:
+            print(f"{env_name} ok")
+    return 1 if failed else 0
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Inspect base-demo environment configuration.")
+    subcommands = parser.add_subparsers(dest="command", required=True)
+    subcommands.add_parser("list")
+
+    show = subcommands.add_parser("show")
+    show.add_argument("environment")
+
+    validate = subcommands.add_parser("validate")
+    validate.add_argument("environment", nargs="?")
+    validate.add_argument("--all", action="store_true")
+
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv or sys.argv[1:])
+    if args.command == "list":
+        return cmd_list()
+    if args.command == "show":
+        return cmd_show(args.environment)
+    if args.command == "validate":
+        return cmd_validate(args.environment, args.all)
+    raise AssertionError(f"unhandled command: {args.command}")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

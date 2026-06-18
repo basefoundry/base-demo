@@ -1,0 +1,29 @@
+{
+  "name": "dev",
+  "mode": "operational",
+  "operational": true,
+  "base_url": "http://127.0.0.1",
+  "logging": {
+    "level": "debug",
+    "format": "text"
+  },
+  "services": {
+    "project-baseline": {
+      "required": true
+    }
+  },
+  "infrastructure": {
+    "postgres": {
+      "enabled": false,
+      "port": 5432
+    },
+    "mysql": {
+      "enabled": false,
+      "port": 3306
+    },
+    "redis": {
+      "enabled": false,
+      "port": 6379
+    }
+  }
+}

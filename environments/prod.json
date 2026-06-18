@@ -1,0 +1,29 @@
+{
+  "name": "prod",
+  "mode": "modeled",
+  "operational": false,
+  "base_url": "https://base-demo.example.invalid",
+  "logging": {
+    "level": "warn",
+    "format": "json"
+  },
+  "services": {
+    "project-baseline": {
+      "required": true
+    }
+  },
+  "infrastructure": {
+    "postgres": {
+      "enabled": false,
+      "port": 5432
+    },
+    "mysql": {
+      "enabled": false,
+      "port": 3306
+    },
+    "redis": {
+      "enabled": false,
+      "port": 6379
+    }
+  }
+}

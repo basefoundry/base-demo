@@ -94,14 +94,17 @@ still remain visible through native build and test commands.
 
 ```text
 environments/
-  dev.yaml
-  staging.yaml
-  prod.yaml
+  dev.json
+  staging.json
+  prod.json
 ```
 
 Only `dev` is operational by default. `staging` and `prod` are checked-in
 configuration examples that demonstrate separation of ports, URLs, image tags,
 database/cache names, and logging mode.
+
+The files use JSON so the demo can validate them with Python's standard
+library instead of adding a YAML dependency solely for configuration parsing.
 
 This is deliberate. A real deployable staging/prod story belongs in Banyan Labs.
 `base-demo` should teach the shape of environment-aware configuration without

@@ -21,6 +21,7 @@ commands:
   manifest: ./src/manifest.sh
   python-info: ./bin/base-demo-python-info
   services: ./bin/base-demo-services
+  environments: ./bin/base-demo-environments
 
 build:
   default:
