@@ -32,8 +32,8 @@ The target stack is broad enough to feel real and small enough to inspect:
 | Go | Tiny Go HTTP API on port 8010 | Demonstrate Go service development and native test/build flow. |
 | Docker | Dockerized Go service through Compose | Make Docker first-class without containerizing every app service. |
 | Java | One Gradle service on port 8030 and one Maven service on port 8040 | Demonstrate common Java build tools without Spring-scale complexity. |
-| C | Tiny native service | Represent lower-level compiled components. |
-| C++ | Tiny native service | Represent C++ service/tooling presence in a mixed environment. |
+| C | Tiny native service on port 8050 | Represent lower-level compiled components. |
+| C++ | Tiny native service on port 8060 | Represent C++ service/tooling presence in a mixed environment. |
 | JavaScript UI | React + Vite demo console | Provide a common frontend framework and human-facing operational surface. |
 | Databases | Postgres and MySQL through Compose | Represent common data dependencies without cross-service dependency complexity. |
 | Cache | Redis through Compose | Represent cache infrastructure as a local dependency pattern. |
@@ -114,6 +114,11 @@ and `services/java-maven-api`. The services both use the JDK built-in HTTP
 server and expose the same endpoint shape; the distinction is the build tool,
 because both Gradle and Maven are common enough to be first-class in a
 representative IT environment.
+
+The native fixtures are `services/c-service` and `services/cpp-service`. They
+use small Makefiles and command-level health checks to avoid adding C/C++ HTTP
+frameworks solely for the demo. Their `/healthz`, `/hello`, and `/info` behavior
+is still visible through the compiled binaries and the shared services catalog.
 
 ## Environment Model
 

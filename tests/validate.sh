@@ -40,6 +40,16 @@ required_files=(
   services/java-maven-api/build.sh
   services/java-maven-api/test.sh
   services/java-maven-api/run.sh
+  services/c-service/Makefile
+  services/c-service/main.c
+  services/c-service/build.sh
+  services/c-service/test.sh
+  services/c-service/run.sh
+  services/cpp-service/Makefile
+  services/cpp-service/main.cpp
+  services/cpp-service/build.sh
+  services/cpp-service/test.sh
+  services/cpp-service/run.sh
   environments/dev.json
   environments/staging.json
   environments/prod.json
@@ -58,6 +68,7 @@ required_files=(
   tests/python_api_test.py
   tests/python_api_test.bats
   tests/java_services_test.bats
+  tests/native_services_test.bats
   .github/workflows/tests.yml
   .github/pull_request_template.md
 )
@@ -69,7 +80,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -182,6 +193,22 @@ if command -v javac >/dev/null 2>&1; then
   services/java-maven-api/build.sh || exit 1
 else
   printf 'Skipping Java service builds because javac is not available.\n'
+fi
+
+for service in c-service cpp-service; do
+  grep -Fq "\"name\": \"$service\"" services/catalog.json || {
+    printf 'services/catalog.json does not declare %s.\n' "$service" >&2
+    exit 1
+  }
+done
+
+if command -v make >/dev/null 2>&1 && command -v cc >/dev/null 2>&1 && command -v c++ >/dev/null 2>&1; then
+  services/c-service/build.sh || exit 1
+  services/c-service/test.sh || exit 1
+  services/cpp-service/build.sh || exit 1
+  services/cpp-service/test.sh || exit 1
+else
+  printf 'Skipping native service builds because make, cc, or c++ is not available.\n'
 fi
 
 for environment in dev staging prod; do
