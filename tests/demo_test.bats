@@ -21,6 +21,36 @@ teardown() {
   [[ "$output" == *"Run the base-demo interactive walkthrough."* ]]
 }
 
+@test "demo script exits nonzero when a step validation fails" {
+  local fake_bin="$TEST_TMPDIR/bin"
+
+  mkdir -p "$fake_bin"
+  cat > "$fake_bin/basectl" <<'EOF'
+#!/usr/bin/env bash
+case "$*" in
+  projects\ list\ --workspace\ *)
+    printf 'PROJECT     PATH\n'
+    printf 'other-demo  /tmp/other-demo\n'
+    ;;
+  *)
+    printf 'unexpected basectl args: %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
+EOF
+  chmod +x "$fake_bin/basectl"
+
+  run env \
+    BASE_PROJECT=base-demo \
+    BASE_PROJECT_ROOT="$TEST_ROOT" \
+    BASE_DEMO_BASECTL="$fake_bin/basectl" \
+    "$TEST_ROOT/demo/demo.sh" --non-interactive
+
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Workspace Discovery"* ]]
+  [[ "$output" != *"base-demo walkthrough complete."* ]]
+}
+
 @test "demo script runs in non-interactive mode" {
   local fake_bin="$TEST_TMPDIR/bin"
   local state_file="$TEST_TMPDIR/state"
@@ -34,10 +64,10 @@ case "$*" in
     printf 'PROJECT     PATH\n'
     printf 'base-demo   %s\n' "${BASE_PROJECT_ROOT:?}"
     ;;
-  check\ base-demo)
+  check\ base-demo\ --manifest\ *)
     printf 'Base CLI environment check passed.\n'
     ;;
-  doctor\ base-demo)
+  doctor\ base-demo\ --manifest\ *)
     printf 'Base doctor\n'
     printf 'ok     project base-demo is healthy.\n'
     ;;
@@ -82,17 +112,51 @@ case "$*" in
     printf 'cpp-service       service  native-cpp 8060 command:./services/cpp-service/build/cpp-service --healthz stopped - var/services/cpp-service.log\n'
     printf 'demo-console      ui       react-vite 8070 http://127.0.0.1:8070 stopped - var/services/demo-console.log\n'
     ;;
+  run\ base-demo\ --workspace\ *\ services\ --\ check)
+    printf 'project-baseline ok\n'
+    printf 'postgres skip optional compose:postgres unavailable\n'
+    printf 'mysql skip optional compose:mysql unavailable\n'
+    printf 'redis skip optional compose:redis unavailable\n'
+    printf 'go-api skip optional http:http://127.0.0.1:8010/healthz\n'
+    printf 'python-api skip optional http:http://127.0.0.1:8020/healthz\n'
+    printf 'java-gradle-api skip optional http:http://127.0.0.1:8030/healthz\n'
+    printf 'java-maven-api skip optional http:http://127.0.0.1:8040/healthz\n'
+    printf 'c-service ok\n'
+    printf 'cpp-service ok\n'
+    printf 'demo-console ok\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ services\ --\ start)
+    printf 'DRY-RUN docker compose -f infra/compose.yaml -p base-demo up -d postgres mysql redis go-api\n'
+    printf 'DRY-RUN start python-api: python3 services/python-api/server.py\n'
+    printf 'DRY-RUN start java-gradle-api: ./services/java-gradle-api/run.sh\n'
+    printf 'DRY-RUN start java-maven-api: ./services/java-maven-api/run.sh\n'
+    printf 'DRY-RUN start c-service: ./services/c-service/run.sh\n'
+    printf 'DRY-RUN start cpp-service: ./services/cpp-service/run.sh\n'
+    printf 'DRY-RUN start demo-console: ./services/demo-console/run.sh\n'
+    ;;
   run\ base-demo\ --workspace\ *\ environments\ --\ list)
     printf 'NAME     MODE         OPERATIONAL  BASE_URL\n'
     printf 'dev      operational  true         http://127.0.0.1\n'
     printf 'staging  modeled      false        https://staging.base-demo.example.invalid\n'
     printf 'prod     modeled      false        https://base-demo.example.invalid\n'
     ;;
+  run\ base-demo\ --workspace\ *\ environments\ --\ validate\ --all)
+    printf 'dev ok\n'
+    printf 'staging ok\n'
+    printf 'prod ok\n'
+    ;;
   test\ base-demo\ --workspace\ *)
     printf 'Repository baseline is present.\n'
     ;;
   build\ base-demo\ --workspace\ *\ --list)
     printf 'info   Print project build info.\n'
+    printf 'go-api Build the Go API service.\n'
+    printf 'python-api Validate the Python API service.\n'
+    printf 'java-gradle-api Build the Java Gradle API service.\n'
+    printf 'java-maven-api Build the Java Maven API service.\n'
+    printf 'c-service Build the native C service.\n'
+    printf 'cpp-service Build the native C++ service.\n'
+    printf 'demo-console Build the React/Vite demo console.\n'
     ;;
   build\ base-demo\ --workspace\ *)
     printf 'project=base-demo\n'
@@ -125,6 +189,13 @@ EOF
   [[ "$output" == *"services    ./bin/base-demo-services"* ]]
   [[ "$output" == *"environments ./bin/base-demo-environments"* ]]
   [[ "$output" == *"Inspection Commands"* ]]
+  [[ "$output" == *"Representative Environment"* ]]
+  [[ "$output" == *"DRY-RUN docker compose"* ]]
+  [[ "$output" == *"c-service ok"* ]]
+  [[ "$output" == *"cpp-service ok"* ]]
+  [[ "$output" == *"demo-console ok"* ]]
+  [[ "$output" == *"dev ok"* ]]
+  [[ "$output" == *"prod ok"* ]]
   [[ "$output" == *"BASE_DEMO_ENV=baseline"* ]]
   [[ "$output" == *"BASE_DEMO_PROJECT_KIND=reference-demo"* ]]
   [[ "$output" == *"hello from base-demo"* ]]
@@ -156,15 +227,18 @@ EOF
   [[ "$output" == *"project=base-demo"* ]]
   [[ "$output" == *"base-demo walkthrough complete."* ]]
   grep -Fq "basectl projects list --workspace " "$state_file"
-  grep -Fqx "basectl check base-demo" "$state_file"
-  grep -Fqx "basectl doctor base-demo" "$state_file"
+  grep -Eq "^basectl check base-demo --manifest .+/base_manifest.yaml$" "$state_file"
+  grep -Eq "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ env$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ manifest$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ python-info$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- status$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ services -- check$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ services -- start$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ environments -- list$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ environments -- validate --all$" "$state_file"
   grep -Eq "^basectl test base-demo --workspace .+$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+$" "$state_file"

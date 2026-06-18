@@ -28,6 +28,9 @@ and versions are tracked in the repo-root `VERSION` file.
   Makefile-backed build scripts and command health checks.
 - Added `services/demo-console`, a React/Vite operational UI on port 8070 for
   browsing the representative service catalog.
+- Integrated the representative environment into the main `basectl demo`
+  walkthrough with service checks, dry-run startup, environment validation, and
+  expanded build-target discovery.
 - Documented the MIT license decision in the README.
 - Added repo-local agent guidance, a project skills index, and a reusable
   Base-backed installer script.
@@ -36,7 +39,7 @@ and versions are tracked in the repo-root `VERSION` file.
 - Added `.ai-context/` directory for `basectl export-context` with overview and
   manifest contract documentation.
 - Added build section to the manifest with an `info` target backed by
-  `src/build-info.sh`; demonstrated in demo step 10.
+  `src/build-info.sh`; demonstrated in the build-target demo step.
 - Added `.mise.toml` declaring Python 3.13 and a `validate` task; wired into the
   manifest via `mise: .mise.toml` so `basectl setup` installs tool versions.
 - Added `.github/pull_request_template.md` for consistent PR descriptions.
@@ -64,6 +67,8 @@ and versions are tracked in the repo-root `VERSION` file.
   passes without requiring an activated shell.
 - Added `--manifest ./base_manifest.yaml` to `setup`, `check`, and `doctor`
   commands so they work without workspace configuration on CI runners.
+- Added CI coverage for the representative service, environment,
+  infrastructure, language fixture, UI, and dry-run startup contracts.
 
 ## [0.1.0] - 2026-06-12
 

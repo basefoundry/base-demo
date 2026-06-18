@@ -150,13 +150,11 @@ each field maps to a visible Base workflow:
 | `demo.script` | `basectl demo base-demo` | Defines the project-owned interactive walkthrough. |
 | `artifacts` | `basectl setup base-demo` | Lists Base-managed artifacts. The baseline demo uses an empty list to avoid unnecessary installs. |
 
-Today the demo intentionally starts from shell scripts, one standard-library
-Python module, and a small Base manifest. The next implementation train expands
-that baseline into a representative environment with multi-language service
-fixtures, one Dockerized app service, a React/Vite UI, Compose-backed local
-databases and cache, and a lightweight `dev`/`staging`/`prod` configuration
-model. Those additions should stay shallow and readable; deeper product and
-platform complexity belongs in Banyan Labs.
+The demo now includes a shallow but representative environment: multi-language
+service fixtures, one Dockerized app service, a React/Vite UI, Compose-backed
+local databases and cache, and a lightweight `dev`/`staging`/`prod`
+configuration model. The services stay intentionally small and readable; deeper
+product and platform complexity belongs in Banyan Labs.
 
 The environment model is present now:
 
@@ -182,8 +180,7 @@ Postgres, MySQL, Redis, and the Dockerized Go API are declared through
 `infra/compose.yaml`; the Python API is managed as a local process by the same
 `services` command, as are the Java Gradle, Java Maven, C, C++, and React/Vite
 console services. They are representative dependencies and services, and they
-are optional in `services check` until started. Later slices should extend the
-same command surface instead of adding one-off lifecycle commands.
+are optional in `services check` until started.
 
 Both Gradle and Maven are present intentionally. They are common enough in real
 enterprise Java estates that a medium-shaped demo should exercise both build
@@ -194,6 +191,11 @@ For CI or scripted validation, run the walkthrough without prompts:
 ```bash
 basectl demo base-demo -- --non-interactive
 ```
+
+CI also runs the representative BATS suites, validates every environment JSON
+file, checks the service catalog, and exercises service startup through
+`BASE_DEMO_SERVICES_DRY_RUN=1`. Docker and language-toolchain-heavy runtime
+checks remain optional locally so the baseline stays useful on a fresh machine.
 
 ## License
 

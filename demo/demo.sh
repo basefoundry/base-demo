@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 BASE_DEMO_PROJECT="${BASE_PROJECT:-base-demo}"
 BASE_DEMO_ROOT="${BASE_PROJECT_ROOT:-}"
@@ -87,6 +88,16 @@ run_command() {
   fi
 }
 
+run_observed_command() {
+  printf '  $'
+  printf ' %q' "$@"
+  printf '\n'
+
+  if ! "$@"; then
+    printf '\nDiagnostic command reported an issue; continuing the walkthrough.\n' >&2
+  fi
+}
+
 capture_command() {
   local output
 
@@ -116,8 +127,8 @@ require_contains() {
 
 intro() {
   printf '\nbase-demo Walkthrough\n\n'
-  printf 'This demo shows the smallest useful Base-managed project shape.\n'
-  printf 'Each step runs a real command or validates a real file in this repo.\n'
+  printf 'This demo shows a compact Base-managed representative environment.\n'
+  printf 'Each step runs a real command or validates a real repo-owned contract.\n'
   pause
 }
 
@@ -171,9 +182,10 @@ discovery_step() {
 diagnostics_step() {
   step 4 "Project Diagnostics"
   printf 'The manifest declares BASE_DEMO_ENV as a required_env health check.\n'
-  printf 'basectl check reports it as missing until basectl activate sources .base/activate.sh.\n\n'
-  run_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT"
-  run_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT"
+  printf 'basectl check can report it missing until basectl activate sources .base/activate.sh.\n'
+  printf 'CI gates check and doctor separately; the walkthrough displays them as diagnostics.\n\n'
+  run_observed_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_observed_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml"
   pause
 }
 
@@ -248,10 +260,35 @@ inspection_step() {
   pause
 }
 
+representative_environment_step() {
+  local check_output start_output validate_output
+
+  step 9 "Representative Environment"
+  check_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- check)"
+  printf '%s\n' "$check_output"
+  require_contains "services check" "$check_output" "project-baseline ok"
+  require_contains "services check" "$check_output" "c-service"
+  require_contains "services check" "$check_output" "cpp-service"
+  require_contains "services check" "$check_output" "demo-console"
+
+  start_output="$(capture_command env BASE_DEMO_SERVICES_DRY_RUN=1 "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- start)"
+  printf '%s\n' "$start_output"
+  require_contains "services dry-run start" "$start_output" "DRY-RUN docker compose"
+  require_contains "services dry-run start" "$start_output" "go-api"
+  require_contains "services dry-run start" "$start_output" "demo-console"
+
+  validate_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" environments -- validate --all)"
+  printf '%s\n' "$validate_output"
+  require_contains "environment validation" "$validate_output" "dev"
+  require_contains "environment validation" "$validate_output" "staging"
+  require_contains "environment validation" "$validate_output" "prod"
+  pause
+}
+
 test_step() {
   local output
 
-  step 9 "Test Contract"
+  step 10 "Test Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" test "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE")"
   printf '%s\n' "$output"
   require_contains "test command" "$output" "Repository baseline is present."
@@ -261,10 +298,17 @@ test_step() {
 build_step() {
   local output
 
-  step 10 "Build Targets"
+  step 11 "Build Targets"
   output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --list)"
   printf '%s\n' "$output"
   require_contains "build list" "$output" "info"
+  require_contains "build list" "$output" "go-api"
+  require_contains "build list" "$output" "python-api"
+  require_contains "build list" "$output" "java-gradle-api"
+  require_contains "build list" "$output" "java-maven-api"
+  require_contains "build list" "$output" "c-service"
+  require_contains "build list" "$output" "cpp-service"
+  require_contains "build list" "$output" "demo-console"
 
   output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE")"
   printf '%s\n' "$output"
@@ -275,7 +319,7 @@ build_step() {
 demo_step() {
   local output
 
-  step 11 "Demo Contract"
+  step 12 "Demo Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" demo "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --dry-run -- --non-interactive)"
   printf '%s\n' "$output"
   require_contains "demo command" "$output" "Would run demo"
@@ -299,6 +343,7 @@ main() {
   command_discovery_step
   run_step
   inspection_step
+  representative_environment_step
   test_step
   build_step
   demo_step

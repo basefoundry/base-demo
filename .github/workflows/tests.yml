@@ -24,6 +24,18 @@ jobs:
       - name: Run demo script tests
         run: bats tests/demo_test.bats
 
+      - name: Run representative environment tests
+        run: >
+          bats
+          tests/services_test.bats
+          tests/environments_test.bats
+          tests/infra_test.bats
+          tests/go_api_test.bats
+          tests/python_api_test.bats
+          tests/java_services_test.bats
+          tests/native_services_test.bats
+          tests/demo_console_test.bats
+
       # Pin to a Base release tag so CI is not affected by Base master changes.
       # Update this tag when a new Base release is made.
       - name: Check out Base
@@ -52,6 +64,20 @@ jobs:
 
       - name: Run base-demo Python command
         run: ../base/bin/basectl run base-demo --workspace .. python-info
+
+      - name: Show representative services
+        run: ../base/bin/basectl run base-demo --workspace .. services -- status
+
+      - name: Check representative services
+        run: ../base/bin/basectl run base-demo --workspace .. services -- check
+
+      - name: Validate representative environments
+        run: ../base/bin/basectl run base-demo --workspace .. environments -- validate --all
+
+      - name: Dry-run representative service startup
+        env:
+          BASE_DEMO_SERVICES_DRY_RUN: "1"
+        run: ../base/bin/basectl run base-demo --workspace .. services -- start
 
       - name: Test base-demo
         run: ../base/bin/basectl test base-demo --workspace ..
