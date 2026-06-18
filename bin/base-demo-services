@@ -254,6 +254,16 @@ def check_service(service: dict[str, Any], root: Path) -> tuple[bool, str]:
         running = set(result.stdout.splitlines())
         return service_name in running, f"compose:{service_name}"
 
+    if check_type == "command":
+        command = check.get("command")
+        if not isinstance(command, list) or not all(isinstance(item, str) for item in command):
+            return False, "command:<invalid command>"
+        try:
+            result = subprocess.run(command, cwd=root, check=False, capture_output=True, text=True, timeout=3.0)
+        except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired) as exc:
+            return False, f"command:{shlex.join(command)} ({exc})"
+        return result.returncode == 0, f"command:{shlex.join(command)}"
+
     return False, f"unsupported:{check_type}"
 
 
@@ -265,6 +275,11 @@ def health_label(service: dict[str, Any]) -> str:
         return f"compose:{check.get('service', service.get('compose_service', '-'))}"
     if check.get("type") == "file":
         return f"file:{check.get('path', '-')}"
+    if check.get("type") == "command":
+        command = check.get("command")
+        if isinstance(command, list) and all(isinstance(item, str) for item in command):
+            return f"command:{shlex.join(command)}"
+        return "command:<invalid command>"
     return str(check.get("type") or "-")
 
 

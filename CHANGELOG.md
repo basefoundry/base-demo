@@ -24,6 +24,8 @@ and versions are tracked in the repo-root `VERSION` file.
   command.
 - Added Java Gradle and Maven HTTP API fixtures on ports 8030 and 8040, with
   Brewfile, service catalog, lifecycle, and build target wiring.
+- Added native C and C++ service fixtures on ports 8050 and 8060 with
+  Makefile-backed build scripts and command health checks.
 - Documented the MIT license decision in the README.
 - Added repo-local agent guidance, a project skills index, and a reusable
   Base-backed installer script.

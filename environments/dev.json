@@ -22,6 +22,12 @@
     },
     "java-maven-api": {
       "required": false
+    },
+    "c-service": {
+      "required": false
+    },
+    "cpp-service": {
+      "required": false
     }
   },
   "infrastructure": {

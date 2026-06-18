@@ -123,6 +123,50 @@
         "type": "http"
       },
       "logs": "var/services/java-maven-api.log"
+    },
+    {
+      "name": "c-service",
+      "kind": "service",
+      "runtime": "native-c",
+      "port": 8050,
+      "health_url": null,
+      "required": false,
+      "lifecycle": {
+        "type": "process",
+        "command": [
+          "./services/c-service/run.sh"
+        ]
+      },
+      "check": {
+        "type": "command",
+        "command": [
+          "./services/c-service/build/c-service",
+          "--healthz"
+        ]
+      },
+      "logs": "var/services/c-service.log"
+    },
+    {
+      "name": "cpp-service",
+      "kind": "service",
+      "runtime": "native-cpp",
+      "port": 8060,
+      "health_url": null,
+      "required": false,
+      "lifecycle": {
+        "type": "process",
+        "command": [
+          "./services/cpp-service/run.sh"
+        ]
+      },
+      "check": {
+        "type": "command",
+        "command": [
+          "./services/cpp-service/build/cpp-service",
+          "--healthz"
+        ]
+      },
+      "logs": "var/services/cpp-service.log"
     }
   ]
 }

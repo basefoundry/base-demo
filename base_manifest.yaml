@@ -42,6 +42,12 @@ build:
     java-maven-api:
       description: Build the Java Maven API service.
       command: ./services/java-maven-api/build.sh
+    c-service:
+      description: Build the native C service.
+      command: ./services/c-service/build.sh
+    cpp-service:
+      description: Build the native C++ service.
+      command: ./services/cpp-service/build.sh
 
 test:
   command: ./tests/validate.sh

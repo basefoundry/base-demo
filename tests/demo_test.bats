@@ -78,6 +78,8 @@ case "$*" in
     printf 'python-api        service  python   8020  http://127.0.0.1:8020/healthz stopped  -      var/services/python-api.log\n'
     printf 'java-gradle-api   service  java-gradle 8030 http://127.0.0.1:8030/healthz stopped  -      var/services/java-gradle-api.log\n'
     printf 'java-maven-api    service  java-maven 8040 http://127.0.0.1:8040/healthz stopped  -      var/services/java-maven-api.log\n'
+    printf 'c-service         service  native-c 8050 command:./services/c-service/build/c-service --healthz stopped - var/services/c-service.log\n'
+    printf 'cpp-service       service  native-cpp 8060 command:./services/cpp-service/build/cpp-service --healthz stopped - var/services/cpp-service.log\n'
     ;;
   run\ base-demo\ --workspace\ *\ environments\ --\ list)
     printf 'NAME     MODE         OPERATIONAL  BASE_URL\n'
@@ -135,10 +137,14 @@ EOF
   [[ "$output" == *"python-api"* ]]
   [[ "$output" == *"java-gradle-api"* ]]
   [[ "$output" == *"java-maven-api"* ]]
+  [[ "$output" == *"c-service"* ]]
+  [[ "$output" == *"cpp-service"* ]]
   [[ "$output" == *"8010"* ]]
   [[ "$output" == *"8020"* ]]
   [[ "$output" == *"8030"* ]]
   [[ "$output" == *"8040"* ]]
+  [[ "$output" == *"8050"* ]]
+  [[ "$output" == *"8060"* ]]
   [[ "$output" == *"healthy"* ]]
   [[ "$output" == *"staging"* ]]
   [[ "$output" == *"modeled"* ]]
