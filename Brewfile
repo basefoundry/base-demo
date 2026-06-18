@@ -1,6 +1,8 @@
 # Homebrew-owned dependencies for the Base demo project.
 #
-# Keep this lightweight. The baseline intentionally has no required formulae;
-# follow-up demo work can add small tools when they teach a real Base workflow.
+# Keep this lightweight. Formulae here should teach a real Base workflow;
+# Gradle and Maven are present for representative Java build-tool coverage.
 
 brew "mise"
+brew "gradle"
+brew "maven"

@@ -110,6 +110,8 @@ because activation sources `.base/activate.sh` into the project shell.
   `/info` endpoints. It is also the representative Dockerized app service.
 - `services/python-api` is a tiny standard-library Python HTTP API with the
   same health, hello, and info surface on port 8020.
+- `services/java-gradle-api` and `services/java-maven-api` are tiny Java HTTP
+  APIs that keep Gradle and Maven visible as representative build tools.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the
   `services` lifecycle command for the representative environment.
 - `bin/base-demo-environments` lists, shows, and validates environment
@@ -174,9 +176,14 @@ BASE_DEMO_SERVICES_DRY_RUN=1 basectl run base-demo services -- start
 It reads `services/catalog.json` and reports the current catalog health. Local
 Postgres, MySQL, Redis, and the Dockerized Go API are declared through
 `infra/compose.yaml`; the Python API is managed as a local process by the same
-`services` command. They are representative dependencies and services, and they
-are optional in `services check` until started. Later service and UI slices will
-extend the same command surface instead of adding one-off lifecycle commands.
+`services` command, as are the Java Gradle and Maven services. They are
+representative dependencies and services, and they are optional in
+`services check` until started. Later service and UI slices will extend the
+same command surface instead of adding one-off lifecycle commands.
+
+Both Gradle and Maven are present intentionally. They are common enough in real
+enterprise Java estates that a medium-shaped demo should exercise both build
+tool contracts, even when the service behavior stays hello-world small.
 
 For CI or scripted validation, run the walkthrough without prompts:
 

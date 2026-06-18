@@ -16,6 +16,12 @@
     },
     "python-api": {
       "required": false
+    },
+    "java-gradle-api": {
+      "required": false
+    },
+    "java-maven-api": {
+      "required": false
     }
   },
   "infrastructure": {

@@ -31,7 +31,7 @@ The target stack is broad enough to feel real and small enough to inspect:
 | Python | Tiny Python HTTP API on port 8020 plus the existing Python CLI | Demonstrate Python as both project command and app service runtime. |
 | Go | Tiny Go HTTP API on port 8010 | Demonstrate Go service development and native test/build flow. |
 | Docker | Dockerized Go service through Compose | Make Docker first-class without containerizing every app service. |
-| Java | One Gradle service and one Maven service | Demonstrate common Java build tools without Spring-scale complexity. |
+| Java | One Gradle service on port 8030 and one Maven service on port 8040 | Demonstrate common Java build tools without Spring-scale complexity. |
 | C | Tiny native service | Represent lower-level compiled components. |
 | C++ | Tiny native service | Represent C++ service/tooling presence in a mixed environment. |
 | JavaScript UI | React + Vite demo console | Provide a common frontend framework and human-facing operational surface. |
@@ -108,6 +108,12 @@ The first native process fixture is `services/python-api`. It exposes the same
 endpoint shape on port 8020 using only Python's standard library and is managed
 by the `services` command through a small process lifecycle entry in the
 catalog.
+
+The Java fixtures are intentionally split between `services/java-gradle-api`
+and `services/java-maven-api`. The services both use the JDK built-in HTTP
+server and expose the same endpoint shape; the distinction is the build tool,
+because both Gradle and Maven are common enough to be first-class in a
+representative IT environment.
 
 ## Environment Model
 

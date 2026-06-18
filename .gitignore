@@ -5,6 +5,8 @@ __pycache__/
 .venv/
 dist/
 build/
+target/
+.gradle/
 *.egg-info/
 services/go-api/go-api
 var/
