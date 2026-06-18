@@ -1,10 +1,18 @@
 # base-demo
 
-Reference Base-managed project and interactive demo.
+Reference Base-managed project and representative demo environment.
 
 This repository is the public reference project for Base-managed repositories.
-It starts with a small, inspectable baseline before the interactive walkthrough
-is layered in.
+It demonstrates Base on a compact but credible project shape: small enough to
+inspect in one sitting, but substantial enough to represent the tools and
+runtime variety found in a medium-sized engineering organization.
+
+The long-term direction is documented in
+[Representative Environment Design](docs/representative-environment.md).
+`base-demo` is intentionally positioned between a toy sample and
+[`banyanlabs`](https://github.com/codeforester/banyanlabs): it borrows the
+shape of a realistic platform environment while keeping each service shallow so
+Base orchestration remains the point.
 
 ## Quick Start
 
@@ -113,11 +121,13 @@ each field maps to a visible Base workflow:
 | `demo.script` | `basectl demo base-demo` | Defines the project-owned interactive walkthrough. |
 | `artifacts` | `basectl setup base-demo` | Lists Base-managed artifacts. The baseline demo uses an empty list to avoid unnecessary installs. |
 
-The demo intentionally uses shell scripts, one standard-library Python module,
-and no external runtime dependencies.
-More specialized examples, such as Python, Go, Docker, or service demos, should
-stay small or move into separate demo repositories when they need their own
-setup story.
+Today the demo intentionally starts from shell scripts, one standard-library
+Python module, and a small Base manifest. The next implementation train expands
+that baseline into a representative environment with multi-language service
+fixtures, one Dockerized app service, a React/Vite UI, Compose-backed local
+databases and cache, and a lightweight `dev`/`staging`/`prod` configuration
+model. Those additions should stay shallow and readable; deeper product and
+platform complexity belongs in Banyan Labs.
 
 For CI or scripted validation, run the walkthrough without prompts:
 

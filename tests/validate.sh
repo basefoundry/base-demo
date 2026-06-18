@@ -9,6 +9,7 @@ required_files=(
   skills.md
   LICENSE
   install.sh
+  docs/representative-environment.md
   base_manifest.yaml
   Brewfile
   .mise.toml

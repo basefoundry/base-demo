@@ -9,7 +9,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 |---|---|---|
 | `schema_version` | `basectl setup` | Manifest compatibility marker |
 | `project.name` | `basectl projects list` | Stable name for all Base commands |
-| `brewfile` | `basectl setup` | Delegates to `brew bundle`; kept empty here |
+| `brewfile` | `basectl setup` | Delegates ordinary macOS dependencies to `brew bundle`; currently includes `mise` |
 | `health.required_env` | `basectl check` / `doctor` | `BASE_DEMO_ENV` missing until `activate` |
 | `mise` | `basectl setup` | Declares `.mise.toml`; setup installs tool versions (Python 3.13) via mise |
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
@@ -21,7 +21,10 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 
 ## Design Intent
 
-The manifest is intentionally minimal. It uses shell scripts and a small
-Python module with no external runtime dependencies so the demo can run on
-a fresh machine after `basectl setup base-demo` without waiting for large
-package downloads.
+The current manifest keeps the baseline fast and inspectable. It uses shell
+scripts, a small Python module, and explicit Base contracts so a fresh checkout
+can prove setup, activation, run, build, test, and demo behavior quickly.
+
+The representative environment direction will add service, infrastructure, UI,
+and environment-modeling commands in focused slices while preserving this
+readable manifest contract.

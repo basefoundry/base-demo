@@ -1,16 +1,29 @@
 # base-demo Overview
 
-`base-demo` is the public reference project for Base-managed repositories.
+`base-demo` is the public reference project and representative environment for
+Base-managed repositories.
 
-It demonstrates the smallest useful Base project shape: a `base_manifest.yaml`
-that declares every current Base contract, a set of runnable commands, a Python
-CLI that uses `base_cli.App`, an interactive demo script, and a validation test.
+It starts with a small Base project shape: a `base_manifest.yaml` that declares
+every current Base contract, a set of runnable commands, a Python CLI that uses
+`base_cli.App`, an interactive demo script, and a validation test.
+
+The next direction is to grow this baseline into a reduced-scale representative
+environment. It should include multiple language services, common build tools,
+one Dockerized service, one React/Vite UI, local databases and cache through
+Compose, and modeled `dev`, `staging`, and `prod` configuration. Only local
+`dev` is operational by default; staging and prod are configuration examples.
+
+This makes `base-demo` a bridge between a tiny sample and Banyan Labs. Base owns
+workspace orchestration, `base-demo` proves the representative shape, and
+Banyan Labs remains the full platform engineering lab.
 
 ## Purpose
 
 - Show what a well-structured `base_manifest.yaml` looks like
 - Demonstrate `basectl setup`, `check`, `doctor`, `run`, `test`, `build`, `activate`, and `demo`
 - Provide a working end-to-end example that CI validates on every commit
+- Build confidence for larger Banyan Labs work without duplicating Banyan Labs
+  product or platform complexity
 
 ## Key Files
 
@@ -26,6 +39,7 @@ CLI that uses `base_cli.App`, an interactive demo script, and a validation test.
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |
 | `demo/demo.sh` | Interactive walkthrough |
 | `tests/validate.sh` | Baseline validation (the declared test command) |
+| `docs/representative-environment.md` | Direction for the multi-language representative environment |
 
 ## Quick Loop
 
