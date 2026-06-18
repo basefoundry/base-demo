@@ -22,6 +22,8 @@ and versions are tracked in the repo-root `VERSION` file.
 - Added `services/python-api` as a tiny standard-library Python HTTP API on
   port 8020, including native process lifecycle wiring in the `services`
   command.
+- Added Java Gradle and Maven HTTP API fixtures on ports 8030 and 8040, with
+  Brewfile, service catalog, lifecycle, and build target wiring.
 - Documented the MIT license decision in the README.
 - Added repo-local agent guidance, a project skills index, and a reusable
   Base-backed installer script.

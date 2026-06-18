@@ -41,6 +41,8 @@ Banyan Labs remains the full platform engineering lab.
 | `services/catalog.json` | Representative environment service catalog |
 | `services/go-api/` | Tiny Go HTTP API and Dockerized service fixture |
 | `services/python-api/` | Tiny standard-library Python HTTP API fixture |
+| `services/java-gradle-api/` | Tiny Java HTTP API fixture built with Gradle |
+| `services/java-maven-api/` | Tiny Java HTTP API fixture built with Maven |
 | `infra/compose.yaml` | Local Postgres, MySQL, Redis, and Go API Compose fixtures |
 | `environments/*.json` | `dev`, `staging`, and `prod` environment configuration |
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |

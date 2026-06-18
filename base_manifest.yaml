@@ -36,6 +36,12 @@ build:
     python-api:
       description: Validate the Python API service.
       command: ./services/python-api/build.sh
+    java-gradle-api:
+      description: Build the Java Gradle API service.
+      command: ./services/java-gradle-api/build.sh
+    java-maven-api:
+      description: Build the Java Maven API service.
+      command: ./services/java-maven-api/build.sh
 
 test:
   command: ./tests/validate.sh

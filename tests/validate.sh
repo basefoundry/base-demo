@@ -27,6 +27,19 @@ required_files=(
   services/python-api/server.py
   services/python-api/build.sh
   services/python-api/test.sh
+  services/java-gradle-api/settings.gradle
+  services/java-gradle-api/build.gradle
+  services/java-gradle-api/src/main/java/com/codeforester/basedemo/javagradle/JavaGradleApi.java
+  services/java-gradle-api/src/test/java/com/codeforester/basedemo/javagradle/JavaGradleApiTest.java
+  services/java-gradle-api/build.sh
+  services/java-gradle-api/test.sh
+  services/java-gradle-api/run.sh
+  services/java-maven-api/pom.xml
+  services/java-maven-api/src/main/java/com/codeforester/basedemo/javamaven/JavaMavenApi.java
+  services/java-maven-api/src/test/java/com/codeforester/basedemo/javamaven/JavaMavenApiTest.java
+  services/java-maven-api/build.sh
+  services/java-maven-api/test.sh
+  services/java-maven-api/run.sh
   environments/dev.json
   environments/staging.json
   environments/prod.json
@@ -44,6 +57,7 @@ required_files=(
   tests/go_api_test.bats
   tests/python_api_test.py
   tests/python_api_test.bats
+  tests/java_services_test.bats
   .github/workflows/tests.yml
   .github/pull_request_template.md
 )
@@ -55,7 +69,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -155,6 +169,20 @@ grep -Fq '"port": 8020' services/catalog.json || {
 }
 
 services/python-api/test.sh || exit 1
+
+for service in java-gradle-api java-maven-api; do
+  grep -Fq "\"name\": \"$service\"" services/catalog.json || {
+    printf 'services/catalog.json does not declare %s.\n' "$service" >&2
+    exit 1
+  }
+done
+
+if command -v javac >/dev/null 2>&1; then
+  services/java-gradle-api/build.sh || exit 1
+  services/java-maven-api/build.sh || exit 1
+else
+  printf 'Skipping Java service builds because javac is not available.\n'
+fi
 
 for environment in dev staging prod; do
   grep -Fq "\"name\": \"$environment\"" "environments/$environment.json" || {

@@ -87,6 +87,42 @@
         "type": "http"
       },
       "logs": "var/services/python-api.log"
+    },
+    {
+      "name": "java-gradle-api",
+      "kind": "service",
+      "runtime": "java-gradle",
+      "port": 8030,
+      "health_url": "http://127.0.0.1:8030/healthz",
+      "required": false,
+      "lifecycle": {
+        "type": "process",
+        "command": [
+          "./services/java-gradle-api/run.sh"
+        ]
+      },
+      "check": {
+        "type": "http"
+      },
+      "logs": "var/services/java-gradle-api.log"
+    },
+    {
+      "name": "java-maven-api",
+      "kind": "service",
+      "runtime": "java-maven",
+      "port": 8040,
+      "health_url": "http://127.0.0.1:8040/healthz",
+      "required": false,
+      "lifecycle": {
+        "type": "process",
+        "command": [
+          "./services/java-maven-api/run.sh"
+        ]
+      },
+      "check": {
+        "type": "http"
+      },
+      "logs": "var/services/java-maven-api.log"
     }
   ]
 }
