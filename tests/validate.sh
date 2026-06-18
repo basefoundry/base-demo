@@ -50,6 +50,19 @@ required_files=(
   services/cpp-service/build.sh
   services/cpp-service/test.sh
   services/cpp-service/run.sh
+  services/demo-console/package.json
+  services/demo-console/package-lock.json
+  services/demo-console/index.html
+  services/demo-console/vite.config.js
+  services/demo-console/src/main.jsx
+  services/demo-console/src/App.jsx
+  services/demo-console/src/App.css
+  services/demo-console/scripts/prepare-catalog.mjs
+  services/demo-console/scripts/validate-source.mjs
+  services/demo-console/public/service-catalog.json
+  services/demo-console/build.sh
+  services/demo-console/test.sh
+  services/demo-console/run.sh
   environments/dev.json
   environments/staging.json
   environments/prod.json
@@ -69,6 +82,7 @@ required_files=(
   tests/python_api_test.bats
   tests/java_services_test.bats
   tests/native_services_test.bats
+  tests/demo_console_test.bats
   .github/workflows/tests.yml
   .github/pull_request_template.md
 )
@@ -80,7 +94,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -209,6 +223,22 @@ if command -v make >/dev/null 2>&1 && command -v cc >/dev/null 2>&1 && command -
   services/cpp-service/test.sh || exit 1
 else
   printf 'Skipping native service builds because make, cc, or c++ is not available.\n'
+fi
+
+grep -Fq '"name": "demo-console"' services/catalog.json || {
+  printf 'services/catalog.json does not declare demo-console.\n' >&2
+  exit 1
+}
+
+grep -Fq '"runtime": "react-vite"' services/catalog.json || {
+  printf 'services/catalog.json does not declare demo-console runtime react-vite.\n' >&2
+  exit 1
+}
+
+if command -v node >/dev/null 2>&1; then
+  services/demo-console/build.sh || exit 1
+else
+  printf 'Skipping demo-console validation because node is not available.\n'
 fi
 
 for environment in dev staging prod; do

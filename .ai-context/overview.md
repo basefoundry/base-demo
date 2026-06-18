@@ -45,6 +45,7 @@ Banyan Labs remains the full platform engineering lab.
 | `services/java-maven-api/` | Tiny Java HTTP API fixture built with Maven |
 | `services/c-service/` | Tiny native C fixture built with make |
 | `services/cpp-service/` | Tiny native C++ fixture built with make |
+| `services/demo-console/` | React/Vite operational console for the service catalog |
 | `infra/compose.yaml` | Local Postgres, MySQL, Redis, and Go API Compose fixtures |
 | `environments/*.json` | `dev`, `staging`, and `prod` environment configuration |
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |

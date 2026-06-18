@@ -28,6 +28,9 @@
     },
     "cpp-service": {
       "required": false
+    },
+    "demo-console": {
+      "required": false
     }
   },
   "infrastructure": {

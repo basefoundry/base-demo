@@ -114,6 +114,8 @@ because activation sources `.base/activate.sh` into the project shell.
   APIs that keep Gradle and Maven visible as representative build tools.
 - `services/c-service` and `services/cpp-service` are tiny native compiled
   fixtures with Makefile-backed build and command health checks.
+- `services/demo-console` is a small React/Vite operational console that reads
+  the service catalog and shows the representative stack.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the
   `services` lifecycle command for the representative environment.
 - `bin/base-demo-environments` lists, shows, and validates environment
@@ -178,10 +180,10 @@ BASE_DEMO_SERVICES_DRY_RUN=1 basectl run base-demo services -- start
 It reads `services/catalog.json` and reports the current catalog health. Local
 Postgres, MySQL, Redis, and the Dockerized Go API are declared through
 `infra/compose.yaml`; the Python API is managed as a local process by the same
-`services` command, as are the Java Gradle, Java Maven, C, and C++ services.
-They are representative dependencies and services, and they are optional in
-`services check` until started. Later service and UI slices will extend the same
-command surface instead of adding one-off lifecycle commands.
+`services` command, as are the Java Gradle, Java Maven, C, C++, and React/Vite
+console services. They are representative dependencies and services, and they
+are optional in `services check` until started. Later slices should extend the
+same command surface instead of adding one-off lifecycle commands.
 
 Both Gradle and Maven are present intentionally. They are common enough in real
 enterprise Java estates that a medium-shaped demo should exercise both build
