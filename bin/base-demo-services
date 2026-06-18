@@ -35,6 +35,18 @@ def load_catalog(path: Path) -> list[dict[str, Any]]:
     return services
 
 
+def load_environment(root: Path, name: str) -> dict[str, Any]:
+    path = root / "environments" / f"{name}.json"
+    try:
+        with path.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except FileNotFoundError:
+        raise ValueError(f"environment not found: {name}") from None
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"environment {name} is not valid JSON: {exc}") from None
+    return payload
+
+
 def check_service(service: dict[str, Any], root: Path) -> tuple[bool, str]:
     check = service.get("check") or {"type": "none"}
     check_type = check.get("type")
@@ -106,8 +118,10 @@ def print_table(rows: list[dict[str, str]]) -> None:
         print("  ".join(row[key].ljust(widths[key]) for key in keys))
 
 
-def cmd_status(services: list[dict[str, Any]], root: Path, env_name: str) -> int:
+def cmd_status(services: list[dict[str, Any]], root: Path, environment: dict[str, Any]) -> int:
+    env_name = str(environment.get("name", "dev"))
     print(f"environment={env_name}")
+    print(f"mode={environment.get('mode', 'operational')}")
     rows = service_rows(services, root)
     if not rows:
         print("No services configured.")
@@ -158,10 +172,15 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     root = project_root()
+    try:
+        environment = load_environment(root, args.env)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
     services = load_catalog(Path(args.catalog))
 
     if args.command == "status":
-        return cmd_status(services, root, args.env)
+        return cmd_status(services, root, environment)
     if args.command == "check":
         return cmd_check(services, root)
     if args.command in {"start", "stop", "restart"}:

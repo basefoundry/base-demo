@@ -16,7 +16,11 @@ required_files=(
   .base/activate.sh
   bin/base-demo-python-info
   bin/base-demo-services
+  bin/base-demo-environments
   services/catalog.json
+  environments/dev.json
+  environments/staging.json
+  environments/prod.json
   src/hello.sh
   src/env.sh
   src/manifest.sh
@@ -26,6 +30,7 @@ required_files=(
   demo/demo.sh
   tests/demo_test.bats
   tests/services_test.bats
+  tests/environments_test.bats
   .github/workflows/tests.yml
   .github/pull_request_template.md
 )
@@ -37,7 +42,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services src/hello.sh src/env.sh src/manifest.sh src/build-info.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -84,6 +89,11 @@ grep -Fq 'services: ./bin/base-demo-services' base_manifest.yaml || {
   exit 1
 }
 
+grep -Fq 'environments: ./bin/base-demo-environments' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the environments command.\n' >&2
+  exit 1
+}
+
 grep -Fq 'script: ./demo/demo.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the demo script.\n' >&2
   exit 1
@@ -93,6 +103,13 @@ grep -Fq '"name": "project-baseline"' services/catalog.json || {
   printf 'services/catalog.json does not declare the project-baseline entry.\n' >&2
   exit 1
 }
+
+for environment in dev staging prod; do
+  grep -Fq "\"name\": \"$environment\"" "environments/$environment.json" || {
+    printf 'environments/%s.json does not declare matching environment name.\n' "$environment" >&2
+    exit 1
+  }
+done
 
 grep -Fq 'required_env:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare health.required_env.\n' >&2

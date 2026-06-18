@@ -47,6 +47,7 @@ case "$*" in
     printf 'manifest    ./src/manifest.sh\n'
     printf 'python-info ./bin/base-demo-python-info\n'
     printf 'services    ./bin/base-demo-services\n'
+    printf 'environments ./bin/base-demo-environments\n'
     ;;
   run\ base-demo\ --workspace\ *\ hello)
     printf 'hello from base-demo\n'
@@ -67,8 +68,15 @@ case "$*" in
     ;;
   run\ base-demo\ --workspace\ *\ services\ --\ status)
     printf 'environment=dev\n'
+    printf 'mode=operational\n'
     printf 'NAME              KIND     RUNTIME  PORT  HEALTH                   STATE    SINCE  LOGS\n'
     printf 'project-baseline  project  base     -     file:base_manifest.yaml  healthy  -      -\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ environments\ --\ list)
+    printf 'NAME     MODE         OPERATIONAL  BASE_URL\n'
+    printf 'dev      operational  true         http://127.0.0.1\n'
+    printf 'staging  modeled      false        https://staging.base-demo.example.invalid\n'
+    printf 'prod     modeled      false        https://base-demo.example.invalid\n'
     ;;
   test\ base-demo\ --workspace\ *)
     printf 'Repository baseline is present.\n'
@@ -105,6 +113,7 @@ EOF
   [[ "$output" == *"Project Diagnostics"* ]]
   [[ "$output" == *"Declared Commands"* ]]
   [[ "$output" == *"services    ./bin/base-demo-services"* ]]
+  [[ "$output" == *"environments ./bin/base-demo-environments"* ]]
   [[ "$output" == *"Inspection Commands"* ]]
   [[ "$output" == *"BASE_DEMO_ENV=baseline"* ]]
   [[ "$output" == *"BASE_DEMO_PROJECT_KIND=reference-demo"* ]]
@@ -113,6 +122,8 @@ EOF
   [[ "$output" == *"base-demo python cli"* ]]
   [[ "$output" == *"project-baseline"* ]]
   [[ "$output" == *"healthy"* ]]
+  [[ "$output" == *"staging"* ]]
+  [[ "$output" == *"modeled"* ]]
   [[ "$output" == *"Repository baseline is present."* ]]
   [[ "$output" == *"Build Targets"* ]]
   [[ "$output" == *"project=base-demo"* ]]
@@ -126,6 +137,7 @@ EOF
   grep -Eq "^basectl run base-demo --workspace .+ manifest$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ python-info$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- status$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ environments -- list$" "$state_file"
   grep -Eq "^basectl test base-demo --workspace .+$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+$" "$state_file"

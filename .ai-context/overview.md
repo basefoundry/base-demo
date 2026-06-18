@@ -10,7 +10,7 @@ every current Base contract, a set of runnable commands, a Python CLI that uses
 The next direction is to grow this baseline into a reduced-scale representative
 environment. It should include multiple language services, common build tools,
 one Dockerized service, one React/Vite UI, local databases and cache through
-Compose, and modeled `dev`, `staging`, and `prod` configuration. Only local
+Compose, and JSON-modeled `dev`, `staging`, and `prod` configuration. Only local
 `dev` is operational by default; staging and prod are configuration examples.
 
 This makes `base-demo` a bridge between a tiny sample and Banyan Labs. Base owns
@@ -37,7 +37,9 @@ Banyan Labs remains the full platform engineering lab.
 | `src/build-info.sh` | Build target: prints project and version |
 | `bin/base-demo-python-info` | Bash launcher for the Python CLI |
 | `bin/base-demo-services` | Service lifecycle command backed by `services/catalog.json` |
+| `bin/base-demo-environments` | Environment configuration inspection and validation command |
 | `services/catalog.json` | Representative environment service catalog |
+| `environments/*.json` | `dev`, `staging`, and `prod` environment configuration |
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |
 | `demo/demo.sh` | Interactive walkthrough |
 | `tests/validate.sh` | Baseline validation (the declared test command) |
