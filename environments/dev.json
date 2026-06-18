@@ -10,6 +10,9 @@
   "services": {
     "project-baseline": {
       "required": true
+    },
+    "go-api": {
+      "required": false
     }
   },
   "infrastructure": {

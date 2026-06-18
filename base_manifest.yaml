@@ -30,6 +30,9 @@ build:
     info:
       description: Print project build info.
       command: ./src/build-info.sh
+    go-api:
+      description: Build the Go API service.
+      command: ./services/go-api/build.sh
 
 test:
   command: ./tests/validate.sh

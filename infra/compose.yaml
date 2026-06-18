@@ -40,3 +40,14 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  go-api:
+    build:
+      context: ../services/go-api
+      dockerfile: Dockerfile
+    image: base-demo/go-api:local
+    container_name: base-demo-go-api
+    environment:
+      PORT: "8010"
+    ports:
+      - "8010:8010"

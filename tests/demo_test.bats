@@ -74,6 +74,7 @@ case "$*" in
     printf 'postgres          database compose  5432  compose:postgres         stopped  -      docker compose logs postgres\n'
     printf 'mysql             database compose  3306  compose:mysql            stopped  -      docker compose logs mysql\n'
     printf 'redis             cache    compose  6379  compose:redis            stopped  -      docker compose logs redis\n'
+    printf 'go-api            service  docker   8010  http://127.0.0.1:8010/healthz stopped  -      docker compose logs go-api\n'
     ;;
   run\ base-demo\ --workspace\ *\ environments\ --\ list)
     printf 'NAME     MODE         OPERATIONAL  BASE_URL\n'
@@ -127,6 +128,8 @@ EOF
   [[ "$output" == *"postgres"* ]]
   [[ "$output" == *"mysql"* ]]
   [[ "$output" == *"redis"* ]]
+  [[ "$output" == *"go-api"* ]]
+  [[ "$output" == *"8010"* ]]
   [[ "$output" == *"healthy"* ]]
   [[ "$output" == *"staging"* ]]
   [[ "$output" == *"modeled"* ]]

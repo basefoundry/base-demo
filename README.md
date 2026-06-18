@@ -106,14 +106,16 @@ because activation sources `.base/activate.sh` into the project shell.
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python
   package to `base-wrapper`.
+- `services/go-api` is a tiny Go HTTP API with `/healthz`, `/hello`, and
+  `/info` endpoints. It is also the representative Dockerized app service.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the
   `services` lifecycle command for the representative environment.
 - `bin/base-demo-environments` lists, shows, and validates environment
   configuration.
 - `services/catalog.json` is the initial catalog for representative services,
   infrastructure, and lifecycle checks.
-- `infra/compose.yaml` defines local Postgres, MySQL, and Redis dependencies
-  for the representative dev environment.
+- `infra/compose.yaml` defines local Postgres, MySQL, Redis, and the
+  Dockerized Go API for the representative dev environment.
 - `environments/dev.json`, `environments/staging.json`, and
   `environments/prod.json` model environment-specific configuration. Only
   `dev` is operational by default.
@@ -168,10 +170,11 @@ BASE_DEMO_SERVICES_DRY_RUN=1 basectl run base-demo services -- start
 ```
 
 It reads `services/catalog.json` and reports the current catalog health. Local
-Postgres, MySQL, and Redis are declared through `infra/compose.yaml`; they are
-representative dependencies and are optional in `services check` until started.
-Later service and UI slices will extend the same command surface instead of
-adding one-off lifecycle commands.
+Postgres, MySQL, Redis, and the Dockerized Go API are declared through
+`infra/compose.yaml`; they are representative dependencies and services, and
+they are optional in `services check` until started. Later service and UI slices
+will extend the same command surface instead of adding one-off lifecycle
+commands.
 
 For CI or scripted validation, run the walkthrough without prompts:
 

@@ -19,6 +19,11 @@ required_files=(
   bin/base-demo-environments
   services/catalog.json
   infra/compose.yaml
+  services/go-api/go.mod
+  services/go-api/main.go
+  services/go-api/server_test.go
+  services/go-api/Dockerfile
+  services/go-api/build.sh
   environments/dev.json
   environments/staging.json
   environments/prod.json
@@ -33,6 +38,7 @@ required_files=(
   tests/services_test.bats
   tests/environments_test.bats
   tests/infra_test.bats
+  tests/go_api_test.bats
   .github/workflows/tests.yml
   .github/pull_request_template.md
 )
@@ -44,7 +50,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -116,6 +122,22 @@ for service in postgres mysql redis; do
     exit 1
   }
 done
+
+grep -Fq '"name": "go-api"' services/catalog.json || {
+  printf 'services/catalog.json does not declare go-api.\n' >&2
+  exit 1
+}
+
+grep -Fq '  go-api:' infra/compose.yaml || {
+  printf 'infra/compose.yaml does not declare go-api.\n' >&2
+  exit 1
+}
+
+if command -v go >/dev/null 2>&1; then
+  (cd services/go-api && CGO_ENABLED=0 go test ./...) || exit 1
+else
+  printf 'Skipping go-api tests because go is not available.\n'
+fi
 
 for environment in dev staging prod; do
   grep -Fq "\"name\": \"$environment\"" "environments/$environment.json" || {

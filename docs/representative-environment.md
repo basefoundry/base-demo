@@ -29,8 +29,8 @@ The target stack is broad enough to feel real and small enough to inspect:
 | Area | Representative choice | Intent |
 | --- | --- | --- |
 | Python | Tiny Python HTTP API plus the existing Python CLI | Demonstrate Python as both project command and app service runtime. |
-| Go | Tiny Go HTTP API | Demonstrate Go service development and native test/build flow. |
-| Docker | Dockerized Go service | Make Docker first-class without containerizing every app service. |
+| Go | Tiny Go HTTP API on port 8010 | Demonstrate Go service development and native test/build flow. |
+| Docker | Dockerized Go service through Compose | Make Docker first-class without containerizing every app service. |
 | Java | One Gradle service and one Maven service | Demonstrate common Java build tools without Spring-scale complexity. |
 | C | Tiny native service | Represent lower-level compiled components. |
 | C++ | Tiny native service | Represent C++ service/tooling presence in a mixed environment. |
@@ -99,6 +99,10 @@ The local infrastructure layer is:
 These dependencies are optional for `services check` until they are started.
 That keeps the default validation path stable on machines without Docker while
 still giving the main demo a real Compose-backed infrastructure surface.
+
+The first Dockerized application fixture is `services/go-api`. It exposes
+`/healthz`, `/hello`, and `/info` on port 8010 and is registered in both
+`services/catalog.json` and `infra/compose.yaml`.
 
 ## Environment Model
 

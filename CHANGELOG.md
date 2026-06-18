@@ -17,6 +17,8 @@ and versions are tracked in the repo-root `VERSION` file.
   with an `environments` inspection and validation command.
 - Added `infra/compose.yaml` with representative Postgres, MySQL, and Redis
   dependencies managed through the `services` command.
+- Added `services/go-api` as a tiny Go HTTP API and the representative
+  Dockerized app service on port 8010.
 - Documented the MIT license decision in the README.
 - Added repo-local agent guidance, a project skills index, and a reusable
   Base-backed installer script.

@@ -55,6 +55,19 @@
         "service": "redis"
       },
       "logs": "docker compose logs redis"
+    },
+    {
+      "name": "go-api",
+      "kind": "service",
+      "runtime": "docker",
+      "port": 8010,
+      "health_url": "http://127.0.0.1:8010/healthz",
+      "required": false,
+      "compose_service": "go-api",
+      "check": {
+        "type": "http"
+      },
+      "logs": "docker compose logs go-api"
     }
   ]
 }

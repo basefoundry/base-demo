@@ -57,10 +57,9 @@ def compose_file(root: Path) -> Path:
 def compose_service_names(services: list[dict[str, Any]]) -> list[str]:
     names: list[str] = []
     for service in services:
-        if service.get("runtime") == "compose":
-            compose_name = service.get("compose_service") or service.get("name")
-            if isinstance(compose_name, str) and compose_name:
-                names.append(compose_name)
+        compose_name = service.get("compose_service")
+        if isinstance(compose_name, str) and compose_name:
+            names.append(compose_name)
     return names
 
 
