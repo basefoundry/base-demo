@@ -1,7 +1,8 @@
 # Homebrew-owned dependencies for the Base demo project.
 #
 # Keep this lightweight. Formulae here should teach a real Base workflow;
-# Gradle and Maven are present for representative Java build-tool coverage.
+# mise manages declared tool versions, while Gradle and Maven provide
+# representative Java build-tool coverage.
 
 brew "mise"
 brew "gradle"
