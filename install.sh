@@ -5,11 +5,11 @@
 
 # Project-owned values.
 PROJECT_NAME="${PROJECT_NAME:-base-demo}"
-PROJECT_REPO_URL="${PROJECT_REPO_URL:-https://github.com/codeforester/base-demo.git}"
+PROJECT_REPO_URL="${PROJECT_REPO_URL:-https://github.com/basefoundry/base-demo.git}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/work}"
 BASE_DIR="${BASE_DIR:-$WORKSPACE_DIR/base}"
 PROJECT_DIR="${PROJECT_DIR:-$WORKSPACE_DIR/$PROJECT_NAME}"
-BASE_INSTALL_URL="${BASE_INSTALL_URL:-https://raw.githubusercontent.com/codeforester/base/master/install.sh}"
+BASE_INSTALL_URL="${BASE_INSTALL_URL:-https://raw.githubusercontent.com/basefoundry/base/master/install.sh}"
 RUN_UPDATE_PROFILE="${RUN_UPDATE_PROFILE:-true}"
 
 INSTALLER_TMP=""
