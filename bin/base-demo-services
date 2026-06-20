@@ -234,6 +234,7 @@ def check_service(service: dict[str, Any], root: Path) -> tuple[bool, str]:
         return path.exists(), f"file:{path_value}"
 
     if check_type == "http":
+        # HTTP checks use the service-level health_url so the display URL and probe target stay aligned.
         url = service.get("health_url")
         if not isinstance(url, str) or not url:
             return False, "http:<missing health_url>"
