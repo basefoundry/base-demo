@@ -26,7 +26,7 @@ def environments_dir() -> Path:
 
 
 def environment_names() -> list[str]:
-    return ["dev", "staging", "prod"]
+    return sorted(path.stem for path in environments_dir().glob("*.json") if path.is_file())
 
 
 def load_environment(name: str) -> dict[str, Any]:
