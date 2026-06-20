@@ -134,6 +134,11 @@ if [[ -n "$stale_github_refs" ]]; then
   exit 1
 fi
 
+if grep -Fq 'raw.githubusercontent.com/basefoundry/base/master/' install.sh; then
+  printf 'install.sh must not use Base master branch raw URLs.\n' >&2
+  exit 1
+fi
+
 grep -Fq 'hello: ./src/hello.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the hello command.\n' >&2
   exit 1
