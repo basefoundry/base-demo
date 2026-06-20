@@ -119,6 +119,35 @@ def process_is_running(pid: int | None) -> bool:
     return True
 
 
+def compose_state_service_name(service: dict[str, Any]) -> str | None:
+    service_name = service.get("compose_service")
+    if isinstance(service_name, str) and service_name:
+        return service_name
+    check = service.get("check") or {}
+    check_service_name = check.get("service")
+    if check.get("type") == "compose" and isinstance(check_service_name, str) and check_service_name:
+        return check_service_name
+    return None
+
+
+def compose_service_has_state(service: dict[str, Any], root: Path) -> bool:
+    service_name = compose_state_service_name(service)
+    if service_name is None or shutil.which("docker") is None:
+        return False
+    command = compose_command(root, ["ps", "--services", "--all"])
+    result = subprocess.run(command, check=False, capture_output=True, text=True)
+    if result.returncode != 0:
+        return False
+    return service_name in set(result.stdout.splitlines())
+
+
+def service_has_start_state(service: dict[str, Any], root: Path, process_state: dict[str, Any] | None) -> bool:
+    lifecycle = service.get("lifecycle") or {}
+    if lifecycle.get("type") == "process":
+        return process_state is not None
+    return compose_service_has_state(service, root)
+
+
 def compose_command(root: Path, args: list[str]) -> list[str]:
     return [
         "docker",
@@ -287,12 +316,17 @@ def health_label(service: dict[str, Any]) -> str:
 def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for service in services:
+        process_state = read_process_state(root, service)
         ok, detail = check_service(service, root)
-        state = "healthy" if ok else "unhealthy"
-        if not ok and not service.get("required", False):
+        if ok:
+            state = "healthy"
+        elif service.get("required", False):
+            state = "unhealthy"
+        elif service_has_start_state(service, root, process_state):
+            state = "error"
+        else:
             state = "stopped"
         since = "-"
-        process_state = read_process_state(root, service)
         if process_state:
             started_at = process_state.get("started_at")
             if isinstance(started_at, str) and started_at:
@@ -343,6 +377,10 @@ def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
     for row in service_rows(services, root):
         if row["state"] == "healthy":
             print(f"{row['name']} ok")
+            continue
+        if row["state"] == "error":
+            print(f"{row['name']} error {row['detail']}")
+            failed = True
             continue
         if row["required"] == "true":
             print(f"{row['name']} fail {row['detail']}")
