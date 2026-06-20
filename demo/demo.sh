@@ -314,6 +314,10 @@ build_step() {
   output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE")"
   printf '%s\n' "$output"
   require_contains "build output" "$output" "project=base-demo"
+
+  output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" python-api --workspace "$BASE_DEMO_WORKSPACE")"
+  printf '%s\n' "$output"
+  require_contains "python-api build output" "$output" "python-api"
   pause
 }
 

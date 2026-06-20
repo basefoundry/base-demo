@@ -158,6 +158,9 @@ case "$*" in
     printf 'cpp-service Build the native C++ service.\n'
     printf 'demo-console Build the React/Vite demo console.\n'
     ;;
+  build\ base-demo\ python-api\ --workspace\ *)
+    printf 'python-api build target validated\n'
+    ;;
   build\ base-demo\ --workspace\ *)
     printf 'project=base-demo\n'
     printf 'version=0.1.0\n'
@@ -225,6 +228,7 @@ EOF
   [[ "$output" == *"Repository baseline is present."* ]]
   [[ "$output" == *"Build Targets"* ]]
   [[ "$output" == *"project=base-demo"* ]]
+  [[ "$output" == *"python-api build target validated"* ]]
   [[ "$output" == *"base-demo walkthrough complete."* ]]
   grep -Fq "basectl projects list --workspace " "$state_file"
   grep -Eq "^basectl check base-demo --manifest .+/base_manifest.yaml$" "$state_file"
@@ -242,5 +246,6 @@ EOF
   grep -Eq "^basectl test base-demo --workspace .+$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+$" "$state_file"
+  grep -Eq "^basectl build base-demo python-api --workspace .+$" "$state_file"
   grep -Eq "^basectl demo base-demo --workspace .+ --dry-run -- --non-interactive$" "$state_file"
 }
