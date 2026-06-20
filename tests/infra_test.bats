@@ -30,12 +30,12 @@ setup() {
   [[ "$output" == *"up -d postgres mysql redis"* ]]
 }
 
-@test "services stop dry-run shows compose down command" {
+@test "services stop dry-run shows compose stop command" {
   run env BASE_DEMO_SERVICES_DRY_RUN=1 "$TEST_ROOT/bin/base-demo-services" stop
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"DRY-RUN docker compose"* ]]
-  [[ "$output" == *"down"* ]]
+  [[ "$output" == *"stop postgres mysql redis go-api"* ]]
 }
 
 @test "services check does not require optional local infrastructure to be running" {
