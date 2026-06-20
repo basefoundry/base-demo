@@ -162,7 +162,7 @@ each field maps to a visible Base workflow:
 | `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
 | `test.command` | `basectl test base-demo` | Defines the project-owned validation command. |
 | `demo.script` | `basectl demo base-demo` | Defines the project-owned interactive walkthrough. |
-| `artifacts` | `basectl setup base-demo` | Lists Base-managed artifacts. The baseline demo uses an empty list to avoid unnecessary installs. |
+| `artifacts` | `basectl setup base-demo` | Requests the `bats-core` tool artifact; the project setup layer reports whether Homebrew already has it or would install it. |
 
 The demo now includes a shallow but representative environment: multi-language
 service fixtures, one Dockerized app service, a React/Vite UI, Compose-backed

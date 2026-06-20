@@ -59,4 +59,7 @@ demo:
   script: ./demo/demo.sh
   description: Interactive walkthrough of Base-managed project conventions
 
-artifacts: []
+artifacts:
+  - type: tool
+    name: bats-core
+    version: latest
