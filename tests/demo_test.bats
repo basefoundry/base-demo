@@ -71,7 +71,7 @@ case "$*" in
     printf 'base-demo   %s\n' "${BASE_PROJECT_ROOT:?}"
     ;;
   setup\ base-demo\ --manifest\ *\ --dry-run\ --no-notify)
-    printf '[DRY-RUN] Would reconcile base_manifest.yaml, Brewfile, mise, and project virtualenv.\n'
+    printf '[DRY-RUN] Would reconcile base_manifest.yaml, Brewfile, mise, project virtualenv, and bats-core artifact.\n'
     ;;
   check\ base-demo\ --manifest\ *)
     printf 'Base CLI environment check passed.\n'
@@ -197,6 +197,7 @@ EOF
   [[ "$output" == *"base-demo Walkthrough"* ]]
   [[ "$output" == *"Workspace Discovery"* ]]
   [[ "$output" == *"Setup Contract"* ]]
+  [[ "$output" == *"bats-core"* ]]
   [[ "$output" == *"Project Diagnostics"* ]]
   [[ "$output" == *"post-activation green path"* ]]
   [[ "$output" == *"Declared Commands"* ]]

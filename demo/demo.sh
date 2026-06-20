@@ -197,10 +197,14 @@ setup_step() {
 
   step 4 "Setup Contract"
   printf 'Showing the setup reconciliation plan for manifest artifacts, Brewfile dependencies, mise tools, and the project virtualenv.\n'
+  printf 'The representative manifest artifact is bats-core, managed as a Homebrew tool artifact by Base.\n'
   printf 'The walkthrough uses --dry-run so it is stable on machines where setup is already complete or local tool trust is pending.\n'
   printf 'For this process only, the project root is trusted for mise checks without changing persistent mise trust.\n'
   output="$(capture_command "$BASE_DEMO_BASECTL" setup "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml" --dry-run --no-notify)"
   printf '%s\n' "$output"
+  if [[ "$output" != *"bats-core"* ]]; then
+    printf 'Artifact reconciliation may be deferred until the project virtualenv is healthy; the declared artifact is bats-core.\n'
+  fi
   pause
 }
 

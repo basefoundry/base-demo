@@ -296,6 +296,26 @@ grep -Fq 'currently includes mise, Gradle, and Maven' .ai-context/manifest.md ||
   exit 1
 }
 
+grep -Fq 'artifacts:' base_manifest.yaml && grep -Fq 'name: bats-core' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the bats-core artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq 'type: tool' base_manifest.yaml && grep -Fq 'version: latest' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the bats-core artifact as a latest tool artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq 'bats-core' README.md || {
+  printf 'README.md does not document the demonstrated bats-core artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq 'bats-core' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document the demonstrated bats-core artifact.\n' >&2
+  exit 1
+}
+
 grep -Fq 'build:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare build targets.\n' >&2
   exit 1

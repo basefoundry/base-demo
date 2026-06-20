@@ -17,7 +17,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `build.targets` | `basectl build` | `info` target runs `src/build-info.sh` |
 | `test.command` | `basectl test` | Runs `tests/validate.sh` |
 | `demo.script` | `basectl demo` | Runs `demo/demo.sh` |
-| `artifacts` | `basectl setup` | Empty — no external Python packages needed |
+| `artifacts` | `basectl setup` | Requests the `bats-core` tool artifact; setup reports whether the Homebrew package is already current or would be installed |
 
 ## Design Intent
 
