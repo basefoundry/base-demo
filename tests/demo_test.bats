@@ -28,6 +28,9 @@ teardown() {
   cat > "$fake_bin/basectl" <<'EOF'
 #!/usr/bin/env bash
 case "$*" in
+  repo\ check\ .)
+    printf 'Repository baseline: all 12 required files present.\n'
+    ;;
   projects\ list\ --workspace\ *)
     printf 'PROJECT     PATH\n'
     printf 'other-demo  /tmp/other-demo\n'
@@ -60,9 +63,15 @@ EOF
 #!/usr/bin/env bash
 printf 'basectl %s\n' "$*" >> "${BASE_DEMO_TEST_STATE:?}"
 case "$*" in
+  repo\ check\ .)
+    printf 'Repository baseline: all 12 required files present.\n'
+    ;;
   projects\ list\ --workspace\ *)
     printf 'PROJECT     PATH\n'
     printf 'base-demo   %s\n' "${BASE_PROJECT_ROOT:?}"
+    ;;
+  setup\ base-demo\ --manifest\ *\ --dry-run\ --no-notify)
+    printf '[DRY-RUN] Would reconcile base_manifest.yaml, Brewfile, mise, and project virtualenv.\n'
     ;;
   check\ base-demo\ --manifest\ *)
     printf 'Base CLI environment check passed.\n'
@@ -187,12 +196,18 @@ EOF
   [ "$status" -eq 0 ]
   [[ "$output" == *"base-demo Walkthrough"* ]]
   [[ "$output" == *"Workspace Discovery"* ]]
+  [[ "$output" == *"Setup Contract"* ]]
   [[ "$output" == *"Project Diagnostics"* ]]
+  [[ "$output" == *"post-activation green path"* ]]
   [[ "$output" == *"Declared Commands"* ]]
   [[ "$output" == *"services    ./bin/base-demo-services"* ]]
   [[ "$output" == *"environments ./bin/base-demo-environments"* ]]
   [[ "$output" == *"Inspection Commands"* ]]
+  [[ "$output" == *"Inspecting activation and manifest environment values."* ]]
+  [[ "$output" == *"Reading the manifest summary command."* ]]
+  [[ "$output" == *"Checking representative service health."* ]]
   [[ "$output" == *"Representative Environment"* ]]
+  [[ "$output" == *"Dry-running service startup without launching dependencies."* ]]
   [[ "$output" == *"DRY-RUN docker compose"* ]]
   [[ "$output" == *"c-service ok"* ]]
   [[ "$output" == *"cpp-service ok"* ]]
@@ -229,10 +244,17 @@ EOF
   [[ "$output" == *"Build Targets"* ]]
   [[ "$output" == *"project=base-demo"* ]]
   [[ "$output" == *"python-api build target validated"* ]]
+  [[ "$output" == *"Manifest fields exercised:"* ]]
+  [[ "$output" == *"docs/representative-environment.md"* ]]
+  [[ "$output" == *"banyanlabs"* ]]
   [[ "$output" == *"base-demo walkthrough complete."* ]]
+  grep -Eq "^basectl repo check \\.$" "$state_file"
   grep -Fq "basectl projects list --workspace " "$state_file"
+  grep -Eq "^basectl setup base-demo --manifest .+/base_manifest.yaml --dry-run --no-notify$" "$state_file"
   grep -Eq "^basectl check base-demo --manifest .+/base_manifest.yaml$" "$state_file"
   grep -Eq "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file"
+  [ "$(grep -Ec "^basectl check base-demo --manifest .+/base_manifest.yaml$" "$state_file")" -eq 2 ]
+  [ "$(grep -Ec "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file")" -eq 2 ]
   grep -Eq "^basectl run base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ env$" "$state_file"
