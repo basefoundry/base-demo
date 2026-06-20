@@ -66,6 +66,29 @@ write_optional_compose_catalog() {
 EOF
 }
 
+write_missing_http_catalog() {
+  local catalog="$1"
+
+  cat > "$catalog" <<EOF
+{
+  "services": [
+    {
+      "name": "missing-http",
+      "kind": "service",
+      "runtime": "test",
+      "port": null,
+      "health_url": null,
+      "required": false,
+      "check": {
+        "type": "http"
+      },
+      "logs": null
+    }
+  ]
+}
+EOF
+}
+
 write_fake_docker_with_stopped_compose_service() {
   local bin_dir="$1"
   mkdir -p "$bin_dir"
@@ -198,4 +221,19 @@ EOF
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"optional-compose"*"error"* ]]
+}
+
+@test "services status and check use the same missing http target detail" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  write_missing_http_catalog "$catalog"
+
+  run env BASE_DEMO_SERVICES_STATE_DIR="$TEST_TMPDIR/state" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" status
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"missing-http"*"http:<missing health_url>"* ]]
+
+  run env BASE_DEMO_SERVICES_STATE_DIR="$TEST_TMPDIR/state" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" check
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"missing-http skip optional http:<missing health_url>"* ]]
 }
