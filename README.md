@@ -10,7 +10,7 @@ runtime variety found in a medium-sized engineering organization.
 The long-term direction is documented in
 [Representative Environment Design](docs/representative-environment.md).
 `base-demo` is intentionally positioned between a toy sample and
-[`banyanlabs`](https://github.com/codeforester/banyanlabs): it borrows the
+[`banyanlabs`](https://github.com/basefoundry/banyanlabs): it borrows the
 shape of a realistic platform environment while keeping each service shallow so
 Base orchestration remains the point.
 
@@ -19,8 +19,8 @@ Base orchestration remains the point.
 Clone `base` and `base-demo` as peer directories:
 
 ```bash
-git clone https://github.com/codeforester/base.git
-git clone https://github.com/codeforester/base-demo.git
+git clone https://github.com/basefoundry/base.git
+git clone https://github.com/basefoundry/base-demo.git
 ```
 
 From the `base-demo` repository root on a machine where Base is already set up:

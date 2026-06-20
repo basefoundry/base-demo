@@ -116,6 +116,24 @@ grep -Fq '.base/activate.sh' base_manifest.yaml || {
   exit 1
 }
 
+stale_ref_scan_paths=(
+  README.md
+  install.sh
+  .github
+  services
+  docs
+  base_manifest.yaml
+  CHANGELOG.md
+  .ai-context
+)
+stale_github_refs="$(
+  grep -RInE '(github\.com|raw\.githubusercontent\.com)/codeforester|codeforester/(base-demo|banyanlabs|base)([^[:alnum:]_.-]|$)' "${stale_ref_scan_paths[@]}" || true
+)"
+if [[ -n "$stale_github_refs" ]]; then
+  printf 'Found stale codeforester GitHub references:\n%s\n' "$stale_github_refs" >&2
+  exit 1
+fi
+
 grep -Fq 'hello: ./src/hello.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the hello command.\n' >&2
   exit 1

@@ -39,7 +39,7 @@ jobs:
       # Pin to a Base release tag so CI is not affected by Base master changes.
       # Update this tag when a new Base release is made.
       - name: Check out Base
-        run: git clone --depth 1 --branch v0.4.4 https://github.com/codeforester/base.git ../base
+        run: git clone --depth 1 --branch v0.4.4 https://github.com/basefoundry/base.git ../base
 
       - name: Set up Base
         run: ../base/bin/basectl setup base --no-notify
