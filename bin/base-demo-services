@@ -363,7 +363,7 @@ def cmd_lifecycle(services: list[dict[str, Any]], root: Path, action: str) -> in
         if action == "start":
             result = run_compose(root, ["up", "-d", *compose_names])
         if action == "stop":
-            result = run_compose(root, ["down"])
+            result = run_compose(root, ["stop", *compose_names])
 
     for service in process_services(services):
         if action == "start":
