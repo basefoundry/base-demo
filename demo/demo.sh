@@ -24,6 +24,12 @@ BASE_DEMO_ROOT="$(demo_project_root)" || {
   exit 1
 }
 
+if [[ -n "${MISE_TRUSTED_CONFIG_PATHS:-}" ]]; then
+  export MISE_TRUSTED_CONFIG_PATHS="$BASE_DEMO_ROOT:$MISE_TRUSTED_CONFIG_PATHS"
+else
+  export MISE_TRUSTED_CONFIG_PATHS="$BASE_DEMO_ROOT"
+fi
+
 demo_workspace_root() {
   cd -- "$BASE_DEMO_ROOT/.." && pwd -P
 }
@@ -103,7 +109,7 @@ capture_command() {
 
   printf '  $'
   printf ' %q' "$@"
-  printf '\n'
+  printf '\n\n'
 
   if ! output="$("$@" 2>&1)"; then
     printf '%s\n' "$output" >&2
@@ -133,6 +139,8 @@ intro() {
 }
 
 project_shape_step() {
+  local repo_output
+
   step 1 "Project Shape"
   run_command test -f "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command test -f "$BASE_DEMO_ROOT/Brewfile"
@@ -149,6 +157,11 @@ project_shape_step() {
   run_command test -x "$BASE_DEMO_ROOT/src/manifest.sh"
   run_command test -x "$BASE_DEMO_ROOT/src/build-info.sh"
   run_command test -x "$BASE_DEMO_ROOT/tests/validate.sh"
+
+  printf '\nChecking the repository baseline files separately from project health.\n'
+  repo_output="$(capture_command "$BASE_DEMO_BASECTL" repo check .)"
+  printf '%s\n' "$repo_output"
+  require_contains "repo check" "$repo_output" "Repository baseline"
   pause
 }
 
@@ -179,8 +192,20 @@ discovery_step() {
   pause
 }
 
+setup_step() {
+  local output
+
+  step 4 "Setup Contract"
+  printf 'Showing the setup reconciliation plan for manifest artifacts, Brewfile dependencies, mise tools, and the project virtualenv.\n'
+  printf 'The walkthrough uses --dry-run so it is stable on machines where setup is already complete or local tool trust is pending.\n'
+  printf 'For this process only, the project root is trusted for mise checks without changing persistent mise trust.\n'
+  output="$(capture_command "$BASE_DEMO_BASECTL" setup "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml" --dry-run --no-notify)"
+  printf '%s\n' "$output"
+  pause
+}
+
 diagnostics_step() {
-  step 4 "Project Diagnostics"
+  step 5 "Project Diagnostics"
   printf 'The manifest declares BASE_DEMO_ENV as a required_env health check.\n'
   printf 'The green path has BASE_DEMO_ENV=baseline from activation or CI.\n'
   printf 'Before activation, check and doctor can report a useful diagnostic instead.\n'
@@ -191,7 +216,9 @@ diagnostics_step() {
 }
 
 activation_step() {
-  step 5 "Project Activation Source"
+  local check_output doctor_output
+
+  step 6 "Project Activation Source"
   # shellcheck source=/dev/null
   source "$BASE_DEMO_ROOT/.base/activate.sh" || return 1
   printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
@@ -200,13 +227,20 @@ activation_step() {
   require_contains "activation" "${BASE_DEMO_ENV:-}" "baseline"
   require_contains "activation" "${BASE_DEMO_ACTIVATED:-}" "true"
   require_contains "activation" "${BASE_DEMO_PROJECT_KIND:-}" "reference-demo"
+
+  printf '\nRunning the post-activation green path through check and doctor.\n'
+  check_output="$(capture_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml")"
+  printf '%s\n' "$check_output"
+
+  doctor_output="$(capture_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml")"
+  printf '%s\n' "$doctor_output"
   pause
 }
 
 command_discovery_step() {
   local output
 
-  step 6 "Declared Commands"
+  step 7 "Declared Commands"
   output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --list)"
   printf '%s\n' "$output"
   require_contains "run command list" "$output" "hello"
@@ -221,7 +255,7 @@ command_discovery_step() {
 run_step() {
   local output
 
-  step 7 "Declared Command Execution"
+  step 8 "Declared Command Execution"
   output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" hello)"
   printf '%s\n' "$output"
   require_contains "run command" "$output" "hello from base-demo"
@@ -231,27 +265,32 @@ run_step() {
 inspection_step() {
   local env_output manifest_output python_output services_output environments_output
 
-  step 8 "Inspection Commands"
+  step 9 "Inspection Commands"
+  printf 'Inspecting activation and manifest environment values.\n'
   env_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" env)"
   printf '%s\n' "$env_output"
   require_contains "env command" "$env_output" "BASE_PROJECT=base-demo"
   require_contains "env command" "$env_output" "BASE_DEMO_PROJECT_KIND=reference-demo"
 
+  printf '\nReading the manifest summary command.\n'
   manifest_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" manifest)"
   printf '%s\n' "$manifest_output"
   require_contains "manifest command" "$manifest_output" "base-demo manifest"
   require_contains "manifest command" "$manifest_output" "commands:"
 
+  printf '\nConfirming the Base-managed Python command runs inside the project environment.\n'
   python_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" python-info)"
   printf '%s\n' "$python_output"
   require_contains "python command" "$python_output" "base-demo python cli"
   require_contains "python command" "$python_output" "BASE_PROJECT=base-demo"
 
+  printf '\nViewing the representative service catalog and health states.\n'
   services_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- status)"
   printf '%s\n' "$services_output"
   require_contains "services command" "$services_output" "project-baseline"
   require_contains "services command" "$services_output" "healthy"
 
+  printf '\nListing modeled environments and deployment boundaries.\n'
   environments_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" environments -- list)"
   printf '%s\n' "$environments_output"
   require_contains "environments command" "$environments_output" "dev"
@@ -264,7 +303,8 @@ inspection_step() {
 representative_environment_step() {
   local check_output start_output validate_output
 
-  step 9 "Representative Environment"
+  step 10 "Representative Environment"
+  printf 'Checking representative service health.\n'
   check_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- check)"
   printf '%s\n' "$check_output"
   require_contains "services check" "$check_output" "project-baseline ok"
@@ -272,12 +312,14 @@ representative_environment_step() {
   require_contains "services check" "$check_output" "cpp-service"
   require_contains "services check" "$check_output" "demo-console"
 
+  printf '\nDry-running service startup without launching dependencies.\n'
   start_output="$(capture_command env BASE_DEMO_SERVICES_DRY_RUN=1 "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- start)"
   printf '%s\n' "$start_output"
   require_contains "services dry-run start" "$start_output" "DRY-RUN docker compose"
   require_contains "services dry-run start" "$start_output" "go-api"
   require_contains "services dry-run start" "$start_output" "demo-console"
 
+  printf '\nValidating every modeled environment file.\n'
   validate_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" environments -- validate --all)"
   printf '%s\n' "$validate_output"
   require_contains "environment validation" "$validate_output" "dev"
@@ -289,7 +331,7 @@ representative_environment_step() {
 test_step() {
   local output
 
-  step 10 "Test Contract"
+  step 11 "Test Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" test "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE")"
   printf '%s\n' "$output"
   require_contains "test command" "$output" "Repository baseline is present."
@@ -299,7 +341,7 @@ test_step() {
 build_step() {
   local output
 
-  step 11 "Build Targets"
+  step 12 "Build Targets"
   output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --list)"
   printf '%s\n' "$output"
   require_contains "build list" "$output" "info"
@@ -324,11 +366,19 @@ build_step() {
 demo_step() {
   local output
 
-  step 12 "Demo Contract"
+  step 13 "Demo Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" demo "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --dry-run -- --non-interactive)"
   printf '%s\n' "$output"
   require_contains "demo command" "$output" "Would run demo"
   pause
+}
+
+closing_summary() {
+  printf '\nWalkthrough Summary\n\n'
+  printf 'Manifest fields exercised: activate, health.required_env, commands, test, build, demo, brewfile, and mise.\n'
+  printf 'Next steps: read docs/representative-environment.md for the environment model.\n'
+  printf 'For a deeper application shape, compare this reference repo with banyanlabs.\n'
+  printf '\nbase-demo walkthrough complete.\n'
 }
 
 main() {
@@ -343,6 +393,7 @@ main() {
   project_shape_step
   manifest_step
   discovery_step
+  setup_step
   diagnostics_step
   activation_step
   command_discovery_step
@@ -352,7 +403,7 @@ main() {
   test_step
   build_step
   demo_step
-  printf '\nbase-demo walkthrough complete.\n'
+  closing_summary
 }
 
 main "$@"
