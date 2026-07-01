@@ -30,7 +30,7 @@ Banyan Labs remains the full platform engineering lab.
 | `base_manifest.yaml` | Project contract Base reads |
 | `.base/activate.sh` | Sets `BASE_DEMO_ENV=baseline` in the project shell |
 | `src/hello.sh` | Simple `basectl run` target |
-| `src/env.sh` | Shows Base project environment variables |
+| `src/env.sh` | Shows Base project and runtime platform environment variables |
 | `src/manifest.sh` | Prints manifest fields |
 | `src/build-info.sh` | Build target: prints project and version |
 | `bin/base-demo-python-info` | Bash launcher for the Python CLI |

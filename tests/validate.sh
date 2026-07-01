@@ -161,6 +161,16 @@ grep -Fq 'env: ./src/env.sh' base_manifest.yaml || {
   exit 1
 }
 
+grep -Fq 'print_var BASE_OS' src/env.sh || {
+  printf 'src/env.sh does not print BASE_OS.\n' >&2
+  exit 1
+}
+
+grep -Fq 'print_var BASE_PLATFORM' src/env.sh || {
+  printf 'src/env.sh does not print BASE_PLATFORM.\n' >&2
+  exit 1
+}
+
 grep -Fq 'manifest: ./src/manifest.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the manifest command.\n' >&2
   exit 1
@@ -318,6 +328,16 @@ grep -Fq 'Pre-activation diagnostic' README.md || {
 
 grep -Fq 'CI sets BASE_DEMO_ENV=baseline' README.md || {
   printf 'README.md does not document the CI BASE_DEMO_ENV contract.\n' >&2
+  exit 1
+}
+
+grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md || {
+  printf 'README.md does not document the env command BASE_OS/BASE_PLATFORM output.\n' >&2
+  exit 1
+}
+
+grep -Fq 'BASE_OS' .ai-context/manifest.md && grep -Fq 'BASE_PLATFORM' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document the env command BASE_OS/BASE_PLATFORM output.\n' >&2
   exit 1
 }
 

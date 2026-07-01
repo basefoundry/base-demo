@@ -35,6 +35,7 @@ basectl repo check .
 basectl workspace status --manifest workspace.yaml.example
 basectl run base-demo --list
 basectl run base-demo hello
+basectl run base-demo env
 basectl run base-demo python-info -- info
 basectl run base-demo python-info -- env
 basectl run base-demo services -- status
@@ -63,6 +64,8 @@ The commands above exercise the complete Base project loop:
   `base-bash-libs` peer repositories.
 - `basectl run base-demo --list` shows the manifest-declared project commands.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
+- `basectl run base-demo env` shows Base runtime metadata such as `BASE_OS`
+  and `BASE_PLATFORM` alongside project activation values.
 - `basectl run base-demo python-info -- info` shows Base context values from
   `base_cli.Context`.
 - `basectl run base-demo python-info -- env` shows the `BASE_*` environment
@@ -105,6 +108,17 @@ hello from base-demo
 BASE_PROJECT=base-demo
 BASE_DEMO_ENV=baseline
 
+$ basectl run base-demo env
+BASE_PROJECT=base-demo
+BASE_PROJECT_ROOT=/path/to/base-demo
+BASE_PROJECT_MANIFEST=/path/to/base-demo/base_manifest.yaml
+BASE_PROJECT_VENV_DIR=/path/to/base-demo/.venv
+BASE_OS=macos
+BASE_PLATFORM=macos
+BASE_DEMO_ENV=baseline
+BASE_DEMO_ACTIVATED=true
+BASE_DEMO_PROJECT_KIND=reference-demo
+
 $ basectl run base-demo python-info -- info
 base-demo python cli
 project_name=base-demo
@@ -144,7 +158,9 @@ deterministic without needing an interactive activated shell.
   Java build tools.
 - `.base/activate.sh` demonstrates project activation state.
 - `src/hello.sh`, `src/env.sh`, `src/manifest.sh`, and `src/build-info.sh` are
-  tiny command and build targets for `basectl run` and `basectl build`.
+  tiny command and build targets for `basectl run` and `basectl build`;
+  `src/env.sh` also exposes Base runtime metadata such as `BASE_OS` and
+  `BASE_PLATFORM`.
 - `lib/python/base_demo_cli` is a tiny Python command target that runs inside
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python

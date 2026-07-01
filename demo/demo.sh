@@ -297,6 +297,8 @@ inspection_step() {
   env_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" env)"
   printf '%s\n' "$env_output"
   require_contains "env command" "$env_output" "BASE_PROJECT=base-demo"
+  require_contains "env command" "$env_output" "BASE_OS="
+  require_contains "env command" "$env_output" "BASE_PLATFORM="
   require_contains "env command" "$env_output" "BASE_DEMO_PROJECT_KIND=reference-demo"
 
   printf '\nReading the manifest summary command.\n'

@@ -107,6 +107,8 @@ case "$*" in
     ;;
   run\ base-demo\ --workspace\ *\ env)
     printf 'BASE_PROJECT=base-demo\n'
+    printf 'BASE_OS=macos\n'
+    printf 'BASE_PLATFORM=macos\n'
     printf 'BASE_DEMO_PROJECT_KIND=%s\n' "${BASE_DEMO_PROJECT_KIND:-unset}"
     ;;
   run\ base-demo\ --workspace\ *\ manifest)
@@ -266,6 +268,8 @@ EOF
   [[ "$output" == *"dev ok"* ]]
   [[ "$output" == *"prod ok"* ]]
   [[ "$output" == *"BASE_DEMO_ENV=baseline"* ]]
+  [[ "$output" == *"BASE_OS=macos"* ]]
+  [[ "$output" == *"BASE_PLATFORM=macos"* ]]
   [[ "$output" == *"BASE_DEMO_PROJECT_KIND=reference-demo"* ]]
   [[ "$output" == *"hello from base-demo"* ]]
   [[ "$output" == *"base-demo manifest"* ]]

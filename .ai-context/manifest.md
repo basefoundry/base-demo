@@ -16,7 +16,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `python.requires_python` | `basectl check` / `doctor` | Base validates Python 3.13 separately from mise installing it |
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
 | `ide.vscode` | `basectl setup` | Declares VS Code Python extensions and project venv auto-injection when IDE setup is enabled |
-| `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, uv-info, services, environments |
+| `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, uv-info, services, environments; `env` prints Base runtime metadata including `BASE_OS` and `BASE_PLATFORM` |
 | `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the uv-info command through `uv run --` |
 | `build.targets` | `basectl build` | `info` target runs `src/build-info.sh` |
 | `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the command changing directories |
@@ -28,7 +28,9 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 
 The current manifest keeps the baseline fast and inspectable. It uses shell
 scripts, a small Python module, and explicit Base contracts so a fresh checkout
-can prove setup, activation, run, build, test, and demo behavior quickly.
+can prove setup, activation, run, build, test, and demo behavior quickly. The
+`env` command makes the Base v1.4.0 runtime platform contract visible through
+`BASE_OS` and `BASE_PLATFORM`.
 
 The representative environment direction will add service, infrastructure, UI,
 and environment-modeling commands in focused slices while preserving this
