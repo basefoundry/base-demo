@@ -17,7 +17,8 @@ full walkthrough require macOS.
 2. Use one of the standard issue labels: `bug`, `enhancement`,
    `documentation`, `ci`, or `security`.
 3. Use a focused branch and pull request for each issue.
-4. Run the project checks before opening or updating a pull request.
+4. Update `docs/contracts.md` when adding or changing a binding invariant.
+5. Run the project checks before opening or updating a pull request.
 
 Useful commands:
 

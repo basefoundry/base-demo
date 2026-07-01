@@ -14,6 +14,10 @@ The long-term direction is documented in
 shape of a realistic platform environment while keeping each service shallow so
 Base orchestration remains the point.
 
+Binding promises between the manifest, demo, services, installer, CI, and docs
+are tracked in [Contracts](docs/contracts.md). Update that registry whenever a
+new invariant becomes part of the reference project.
+
 ## Platform Requirements
 
 macOS is the supported platform for the full interactive demo: setup,
