@@ -19,6 +19,12 @@ from pathlib import Path
 from typing import Any, NamedTuple
 
 
+# Match base_cli.ExitCode without requiring standalone lifecycle commands to import base_cli.
+SUCCESS = 0
+FAILURE = 1
+USAGE_ERROR = 2
+
+
 class CheckResult(NamedTuple):
     ok: bool
     label: str
@@ -175,10 +181,10 @@ def run_compose(root: Path, args: list[str]) -> int:
     command = compose_command(root, args)
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN {shlex.join(command)}")
-        return 0
+        return SUCCESS
     if shutil.which("docker") is None:
         print("ERROR: docker is not available; cannot manage Compose services.", file=sys.stderr)
-        return 2
+        return USAGE_ERROR
     return subprocess.run(command, check=False).returncode
 
 
@@ -188,16 +194,16 @@ def start_process(service: dict[str, Any], root: Path) -> int:
         command = process_command(service)
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
-        return 2
+        return USAGE_ERROR
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN start {name}: {shlex.join(command)}")
-        return 0
+        return SUCCESS
 
     state = read_process_state(root, service)
     pid = state.get("pid") if state else None
     if isinstance(pid, int) and process_is_running(pid):
         print(f"{name} already running pid={pid}")
-        return 0
+        return SUCCESS
 
     directory = state_dir(root)
     directory.mkdir(parents=True, exist_ok=True)
@@ -228,14 +234,14 @@ def start_process(service: dict[str, Any], root: Path) -> int:
         json.dump(state_payload, handle, indent=2)
         handle.write("\n")
     print(f"{name} started pid={process.pid}")
-    return 0
+    return SUCCESS
 
 
 def stop_process(service: dict[str, Any], root: Path) -> int:
     name = str(service.get("name", "-"))
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN stop {name}")
-        return 0
+        return SUCCESS
     state_path = process_state_path(root, service)
     state = read_process_state(root, service)
     pid = state.get("pid") if state else None
@@ -243,7 +249,7 @@ def stop_process(service: dict[str, Any], root: Path) -> int:
         if state_path.exists():
             state_path.unlink()
         print(f"{name} stopped")
-        return 0
+        return SUCCESS
 
     os.kill(pid, signal.SIGTERM)
     for _ in range(20):
@@ -255,7 +261,7 @@ def stop_process(service: dict[str, Any], root: Path) -> int:
     if state_path.exists():
         state_path.unlink()
     print(f"{name} stopped")
-    return 0
+    return SUCCESS
 
 
 def check_service(service: dict[str, Any], root: Path) -> CheckResult:
@@ -367,9 +373,9 @@ def cmd_status(services: list[dict[str, Any]], root: Path, environment: dict[str
     rows = service_rows(services, root)
     if not rows:
         print("No services configured.")
-        return 0
+        return SUCCESS
     print_table(rows)
-    return 0
+    return SUCCESS
 
 
 def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
@@ -387,7 +393,7 @@ def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
             failed = True
         else:
             print(f"{row['name']} skip optional {row['detail']}")
-    return 1 if failed else 0
+    return FAILURE if failed else SUCCESS
 
 
 def cmd_lifecycle(services: list[dict[str, Any]], root: Path, action: str) -> int:
@@ -449,7 +455,7 @@ def main(argv: list[str] | None = None) -> int:
         environment = load_environment(root, args.env)
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
-        return 2
+        return USAGE_ERROR
     services = load_catalog(Path(args.catalog))
 
     if args.command == "status":

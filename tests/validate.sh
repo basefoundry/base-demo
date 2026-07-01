@@ -181,6 +181,14 @@ grep -Fq 'base_cli.testing' lib/python/base_demo_cli/tests/test_cli.py || {
   exit 1
 }
 
+raw_lifecycle_exit_returns="$(
+  grep -nE 'return [012]($|[[:space:]])' bin/base-demo-services bin/base-demo-environments || true
+)"
+if [[ -n "$raw_lifecycle_exit_returns" ]]; then
+  printf 'Lifecycle scripts must use named exit code constants instead of raw return literals:\n%s\n' "$raw_lifecycle_exit_returns" >&2
+  exit 1
+fi
+
 grep -Fq 'services: ./bin/base-demo-services' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the services command.\n' >&2
   exit 1
