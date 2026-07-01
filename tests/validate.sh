@@ -77,6 +77,7 @@ required_files=(
   lib/python/base_demo_cli/tests/test_cli.py
   demo/demo.sh
   tests/demo_test.bats
+  tests/install_test.bats
   tests/services_test.bats
   tests/environments_test.bats
   tests/infra_test.bats
