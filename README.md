@@ -14,6 +14,21 @@ The long-term direction is documented in
 shape of a realistic platform environment while keeping each service shallow so
 Base orchestration remains the point.
 
+## Platform Requirements
+
+macOS is the supported platform for the full interactive demo: setup,
+activation, human-readable check/doctor output, build/test orchestration, and
+the project-owned walkthrough.
+
+Ubuntu and other Linux environments are supported in read-only CI mode via
+`basectl ci check base-demo --format json`. Brewfile reconciliation, Homebrew
+tools, mise setup, activation shells, and the full interactive demo require
+macOS.
+
+For the full Base platform policy, see
+[`docs/linux-support.md`](https://github.com/basefoundry/base/blob/main/docs/linux-support.md)
+in the Base repository.
+
 ## Quick Start
 
 Clone `base` and `base-demo` as peer directories:
@@ -27,11 +42,11 @@ From the `base-demo` repository root on a machine where Base is already set up:
 
 ```bash
 basectl projects list
-basectl setup base-demo
-basectl activate base-demo
-basectl check base-demo
-basectl doctor base-demo
-basectl ci check base-demo --format json
+basectl setup base-demo  # macOS only
+basectl activate base-demo  # macOS only
+basectl check base-demo  # macOS interactive path
+basectl doctor base-demo  # macOS interactive path
+basectl ci check base-demo --format json  # Ubuntu/Linux read-only CI path
 basectl repo check .
 basectl workspace status --manifest workspace.yaml.example
 basectl run base-demo --list
@@ -45,7 +60,7 @@ basectl test base-demo
 basectl logs --limit 3
 basectl history --project base-demo --limit 5
 basectl build base-demo
-basectl demo base-demo
+basectl demo base-demo  # macOS only
 basectl export-context base-demo --format markdown --print
 ```
 
@@ -54,13 +69,13 @@ The commands above exercise the complete Base project loop:
 - `basectl projects list` proves the repository is discoverable from the
   workspace.
 - `basectl setup base-demo` reconciles the project manifest, Brewfile, and
-  project virtual environment.
-- `basectl activate base-demo` starts a project shell with the activation
+  project virtual environment on macOS.
+- `basectl activate base-demo` starts a macOS project shell with the activation
   source applied.
 - `basectl check base-demo` and `basectl doctor base-demo` validate the local
-  project environment from that activated shell.
+  project environment from that activated macOS shell.
 - `basectl ci check base-demo --format json` returns machine-readable project
-  health for CI pipelines.
+  health for read-only CI pipelines, including Ubuntu/Linux checks.
 - `basectl repo check .` validates the standard repository baseline files.
 - `basectl workspace status --manifest workspace.yaml.example` shows a
   workspace-level view of the expected `base`, `base-demo`, and
@@ -81,7 +96,7 @@ The commands above exercise the complete Base project loop:
 - `basectl logs --limit 3` and `basectl history --project base-demo --limit 5`
   show the local audit trail for recent Base activity.
 - `basectl build base-demo` runs the default build target (`info`) declared in the manifest.
-- `basectl demo base-demo` runs the project-owned walkthrough.
+- `basectl demo base-demo` runs the macOS project-owned walkthrough.
 - `basectl export-context base-demo --format markdown --print` prints the
   repository AI context bundle for assistant handoff.
 

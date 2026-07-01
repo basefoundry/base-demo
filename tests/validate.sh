@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+host_os="$(uname -s 2>/dev/null || printf 'unknown')"
+case "$host_os" in
+  Darwin)
+    ;;
+  Linux)
+    printf 'Linux detected: tests/validate.sh runs repository-local checks; full Base setup/demo is macOS-only.\n'
+    ;;
+  *)
+    printf 'Host OS %s detected: repository-local validation is supported, but full Base setup/demo is macOS-only.\n' "$host_os"
+    ;;
+esac
+
 required_files=(
   README.md
   VERSION
@@ -338,6 +350,46 @@ grep -Fq 'ci check "$BASE_DEMO_PROJECT" --format json' demo/demo.sh || {
 
 grep -Fq 'basectl ci check base-demo --format json' README.md || {
   printf 'README.md does not document the basectl ci check JSON command.\n' >&2
+  exit 1
+}
+
+grep -Fq '## Platform Requirements' README.md || {
+  printf 'README.md does not include a Platform Requirements section.\n' >&2
+  exit 1
+}
+
+grep -Fq 'macOS is the supported platform for the full interactive demo' README.md || {
+  printf 'README.md does not document the macOS full-demo platform boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Ubuntu' README.md && grep -Fq 'read-only CI mode' README.md || {
+  printf 'README.md does not document the Ubuntu/Linux read-only CI boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'docs/linux-support.md' README.md || {
+  printf 'README.md does not reference Base docs/linux-support.md.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base-demo  # macOS only' README.md || {
+  printf 'README.md does not annotate setup as macOS-only in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl activate base-demo  # macOS only' README.md || {
+  printf 'README.md does not annotate activate as macOS-only in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'macOS/Ubuntu platform boundary' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not document the macOS/Ubuntu platform boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Linux detected: tests/validate.sh runs repository-local checks' tests/validate.sh || {
+  printf 'tests/validate.sh does not document the Linux repository-local validation boundary.\n' >&2
   exit 1
 }
 
