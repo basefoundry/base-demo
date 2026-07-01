@@ -22,6 +22,7 @@ required_files=(
   LICENSE
   install.sh
   workspace.yaml.example
+  docs/contracts.md
   docs/representative-environment.md
   base_manifest.yaml
   Brewfile
@@ -163,6 +164,11 @@ if [[ -n "$floating_actions_refs" ]]; then
   exit 1
 fi
 
+grep -Fq -- '--branch v1.4.0' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the Base checkout to v1.4.0.\n' >&2
+  exit 1
+}
+
 grep -Fq 'hello: ./src/hello.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the hello command.\n' >&2
   exit 1
@@ -230,6 +236,32 @@ grep -Fq '"name": "project-baseline"' services/catalog.json || {
   printf 'services/catalog.json does not declare the project-baseline entry.\n' >&2
   exit 1
 }
+
+python3 - "$PWD/services/catalog.json" <<'PY'
+import json
+import sys
+
+catalog_path = sys.argv[1]
+with open(catalog_path, encoding="utf-8") as handle:
+    catalog = json.load(handle)
+
+services = catalog.get("services", [])
+baseline = next((service for service in services if service.get("name") == "project-baseline"), None)
+if baseline is None:
+    raise SystemExit("services/catalog.json does not declare project-baseline.")
+if baseline.get("required") is not True:
+    raise SystemExit("project-baseline must remain required: true.")
+
+missing_health_url = [
+    service.get("name", "<unnamed>")
+    for service in services
+    if service.get("check", {}).get("type") == "http" and not service.get("health_url")
+]
+if missing_health_url:
+    raise SystemExit(
+        "HTTP service checks must declare health_url: " + ", ".join(missing_health_url)
+    )
+PY
 
 for service in postgres mysql redis; do
   grep -Fq "\"name\": \"$service\"" services/catalog.json || {
@@ -323,8 +355,18 @@ for environment in dev staging prod; do
   }
 done
 
+grep -Fq 'REQUIRED_FIELDS = ("name", "mode", "operational", "base_url", "logging", "services", "infrastructure")' bin/base-demo-environments || {
+  printf 'bin/base-demo-environments does not declare the expected environment schema fields.\n' >&2
+  exit 1
+}
+
 grep -Fq 'required_env:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare health.required_env.\n' >&2
+  exit 1
+}
+
+grep -Fq 'export BASE_DEMO_ENV="${BASE_DEMO_ENV:-baseline}"' .base/activate.sh || {
+  printf '.base/activate.sh does not own the BASE_DEMO_ENV=baseline default.\n' >&2
   exit 1
 }
 
@@ -392,6 +434,37 @@ grep -Fq 'Linux detected: tests/validate.sh runs repository-local checks' tests/
   printf 'tests/validate.sh does not document the Linux repository-local validation boundary.\n' >&2
   exit 1
 }
+
+grep -Fq 'docs/contracts.md' README.md || {
+  printf 'README.md does not reference docs/contracts.md.\n' >&2
+  exit 1
+}
+
+grep -Fq 'docs/contracts.md' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not reference docs/contracts.md.\n' >&2
+  exit 1
+}
+
+for contract in \
+  project-baseline-required \
+  http-health-url \
+  non-interactive-demo \
+  environment-schema \
+  uv-runner-command \
+  activation-owned-env \
+  manifest-artifacts \
+  runtime-platform-env \
+  installer-checksum \
+  service-log-permissions \
+  ci-pinned-dependencies \
+  platform-boundary \
+  ci-json-check
+do
+  grep -Fq "| \`$contract\` |" docs/contracts.md || {
+    printf 'docs/contracts.md does not list contract %s.\n' "$contract" >&2
+    exit 1
+  }
+done
 
 grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md || {
   printf 'README.md does not document the env command BASE_OS/BASE_PLATFORM output.\n' >&2
