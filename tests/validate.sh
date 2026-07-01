@@ -74,6 +74,7 @@ required_files=(
   src/uv-info.py
   lib/python/base_demo_cli/__init__.py
   lib/python/base_demo_cli/__main__.py
+  lib/python/base_demo_cli/tests/test_cli.py
   demo/demo.sh
   tests/demo_test.bats
   tests/services_test.bats
@@ -158,6 +159,16 @@ grep -Fq 'manifest: ./src/manifest.sh' base_manifest.yaml || {
 
 grep -Fq 'python-info: ./bin/base-demo-python-info' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the python-info command.\n' >&2
+  exit 1
+}
+
+grep -Fq '@app.subcommand()' lib/python/base_demo_cli/__main__.py || {
+  printf 'base_demo_cli does not declare subcommands.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base_cli.testing' lib/python/base_demo_cli/tests/test_cli.py || {
+  printf 'base_demo_cli tests do not use base_cli.testing.\n' >&2
   exit 1
 }
 

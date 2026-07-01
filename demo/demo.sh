@@ -285,7 +285,7 @@ run_step() {
 }
 
 inspection_step() {
-  local config_output env_output manifest_output python_output uv_output services_output environments_output
+  local config_output env_output manifest_output python_env_output python_output uv_output services_output environments_output
 
   step 9 "Inspection Commands"
   printf 'Inspecting machine-local Base configuration.\n'
@@ -306,10 +306,18 @@ inspection_step() {
   require_contains "manifest command" "$manifest_output" "commands:"
 
   printf '\nConfirming the Base-managed Python command runs inside the project environment.\n'
-  python_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" python-info)"
+  python_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" python-info -- info)"
   printf '%s\n' "$python_output"
   require_contains "python command" "$python_output" "base-demo python cli"
-  require_contains "python command" "$python_output" "BASE_PROJECT=base-demo"
+  require_contains "python command" "$python_output" "project_name=base-demo"
+
+  printf '\nConfirming the Python env subcommand sees Base activation state.\n'
+  python_env_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" python-info -- env)"
+  printf '%s\n' "$python_env_output"
+  require_contains "python env command" "$python_env_output" "BASE_PROJECT=base-demo"
+
+  printf '\nShowing standard --debug handling for the Python CLI.\n'
+  run_observed_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" python-info -- --debug info
 
   printf '\nConfirming a command-level uv runner can be selected without making uv the project manager.\n'
   uv_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" uv-info)"

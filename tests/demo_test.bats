@@ -115,7 +115,21 @@ case "$*" in
     ;;
   run\ base-demo\ --workspace\ *\ python-info)
     printf 'base-demo python cli\n'
+    printf 'project_name=base-demo\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ python-info\ --\ info)
+    printf 'base-demo python cli\n'
+    printf 'project_name=base-demo\n'
+    printf 'project_root=%s\n' "${BASE_PROJECT_ROOT:?}"
+    printf 'workspace_root=%s\n' "$(dirname "${BASE_PROJECT_ROOT:?}")"
+    ;;
+  run\ base-demo\ --workspace\ *\ python-info\ --\ env)
     printf 'BASE_PROJECT=base-demo\n'
+    printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
+    ;;
+  run\ base-demo\ --workspace\ *\ python-info\ --\ --debug\ info)
+    printf 'DEBUG base_demo_cli info command\n' >&2
+    printf 'project_name=base-demo\n'
     ;;
   run\ base-demo\ --workspace\ *\ uv-info)
     printf 'base-demo uv runner\n'
@@ -256,6 +270,8 @@ EOF
   [[ "$output" == *"hello from base-demo"* ]]
   [[ "$output" == *"base-demo manifest"* ]]
   [[ "$output" == *"base-demo python cli"* ]]
+  [[ "$output" == *"project_name=base-demo"* ]]
+  [[ "$output" == *"workspace_root="* ]]
   [[ "$output" == *"base-demo uv runner"* ]]
   [[ "$output" == *"project-baseline"* ]]
   [[ "$output" == *"postgres"* ]]
@@ -303,7 +319,9 @@ EOF
   grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ env$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ manifest$" "$state_file"
-  grep -Eq "^basectl run base-demo --workspace .+ python-info$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ python-info -- info$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ python-info -- env$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ python-info -- --debug info$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ uv-info$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- status$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- check$" "$state_file"

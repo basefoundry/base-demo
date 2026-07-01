@@ -35,6 +35,8 @@ basectl repo check .
 basectl workspace status --manifest workspace.yaml.example
 basectl run base-demo --list
 basectl run base-demo hello
+basectl run base-demo python-info -- info
+basectl run base-demo python-info -- env
 basectl run base-demo services -- status
 basectl run base-demo environments -- list
 basectl test base-demo
@@ -61,6 +63,10 @@ The commands above exercise the complete Base project loop:
   `base-bash-libs` peer repositories.
 - `basectl run base-demo --list` shows the manifest-declared project commands.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
+- `basectl run base-demo python-info -- info` shows Base context values from
+  `base_cli.Context`.
+- `basectl run base-demo python-info -- env` shows the `BASE_*` environment
+  visible to the Python command.
 - `basectl run base-demo services -- status` shows the representative service
   catalog and current health state.
 - `basectl run base-demo environments -- list` shows the modeled
@@ -96,6 +102,16 @@ environments         ./bin/base-demo-environments
 
 $ basectl run base-demo hello
 hello from base-demo
+BASE_PROJECT=base-demo
+BASE_DEMO_ENV=baseline
+
+$ basectl run base-demo python-info -- info
+base-demo python cli
+project_name=base-demo
+project_root=/path/to/base-demo
+workspace_root=/path/to/work
+
+$ basectl run base-demo python-info -- env
 BASE_PROJECT=base-demo
 BASE_DEMO_ENV=baseline
 

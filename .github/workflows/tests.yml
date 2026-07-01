@@ -58,6 +58,13 @@ jobs:
             printf '  enabled: false\n'
           } >> ~/.base.d/config.yaml
 
+      - name: Run base-demo Python CLI tests
+        run: >
+          PYTHONPATH="../base/lib/python:../base/cli/python:lib/python"
+          ~/.base.d/base/.venv/bin/python
+          -m unittest
+          lib.python.base_demo_cli.tests.test_cli
+
       - name: Set up base-demo
         run: ../base/bin/basectl setup base-demo --manifest ./base_manifest.yaml --no-notify
 
@@ -76,8 +83,11 @@ jobs:
       - name: Run base-demo hello command
         run: ../base/bin/basectl run base-demo --workspace .. hello
 
-      - name: Run base-demo Python command
-        run: ../base/bin/basectl run base-demo --workspace .. python-info
+      - name: Run base-demo Python info command
+        run: ../base/bin/basectl run base-demo --workspace .. python-info -- info
+
+      - name: Run base-demo Python env command
+        run: ../base/bin/basectl run base-demo --workspace .. python-info -- env
 
       - name: Show representative services
         run: ../base/bin/basectl run base-demo --workspace .. services -- status
