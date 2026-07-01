@@ -23,6 +23,15 @@ activate:
   source:
     - .base/activate.sh
 
+ide:
+  vscode:
+    install: false
+    extensions:
+      - ms-python.python
+      - ms-python.vscode-pylance
+    settings:
+      python.defaultInterpreterPath: auto
+
 commands:
   hello: ./src/hello.sh
   env: ./src/env.sh
