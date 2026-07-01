@@ -5,5 +5,6 @@
 # representative Java build-tool coverage.
 
 brew "mise"
+brew "uv"
 brew "gradle"
 brew "maven"

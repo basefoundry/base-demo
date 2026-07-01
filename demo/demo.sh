@@ -176,6 +176,8 @@ manifest_step() {
   run_command grep -n "env: ./src/env.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "manifest: ./src/manifest.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "python-info: ./bin/base-demo-python-info" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "uv-info:" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "runner: uv" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "services: ./bin/base-demo-services" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "environments: ./bin/base-demo-environments" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "command: ./src/build-info.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
@@ -254,6 +256,7 @@ command_discovery_step() {
   require_contains "run command list" "$output" "env"
   require_contains "run command list" "$output" "manifest"
   require_contains "run command list" "$output" "python-info"
+  require_contains "run command list" "$output" "uv-info"
   require_contains "run command list" "$output" "services"
   require_contains "run command list" "$output" "environments"
   pause
@@ -270,7 +273,7 @@ run_step() {
 }
 
 inspection_step() {
-  local env_output manifest_output python_output services_output environments_output
+  local env_output manifest_output python_output uv_output services_output environments_output
 
   step 9 "Inspection Commands"
   printf 'Inspecting activation and manifest environment values.\n'
@@ -290,6 +293,11 @@ inspection_step() {
   printf '%s\n' "$python_output"
   require_contains "python command" "$python_output" "base-demo python cli"
   require_contains "python command" "$python_output" "BASE_PROJECT=base-demo"
+
+  printf '\nConfirming a command-level uv runner can be selected without making uv the project manager.\n'
+  uv_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" uv-info)"
+  printf '%s\n' "$uv_output"
+  require_contains "uv command" "$uv_output" "base-demo uv runner"
 
   printf '\nViewing the representative service catalog and health states.\n'
   services_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- status)"

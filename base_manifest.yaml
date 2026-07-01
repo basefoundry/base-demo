@@ -28,6 +28,9 @@ commands:
   env: ./src/env.sh
   manifest: ./src/manifest.sh
   python-info: ./bin/base-demo-python-info
+  uv-info:
+    command: python src/uv-info.py
+    runner: uv
   services: ./bin/base-demo-services
   environments: ./bin/base-demo-environments
 

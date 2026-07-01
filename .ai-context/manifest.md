@@ -9,13 +9,14 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 |---|---|---|
 | `schema_version` | `basectl setup` | Manifest compatibility marker |
 | `project.name` | `basectl projects list` | Stable name for all Base commands |
-| `brewfile` | `basectl setup` | Delegates ordinary macOS dependencies to `brew bundle`; currently includes mise, Gradle, and Maven |
+| `brewfile` | `basectl setup` | Delegates ordinary macOS dependencies to `brew bundle`; currently includes mise, uv, Gradle, and Maven |
 | `health.required_env` | `basectl check` / `doctor` | `BASE_DEMO_ENV=baseline` on the green path; missing before activation as a diagnostic example |
 | `health.required_ports` | `basectl check` / `doctor` | Baseline `go-api` port 8010 is expected to be free before services are started |
 | `mise` | `basectl setup` | Declares `.mise.toml`; setup installs tool versions (Python 3.13) via mise |
 | `python.requires_python` | `basectl check` / `doctor` | Base validates Python 3.13 separately from mise installing it |
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
-| `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, services, environments |
+| `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, uv-info, services, environments |
+| `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the uv-info command through `uv run --` |
 | `build.targets` | `basectl build` | `info` target runs `src/build-info.sh` |
 | `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the command changing directories |
 | `test.command` | `basectl test` | Runs `tests/validate.sh` |

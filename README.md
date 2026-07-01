@@ -79,6 +79,7 @@ hello                ./src/hello.sh
 env                  ./src/env.sh
 manifest             ./src/manifest.sh
 python-info          ./bin/base-demo-python-info
+uv-info              uv run -- python src/uv-info.py
 services             ./bin/base-demo-services
 environments         ./bin/base-demo-environments
 
@@ -111,8 +112,9 @@ deterministic without needing an interactive activated shell.
 - `base_manifest.yaml` declares the project name, activation source, command,
   test command, and Brewfile location using current Base contracts.
 - `Brewfile` is the Homebrew-owned place for ordinary macOS tools. The
-  Brewfile currently installs mise, Gradle, and Maven so setup can demonstrate
-  tool-version management and representative Java build tools.
+  Brewfile currently installs mise, uv, Gradle, and Maven so setup can
+  demonstrate tool-version management, command runners, and representative
+  Java build tools.
 - `.base/activate.sh` demonstrates project activation state.
 - `src/hello.sh`, `src/env.sh`, `src/manifest.sh`, and `src/build-info.sh` are
   tiny command and build targets for `basectl run` and `basectl build`.
@@ -120,6 +122,7 @@ deterministic without needing an interactive activated shell.
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python
   package to `base-wrapper`.
+- `src/uv-info.py` is a tiny Python command routed through `runner: uv`.
 - `services/go-api` is a tiny Go HTTP API with `/healthz`, `/hello`, and
   `/info` endpoints. It is also the representative Dockerized app service.
 - `services/python-api` is a tiny standard-library Python HTTP API with the
@@ -154,13 +157,14 @@ each field maps to a visible Base workflow:
 | --- | --- | --- |
 | `schema_version` | `basectl setup base-demo` | Declares the manifest contract version Base should parse. |
 | `project.name` | `basectl projects list` | Gives Base the stable project name used by setup, check, doctor, run, test, activate, and demo. |
-| `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`; currently installs mise, Gradle, and Maven. |
+| `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`; currently installs mise, uv, Gradle, and Maven. |
 | `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; green in an activated shell and intentionally reported missing as a pre-activation diagnostic. |
 | `health.required_ports` | `basectl check base-demo` | Declares that the baseline `go-api` port 8010 should be free before services are started. |
 | `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
 | `python.requires_python` | `basectl check base-demo` | Lets Base verify Python 3.13 independently of the mise installer declaration. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
-| `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, `services`, and `environments`. |
+| `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, `uv-info`, `services`, and `environments`. |
+| `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the `uv-info` command through `uv run --`, without making uv the project-wide Python manager. |
 | `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
 | `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the target command needing to change directories itself. |
 | `test.command` | `basectl test base-demo` | Defines the project-owned validation command. |

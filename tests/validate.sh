@@ -70,6 +70,7 @@ required_files=(
   src/env.sh
   src/manifest.sh
   src/build-info.sh
+  src/uv-info.py
   lib/python/base_demo_cli/__init__.py
   lib/python/base_demo_cli/__main__.py
   demo/demo.sh
@@ -94,7 +95,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh src/uv-info.py services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -291,12 +292,12 @@ grep -Fq 'CI sets BASE_DEMO_ENV=baseline' README.md || {
   exit 1
 }
 
-grep -Fq 'Brewfile currently installs mise, Gradle, and Maven' README.md || {
+grep -Fq 'Brewfile currently installs mise, uv, Gradle, and Maven' README.md || {
   printf 'README.md does not document current Brewfile dependencies.\n' >&2
   exit 1
 }
 
-grep -Fq 'currently includes mise, Gradle, and Maven' .ai-context/manifest.md || {
+grep -Fq 'currently includes mise, uv, Gradle, and Maven' .ai-context/manifest.md || {
   printf '.ai-context/manifest.md does not document current Brewfile dependencies.\n' >&2
   exit 1
 }
@@ -348,6 +349,21 @@ grep -Fq 'working_dir: services/go-api' base_manifest.yaml || {
 
 grep -Fq 'build.targets[*].working_dir' README.md || {
   printf 'README.md does not document build target working_dir.\n' >&2
+  exit 1
+}
+
+grep -Fq 'brew "uv"' Brewfile || {
+  printf 'Brewfile does not include uv for the runner demo.\n' >&2
+  exit 1
+}
+
+grep -Fq 'uv-info:' base_manifest.yaml && grep -Fq 'runner: uv' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare a uv-backed command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'commands[*].runner' README.md || {
+  printf 'README.md does not document command runner fields.\n' >&2
   exit 1
 }
 

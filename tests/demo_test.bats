@@ -85,6 +85,7 @@ case "$*" in
     printf 'env         ./src/env.sh\n'
     printf 'manifest    ./src/manifest.sh\n'
     printf 'python-info ./bin/base-demo-python-info\n'
+    printf 'uv-info     uv run -- python src/uv-info.py\n'
     printf 'services    ./bin/base-demo-services\n'
     printf 'environments ./bin/base-demo-environments\n'
     ;;
@@ -104,6 +105,10 @@ case "$*" in
   run\ base-demo\ --workspace\ *\ python-info)
     printf 'base-demo python cli\n'
     printf 'BASE_PROJECT=base-demo\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ uv-info)
+    printf 'base-demo uv runner\n'
+    printf 'python=3.13\n'
     ;;
   run\ base-demo\ --workspace\ *\ services\ --\ status)
     printf 'environment=dev\n'
@@ -201,11 +206,14 @@ EOF
   [[ "$output" == *"required_ports:"* ]]
   [[ "$output" == *"requires_python:"* ]]
   [[ "$output" == *"working_dir: services/go-api"* ]]
+  [[ "$output" == *"uv-info:"* ]]
+  [[ "$output" == *"runner: uv"* ]]
   [[ "$output" == *"Project Diagnostics"* ]]
   [[ "$output" == *"post-activation green path"* ]]
   [[ "$output" == *"Declared Commands"* ]]
   [[ "$output" == *"services    ./bin/base-demo-services"* ]]
   [[ "$output" == *"environments ./bin/base-demo-environments"* ]]
+  [[ "$output" == *"uv-info     uv run -- python src/uv-info.py"* ]]
   [[ "$output" == *"Inspection Commands"* ]]
   [[ "$output" == *"Inspecting activation and manifest environment values."* ]]
   [[ "$output" == *"Reading the manifest summary command."* ]]
@@ -223,6 +231,7 @@ EOF
   [[ "$output" == *"hello from base-demo"* ]]
   [[ "$output" == *"base-demo manifest"* ]]
   [[ "$output" == *"base-demo python cli"* ]]
+  [[ "$output" == *"base-demo uv runner"* ]]
   [[ "$output" == *"project-baseline"* ]]
   [[ "$output" == *"postgres"* ]]
   [[ "$output" == *"mysql"* ]]
@@ -264,6 +273,7 @@ EOF
   grep -Eq "^basectl run base-demo --workspace .+ env$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ manifest$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ python-info$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ uv-info$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- status$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- check$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- start$" "$state_file"
