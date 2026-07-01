@@ -120,6 +120,24 @@ capture_command() {
   printf '%s\n' "$output"
 }
 
+capture_observed_command() {
+  local output status
+
+  printf '  $'
+  printf ' %q' "$@"
+  printf '\n\n'
+
+  if output="$("$@" 2>&1)"; then
+    printf '%s\n' "$output"
+    return 0
+  else
+    status=$?
+  fi
+
+  printf '%s\n' "$output"
+  printf '\nDiagnostic command exited with status %s; continuing the walkthrough.\n' "$status" >&2
+}
+
 require_contains() {
   local label="$1"
   local output="$2"
@@ -226,6 +244,8 @@ setup_step() {
 }
 
 diagnostics_step() {
+  local ci_output
+
   step 5 "Project Diagnostics"
   printf 'The manifest declares BASE_DEMO_ENV as a required_env health check.\n'
   printf 'The green path has BASE_DEMO_ENV=baseline from activation or CI.\n'
@@ -233,6 +253,12 @@ diagnostics_step() {
   printf 'The walkthrough displays those diagnostic commands without making them the success gate.\n\n'
   run_observed_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_observed_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml"
+
+  printf '\nCI pipelines should prefer the JSON-safe ci check interface.\n'
+  printf 'It emits machine-readable status while check and doctor stay human-readable.\n'
+  ci_output="$(capture_observed_command "$BASE_DEMO_BASECTL" ci check "$BASE_DEMO_PROJECT" --format json --manifest "$BASE_DEMO_ROOT/base_manifest.yaml")"
+  printf '%s\n' "$ci_output"
+  require_contains "ci check json" "$ci_output" '"status"'
   pause
 }
 
