@@ -179,6 +179,7 @@ manifest_step() {
   run_command grep -n "services: ./bin/base-demo-services" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "environments: ./bin/base-demo-environments" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "command: ./src/build-info.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "working_dir: services/go-api" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "command: ./tests/validate.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "script: ./demo/demo.sh" "$BASE_DEMO_ROOT/base_manifest.yaml"
   pause

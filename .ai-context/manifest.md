@@ -17,6 +17,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
 | `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, services, environments |
 | `build.targets` | `basectl build` | `info` target runs `src/build-info.sh` |
+| `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the command changing directories |
 | `test.command` | `basectl test` | Runs `tests/validate.sh` |
 | `demo.script` | `basectl demo` | Runs `demo/demo.sh` |
 | `artifacts` | `basectl setup` | Requests the `bats-core` tool artifact; setup reports whether the Homebrew package is already current or would be installed |

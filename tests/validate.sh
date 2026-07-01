@@ -341,6 +341,16 @@ grep -Fq 'health.required_ports' README.md || {
   exit 1
 }
 
+grep -Fq 'working_dir: services/go-api' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare working_dir for the go-api build target.\n' >&2
+  exit 1
+}
+
+grep -Fq 'build.targets[*].working_dir' README.md || {
+  printf 'README.md does not document build target working_dir.\n' >&2
+  exit 1
+}
+
 grep -Fq 'build:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare build targets.\n' >&2
   exit 1

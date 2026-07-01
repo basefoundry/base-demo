@@ -162,6 +162,7 @@ each field maps to a visible Base workflow:
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
 | `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, `services`, and `environments`. |
 | `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
+| `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the target command needing to change directories itself. |
 | `test.command` | `basectl test base-demo` | Defines the project-owned validation command. |
 | `demo.script` | `basectl demo base-demo` | Defines the project-owned interactive walkthrough. |
 | `artifacts` | `basectl setup base-demo` | Requests the `bats-core` tool artifact; the project setup layer reports whether Homebrew already has it or would install it. |

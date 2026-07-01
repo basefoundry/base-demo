@@ -200,6 +200,7 @@ EOF
   [[ "$output" == *"bats-core"* ]]
   [[ "$output" == *"required_ports:"* ]]
   [[ "$output" == *"requires_python:"* ]]
+  [[ "$output" == *"working_dir: services/go-api"* ]]
   [[ "$output" == *"Project Diagnostics"* ]]
   [[ "$output" == *"post-activation green path"* ]]
   [[ "$output" == *"Declared Commands"* ]]

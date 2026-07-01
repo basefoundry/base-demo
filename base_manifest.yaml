@@ -40,7 +40,8 @@ build:
       command: ./src/build-info.sh
     go-api:
       description: Build the Go API service.
-      command: ./services/go-api/build.sh
+      working_dir: services/go-api
+      command: mkdir -p build && CGO_ENABLED=0 go build -o build/go-api .
     python-api:
       description: Validate the Python API service.
       command: ./services/python-api/build.sh
