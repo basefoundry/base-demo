@@ -142,6 +142,14 @@ if grep -Fq 'raw.githubusercontent.com/basefoundry/base/master/' install.sh; the
   exit 1
 fi
 
+floating_actions_refs="$(
+  grep -RInE 'uses:[[:space:]]+actions/[^@]+@v[0-9]+' .github/workflows || true
+)"
+if [[ -n "$floating_actions_refs" ]]; then
+  printf 'Found floating GitHub Action refs; pin actions to full commit SHAs:\n%s\n' "$floating_actions_refs" >&2
+  exit 1
+fi
+
 grep -Fq 'hello: ./src/hello.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the hello command.\n' >&2
   exit 1
