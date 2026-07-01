@@ -41,6 +41,45 @@ write_optional_file_catalog() {
 EOF
 }
 
+write_short_process_catalog() {
+  local catalog="$1"
+
+  cat > "$catalog" <<EOF
+{
+  "services": [
+    {
+      "name": "private-log",
+      "kind": "service",
+      "runtime": "test",
+      "port": null,
+      "health_url": null,
+      "required": false,
+      "lifecycle": {
+        "type": "process",
+        "command": [
+          "python3",
+          "-c",
+          "print('private log')"
+        ]
+      },
+      "check": {
+        "type": "none"
+      },
+      "logs": "var/services/private-log.log"
+    }
+  ]
+}
+EOF
+}
+
+file_mode() {
+  if stat -f '%Lp' "$1" >/dev/null 2>&1; then
+    stat -f '%Lp' "$1"
+    return
+  fi
+  stat -c '%a' "$1"
+}
+
 write_optional_compose_catalog() {
   local catalog="$1"
 
@@ -236,4 +275,20 @@ EOF
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"missing-http skip optional http:<missing health_url>"* ]]
+}
+
+@test "services start creates process logs with user-only permissions" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local state_dir="$TEST_TMPDIR/state"
+  local log_path="$state_dir/private-log.log"
+  write_short_process_catalog "$catalog"
+  mkdir -p "$state_dir"
+  touch "$log_path"
+  chmod 0644 "$log_path"
+
+  run env BASE_DEMO_SERVICES_STATE_DIR="$state_dir" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+  [ "$status" -eq 0 ]
+  [ -f "$log_path" ]
+  [ "$(file_mode "$log_path")" = "600" ]
 }

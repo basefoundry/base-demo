@@ -103,6 +103,11 @@ def process_log_path(root: Path, service: dict[str, Any]) -> Path:
     return state_dir(root) / f"{service.get('name', 'service')}.log"
 
 
+def ensure_private_log_file(path: Path) -> None:
+    path.touch(mode=0o600, exist_ok=True)
+    path.chmod(0o600)
+
+
 def read_process_state(root: Path, service: dict[str, Any]) -> dict[str, Any] | None:
     path = process_state_path(root, service)
     try:
@@ -197,6 +202,7 @@ def start_process(service: dict[str, Any], root: Path) -> int:
     directory = state_dir(root)
     directory.mkdir(parents=True, exist_ok=True)
     log_path = process_log_path(root, service)
+    ensure_private_log_file(log_path)
     env = os.environ.copy()
     env["BASE_PROJECT_ROOT"] = str(root)
     port = service.get("port")
