@@ -31,6 +31,7 @@ basectl setup base-demo
 basectl activate base-demo
 basectl check base-demo
 basectl doctor base-demo
+basectl ci check base-demo --format json
 basectl repo check .
 basectl workspace status --manifest workspace.yaml.example
 basectl run base-demo --list
@@ -58,6 +59,8 @@ The commands above exercise the complete Base project loop:
   source applied.
 - `basectl check base-demo` and `basectl doctor base-demo` validate the local
   project environment from that activated shell.
+- `basectl ci check base-demo --format json` returns machine-readable project
+  health for CI pipelines.
 - `basectl repo check .` validates the standard repository baseline files.
 - `basectl workspace status --manifest workspace.yaml.example` shows a
   workspace-level view of the expected `base`, `base-demo`, and

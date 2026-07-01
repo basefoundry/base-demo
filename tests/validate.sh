@@ -331,6 +331,16 @@ grep -Fq 'CI sets BASE_DEMO_ENV=baseline' README.md || {
   exit 1
 }
 
+grep -Fq 'ci check "$BASE_DEMO_PROJECT" --format json' demo/demo.sh || {
+  printf 'demo/demo.sh does not include the basectl ci check JSON walkthrough step.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl ci check base-demo --format json' README.md || {
+  printf 'README.md does not document the basectl ci check JSON command.\n' >&2
+  exit 1
+}
+
 grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md || {
   printf 'README.md does not document the env command BASE_OS/BASE_PLATFORM output.\n' >&2
   exit 1
