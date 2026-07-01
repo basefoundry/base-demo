@@ -206,6 +206,8 @@ EOF
   [[ "$output" == *"required_ports:"* ]]
   [[ "$output" == *"requires_python:"* ]]
   [[ "$output" == *"working_dir: services/go-api"* ]]
+  [[ "$output" == *"ms-python.python"* ]]
+  [[ "$output" == *"python.defaultInterpreterPath: auto"* ]]
   [[ "$output" == *"uv-info:"* ]]
   [[ "$output" == *"runner: uv"* ]]
   [[ "$output" == *"Project Diagnostics"* ]]

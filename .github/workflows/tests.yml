@@ -50,6 +50,14 @@ jobs:
       - name: Set up Base
         run: ../base/bin/basectl setup base --no-notify
 
+      - name: Disable IDE setup in CI
+        run: |
+          mkdir -p ~/.base.d
+          {
+            printf '\nide:\n'
+            printf '  enabled: false\n'
+          } >> ~/.base.d/config.yaml
+
       - name: Set up base-demo
         run: ../base/bin/basectl setup base-demo --manifest ./base_manifest.yaml --no-notify
 

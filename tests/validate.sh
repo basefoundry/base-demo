@@ -367,6 +367,21 @@ grep -Fq 'commands[*].runner' README.md || {
   exit 1
 }
 
+grep -Fq 'ide:' base_manifest.yaml && grep -Fq 'ms-python.python' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the VS Code IDE block.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python.defaultInterpreterPath: auto' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare automatic VS Code Python interpreter resolution.\n' >&2
+  exit 1
+}
+
+grep -Fq 'ide.vscode' README.md || {
+  printf 'README.md does not document ide.vscode.\n' >&2
+  exit 1
+}
+
 grep -Fq 'build:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare build targets.\n' >&2
   exit 1

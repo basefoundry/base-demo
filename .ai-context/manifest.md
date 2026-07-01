@@ -15,6 +15,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `mise` | `basectl setup` | Declares `.mise.toml`; setup installs tool versions (Python 3.13) via mise |
 | `python.requires_python` | `basectl check` / `doctor` | Base validates Python 3.13 separately from mise installing it |
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
+| `ide.vscode` | `basectl setup` | Declares VS Code Python extensions and project venv auto-injection when IDE setup is enabled |
 | `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, uv-info, services, environments |
 | `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the uv-info command through `uv run --` |
 | `build.targets` | `basectl build` | `info` target runs `src/build-info.sh` |

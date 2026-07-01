@@ -163,6 +163,7 @@ each field maps to a visible Base workflow:
 | `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
 | `python.requires_python` | `basectl check base-demo` | Lets Base verify Python 3.13 independently of the mise installer declaration. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
+| `ide.vscode` | `basectl setup base-demo` | Declares VS Code Python extensions and auto-injects the project venv as `python.defaultInterpreterPath` when IDE setup is enabled. |
 | `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, `uv-info`, `services`, and `environments`. |
 | `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the `uv-info` command through `uv run --`, without making uv the project-wide Python manager. |
 | `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
