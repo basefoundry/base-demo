@@ -25,6 +25,9 @@ jobs:
       - name: Run demo script tests
         run: bats tests/demo_test.bats
 
+      - name: Run installer tests
+        run: bats tests/install_test.bats
+
       - name: Run representative environment tests
         run: >
           bats
