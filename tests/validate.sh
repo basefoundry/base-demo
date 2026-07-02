@@ -169,6 +169,51 @@ grep -Fq -- '--branch v1.5.0' .github/workflows/tests.yml || {
   exit 1
 }
 
+grep -Fq 'validate-ubuntu:' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not declare the Ubuntu read-only validation job.\n' >&2
+  exit 1
+}
+
+grep -Fq 'runs-on: ubuntu-latest' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run the Ubuntu validation job on ubuntu-latest.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python3 python3-venv python3-pip jq' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not install the Ubuntu CI prerequisites.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Prepare Base runtime' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not prepare the Base runtime for Ubuntu CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python3 -m venv "$HOME/.base.d/base/.venv"' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not create the Base runtime venv for Ubuntu CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'requirements-dev.txt' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not install the pinned Base Python requirements for Ubuntu CI.\n' >&2
+  exit 1
+}
+
+if grep -Fq 'basectl setup base --no-notify --yes' .github/workflows/tests.yml; then
+  printf '.github/workflows/tests.yml must not pass --yes to the pinned Base v1.5.0 setup command.\n' >&2
+  exit 1
+fi
+
+grep -Fq 'basectl ci check base-demo --manifest ./base_manifest.yaml --format json' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run base-demo read-only CI JSON validation on Ubuntu.\n' >&2
+  exit 1
+}
+
+grep -Fq "jq -e '.status'" .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not verify the Ubuntu CI JSON status field.\n' >&2
+  exit 1
+}
+
 grep -Fq 'hello: ./src/hello.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the hello command.\n' >&2
   exit 1
@@ -457,6 +502,7 @@ for contract in \
   installer-checksum \
   service-log-permissions \
   ci-pinned-dependencies \
+  ubuntu-ci \
   platform-boundary \
   ci-json-check
 do
