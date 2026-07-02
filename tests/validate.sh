@@ -164,8 +164,8 @@ if [[ -n "$floating_actions_refs" ]]; then
   exit 1
 fi
 
-grep -Fq -- '--branch v1.4.0' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not pin the Base checkout to v1.4.0.\n' >&2
+grep -Fq -- '--branch v1.5.0' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the Base checkout to v1.5.0.\n' >&2
   exit 1
 }
 
