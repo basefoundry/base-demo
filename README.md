@@ -42,6 +42,11 @@ git clone https://github.com/basefoundry/base.git
 git clone https://github.com/basefoundry/base-demo.git
 ```
 
+For a first Base setup, `basectl onboard base-demo` is the recommended guided path.
+It wraps the setup, profile, doctor, and project-discovery flow for new Base
+users. Run `basectl onboard base-demo --dry-run` to preview the steps without
+changing local state.
+
 From the `base-demo` repository root on a machine where Base is already set up:
 
 ```bash
