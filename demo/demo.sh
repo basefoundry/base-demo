@@ -469,6 +469,16 @@ export_context_step() {
   pause
 }
 
+docs_step() {
+  local output
+
+  step 16 "Documentation Shortcut"
+  output="$(capture_command "$BASE_DEMO_BASECTL" docs --show-url)"
+  printf '%s\n' "$output"
+  require_contains "docs command" "$output" "github.com/basefoundry/base"
+  pause
+}
+
 closing_summary() {
   printf '\nWalkthrough Summary\n\n'
   printf 'Manifest fields exercised: brewfile, mise, python, health, ide, activate, commands, test, build, demo, and artifacts.\n'
@@ -501,6 +511,7 @@ main() {
   build_step
   demo_step
   export_context_step
+  docs_step
   closing_summary
 }
 

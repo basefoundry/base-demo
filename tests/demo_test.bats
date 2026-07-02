@@ -224,6 +224,9 @@ case "$*" in
     printf '# AI Context Export: base-demo\n'
     printf '## .ai-context/manifest.md\n'
     ;;
+  docs\ --show-url)
+    printf 'https://github.com/basefoundry/base#readme\n'
+    ;;
   *)
     printf 'unexpected basectl args: %s\n' "$*" >&2
     exit 1
@@ -314,6 +317,8 @@ EOF
   [[ "$output" == *"python-api build target validated"* ]]
   [[ "$output" == *"AI Context Export"* ]]
   [[ "$output" == *"AI Context Export: base-demo"* ]]
+  [[ "$output" == *"Documentation Shortcut"* ]]
+  [[ "$output" == *"github.com/basefoundry/base"* ]]
   [[ "$output" == *"Manifest fields exercised:"* ]]
   [[ "$output" == *"docs/representative-environment.md"* ]]
   [[ "$output" == *"banyanlabs"* ]]
@@ -349,4 +354,5 @@ EOF
   grep -Eq "^basectl build base-demo python-api --workspace .+$" "$state_file"
   grep -Eq "^basectl demo base-demo --workspace .+ --dry-run -- --non-interactive$" "$state_file"
   grep -Eq "^basectl export-context base-demo --workspace .+ --format markdown --print$" "$state_file"
+  grep -Eq "^basectl docs --show-url$" "$state_file"
 }
