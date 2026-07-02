@@ -475,6 +475,21 @@ grep -Fq 'basectl setup base-demo  # macOS only' README.md || {
   exit 1
 }
 
+grep -Fq 'basectl onboard base-demo' README.md || {
+  printf 'README.md does not document basectl onboard in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl onboard base-demo --dry-run' README.md || {
+  printf 'README.md does not document basectl onboard --dry-run in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'recommended guided path' README.md || {
+  printf 'README.md does not describe basectl onboard as the recommended guided path.\n' >&2
+  exit 1
+}
+
 grep -Fq 'basectl activate base-demo  # macOS only' README.md || {
   printf 'README.md does not annotate activate as macOS-only in Quick Start.\n' >&2
   exit 1
