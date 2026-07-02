@@ -220,6 +220,9 @@ discovery_step() {
   if [[ -f "$BASE_DEMO_ROOT/workspace.yaml.example" ]]; then
     output="$(capture_command "$BASE_DEMO_BASECTL" workspace status --workspace "$BASE_DEMO_WORKSPACE" --manifest "$BASE_DEMO_ROOT/workspace.yaml.example")"
     printf '%s\n' "$output"
+    if [[ "$output" == *"base-platform-tools"* ]]; then
+      printf "\nbase-platform-tools is an optional Base companion; when present, Base adds its bin/ directory after Base's own bin/.\n"
+    fi
     require_contains "workspace status" "$output" "$BASE_DEMO_PROJECT"
   else
     run_observed_command "$BASE_DEMO_BASECTL" workspace status --workspace "$BASE_DEMO_WORKSPACE"
