@@ -115,6 +115,9 @@ jobs:
       - name: Build base-demo
         run: ../base/bin/basectl build base-demo --workspace ..
 
+      - name: Show Base docs URL
+        run: ../base/bin/basectl docs --show-url
+
       - name: Run base-demo non-interactively
         run: ../base/bin/basectl demo base-demo --workspace .. -- --non-interactive
 

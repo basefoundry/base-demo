@@ -70,6 +70,7 @@ basectl logs --limit 3
 basectl history --project base-demo --limit 5
 basectl build base-demo
 basectl demo base-demo  # macOS only
+basectl docs --show-url
 basectl export-context base-demo --format markdown --print
 ```
 
@@ -106,6 +107,7 @@ The commands above exercise the complete Base project loop:
   show the local audit trail for recent Base activity.
 - `basectl build base-demo` runs the default build target (`info`) declared in the manifest.
 - `basectl demo base-demo` runs the macOS project-owned walkthrough.
+- `basectl docs --show-url` prints the Base documentation home page URL without opening a browser.
 - `basectl export-context base-demo --format markdown --print` prints the
   repository AI context bundle for assistant handoff.
 

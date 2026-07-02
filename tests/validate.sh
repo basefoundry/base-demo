@@ -490,6 +490,26 @@ grep -Fq 'recommended guided path' README.md || {
   exit 1
 }
 
+grep -Fq 'basectl docs --show-url' README.md || {
+  printf 'README.md does not document basectl docs --show-url in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Show Base docs URL' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not show the Base docs URL in CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl docs --show-url' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run basectl docs --show-url in CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'github.com/basefoundry/base' demo/demo.sh || {
+  printf 'demo/demo.sh does not validate the Base docs URL host.\n' >&2
+  exit 1
+}
+
 grep -Fq 'basectl activate base-demo  # macOS only' README.md || {
   printf 'README.md does not annotate activate as macOS-only in Quick Start.\n' >&2
   exit 1
