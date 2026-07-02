@@ -234,6 +234,16 @@ grep -Fq 'print_var BASE_PLATFORM' src/env.sh || {
   exit 1
 }
 
+grep -Fq 'print_var BASE_HOST' src/env.sh || {
+  printf 'src/env.sh does not print BASE_HOST.\n' >&2
+  exit 1
+}
+
+grep -Fq 'require_contains "env command" "$env_output" "BASE_HOST="' demo/demo.sh || {
+  printf 'demo/demo.sh does not assert BASE_HOST in env command output.\n' >&2
+  exit 1
+}
+
 grep -Fq 'manifest: ./src/manifest.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the manifest command.\n' >&2
   exit 1
@@ -512,13 +522,13 @@ do
   }
 done
 
-grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md || {
-  printf 'README.md does not document the env command BASE_OS/BASE_PLATFORM output.\n' >&2
+grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md && grep -Fq 'BASE_HOST' README.md || {
+  printf 'README.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST output.\n' >&2
   exit 1
 }
 
-grep -Fq 'BASE_OS' .ai-context/manifest.md && grep -Fq 'BASE_PLATFORM' .ai-context/manifest.md || {
-  printf '.ai-context/manifest.md does not document the env command BASE_OS/BASE_PLATFORM output.\n' >&2
+grep -Fq 'BASE_OS' .ai-context/manifest.md && grep -Fq 'BASE_PLATFORM' .ai-context/manifest.md && grep -Fq 'BASE_HOST' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST output.\n' >&2
   exit 1
 }
 

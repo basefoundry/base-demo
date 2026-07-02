@@ -86,8 +86,8 @@ The commands above exercise the complete Base project loop:
   `base-bash-libs` peer repositories.
 - `basectl run base-demo --list` shows the manifest-declared project commands.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
-- `basectl run base-demo env` shows Base runtime metadata such as `BASE_OS`
-  and `BASE_PLATFORM` alongside project activation values.
+- `basectl run base-demo env` shows Base runtime metadata such as `BASE_OS`,
+  `BASE_PLATFORM`, and `BASE_HOST` alongside project activation values.
 - `basectl run base-demo python-info -- info` shows Base context values from
   `base_cli.Context`.
 - `basectl run base-demo python-info -- env` shows the `BASE_*` environment
@@ -137,6 +137,7 @@ BASE_PROJECT_MANIFEST=/path/to/base-demo/base_manifest.yaml
 BASE_PROJECT_VENV_DIR=/path/to/base-demo/.venv
 BASE_OS=macos
 BASE_PLATFORM=macos
+BASE_HOST=dev-host
 BASE_DEMO_ENV=baseline
 BASE_DEMO_ACTIVATED=true
 BASE_DEMO_PROJECT_KIND=reference-demo
@@ -181,8 +182,8 @@ deterministic without needing an interactive activated shell.
 - `.base/activate.sh` demonstrates project activation state.
 - `src/hello.sh`, `src/env.sh`, `src/manifest.sh`, and `src/build-info.sh` are
   tiny command and build targets for `basectl run` and `basectl build`;
-  `src/env.sh` also exposes Base runtime metadata such as `BASE_OS` and
-  `BASE_PLATFORM`.
+  `src/env.sh` also exposes Base runtime metadata such as `BASE_OS`,
+  `BASE_PLATFORM`, and `BASE_HOST`.
 - `lib/python/base_demo_cli` is a tiny Python command target that runs inside
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python
