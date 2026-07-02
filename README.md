@@ -88,8 +88,8 @@ The commands above exercise the complete Base project loop:
   health for read-only CI pipelines, including Ubuntu/Linux checks.
 - `basectl repo check .` validates the standard repository baseline files.
 - `basectl workspace status --manifest workspace.yaml.example` shows a
-  workspace-level view of the expected `base`, `base-demo`, and
-  `base-bash-libs` peer repositories.
+  workspace-level view of the expected `base`, `base-demo`, optional
+  `base-platform-tools`, and optional `base-bash-libs` peer repositories.
 - `basectl run base-demo --list` shows the manifest-declared project commands.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
 - `basectl run base-demo env` shows Base runtime metadata such as `BASE_OS`,

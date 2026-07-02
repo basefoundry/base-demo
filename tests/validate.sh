@@ -510,6 +510,31 @@ grep -Fq 'github.com/basefoundry/base' demo/demo.sh || {
   exit 1
 }
 
+grep -Fq 'base-platform-tools' workspace.yaml.example || {
+  printf 'workspace.yaml.example does not list base-platform-tools.\n' >&2
+  exit 1
+}
+
+grep -Fq 'https://github.com/basefoundry/base-platform-tools.git' workspace.yaml.example || {
+  printf 'workspace.yaml.example does not list the base-platform-tools GitHub URL.\n' >&2
+  exit 1
+}
+
+grep -A4 'name: base-platform-tools' workspace.yaml.example | grep -Fq 'required: false' || {
+  printf 'workspace.yaml.example does not mark base-platform-tools as optional.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base-platform-tools is an optional Base companion' demo/demo.sh || {
+  printf 'demo/demo.sh does not explain the optional base-platform-tools companion.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base-platform-tools' README.md || {
+  printf 'README.md does not document optional base-platform-tools workspace status.\n' >&2
+  exit 1
+}
+
 grep -Fq 'basectl activate base-demo  # macOS only' README.md || {
   printf 'README.md does not annotate activate as macOS-only in Quick Start.\n' >&2
   exit 1

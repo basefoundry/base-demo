@@ -74,6 +74,7 @@ case "$*" in
     printf 'WORKSPACE base-demo-reference\n'
     printf 'base present healthy\n'
     printf 'base-demo present healthy\n'
+    printf 'base-platform-tools optional missing\n'
     printf 'base-bash-libs optional missing\n'
     ;;
   setup\ base-demo\ --manifest\ *\ --dry-run\ --no-notify)
@@ -246,6 +247,7 @@ EOF
   [[ "$output" == *"base-demo Walkthrough"* ]]
   [[ "$output" == *"Workspace Discovery"* ]]
   [[ "$output" == *"base-demo-reference"* ]]
+  [[ "$output" == *"base-platform-tools is an optional Base companion"* ]]
   [[ "$output" == *"Setup Contract"* ]]
   [[ "$output" == *"bats-core"* ]]
   [[ "$output" == *"required_ports:"* ]]
