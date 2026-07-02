@@ -470,6 +470,21 @@ grep -Fq 'docs/linux-support.md' README.md || {
   exit 1
 }
 
+grep -Fq '## Future Go/Cobra CLI Boundary' docs/representative-environment.md || {
+  printf 'docs/representative-environment.md does not document the future Go/Cobra CLI boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base-demo-go' docs/representative-environment.md || {
+  printf 'docs/representative-environment.md does not name base-demo-go as the future Go/Cobra split option.\n' >&2
+  exit 1
+}
+
+grep -Fq 'does not belong in the current baseline demo' docs/representative-environment.md || {
+  printf 'docs/representative-environment.md does not keep Go/Cobra out of the current baseline demo.\n' >&2
+  exit 1
+}
+
 grep -Fq 'basectl setup base-demo  # macOS only' README.md || {
   printf 'README.md does not annotate setup as macOS-only in Quick Start.\n' >&2
   exit 1

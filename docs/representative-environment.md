@@ -22,6 +22,19 @@ The three repos have distinct roles:
 Labs. Its services should be boring on purpose: health checks, hello responses,
 metadata, documented ports, and simple build/test paths.
 
+## Future Go/Cobra CLI Boundary
+
+A non-trivial Go/Cobra CLI does not belong in the current baseline demo. The
+baseline already includes a tiny Go HTTP API so Base can demonstrate Go build
+and test orchestration without adding another required tool shape to first-run
+setup.
+
+If Base needs a deeper CLI example later, prefer a separate `base-demo-go`
+repository or a clearly optional advanced slice that is not required by
+`BASE_DEMO_ENV=baseline`, Quick Start, or read-only CI. Any later
+implementation should use Go's standard toolchain and Cobra only when command
+structure is complex enough to justify it.
+
 ## Target Stack
 
 The target stack is broad enough to feel real and small enough to inspect:
