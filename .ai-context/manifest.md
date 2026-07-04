@@ -18,7 +18,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `ide.vscode` | `basectl setup` | Declares VS Code Python extensions and project venv auto-injection when IDE setup is enabled |
 | `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, uv-info, services, environments; `env` prints Base runtime metadata including `BASE_OS`, `BASE_PLATFORM`, and `BASE_HOST` |
 | `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the uv-info command through `uv run --` |
-| `build.targets` | `basectl build` | `info` target runs `src/build-info.sh` |
+| `build.targets` | `basectl build` | Default `info` target plus Go, Python, Java, C/C++, and demo-console service build targets |
 | `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the command changing directories |
 | `test.command` | `basectl test` | Runs `tests/validate.sh` |
 | `demo.script` | `basectl demo` | Runs `demo/demo.sh` |
@@ -32,6 +32,11 @@ can prove setup, activation, run, build, test, and demo behavior quickly. The
 `env` command makes the Base v1.5.0 runtime platform contract visible through
 `BASE_OS`, `BASE_PLATFORM`, and `BASE_HOST`.
 
-The representative environment direction will add service, infrastructure, UI,
-and environment-modeling commands in focused slices while preserving this
-readable manifest contract.
+The representative environment is now part of the committed manifest surface.
+The `services` command reads `services/catalog.json`, reports catalog health,
+and exercises dry-run startup through `BASE_DEMO_SERVICES_DRY_RUN=1`.
+Compose-backed infrastructure lives in `infra/compose.yaml`.
+Current multi-language service fixtures live under `services/`.
+The React/Vite console provides the catalog UI. The `environments` command
+validates the `dev`/`staging`/`prod` configuration model while keeping only
+local `dev` operational by default.

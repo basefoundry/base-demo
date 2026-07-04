@@ -607,6 +607,24 @@ grep -Fq 'BASE_OS' .ai-context/manifest.md && grep -Fq 'BASE_PLATFORM' .ai-conte
   exit 1
 }
 
+if grep -Fq 'will add service, infrastructure, UI' .ai-context/manifest.md; then
+  printf '.ai-context/manifest.md still describes committed representative environment commands as future work.\n' >&2
+  exit 1
+fi
+
+for ai_context_token in \
+  'services/catalog.json' \
+  'infra/compose.yaml' \
+  'multi-language service fixtures' \
+  'React/Vite console' \
+  'BASE_DEMO_SERVICES_DRY_RUN=1'
+do
+  grep -Fq "$ai_context_token" .ai-context/manifest.md || {
+    printf '.ai-context/manifest.md does not document current representative environment token: %s.\n' "$ai_context_token" >&2
+    exit 1
+  }
+done
+
 grep -Fq 'Brewfile currently installs mise, uv, Gradle, and Maven' README.md || {
   printf 'README.md does not document current Brewfile dependencies.\n' >&2
   exit 1
