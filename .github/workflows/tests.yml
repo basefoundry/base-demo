@@ -48,6 +48,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
+          ref: 34a71d08decf715f5767ab064197f7e63f418448
           path: .dependencies/base-bash-libs
 
       - name: Set up Base
@@ -141,6 +142,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
+          ref: 34a71d08decf715f5767ab064197f7e63f418448
           path: .dependencies/base-bash-libs
 
       - name: Prepare Base runtime

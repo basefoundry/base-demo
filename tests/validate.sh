@@ -169,6 +169,14 @@ grep -Fq -- '--branch v1.5.0' .github/workflows/tests.yml || {
   exit 1
 }
 
+base_bash_libs_pin_count="$(
+  grep -Fc 'ref: 34a71d08decf715f5767ab064197f7e63f418448' .github/workflows/tests.yml || true
+)"
+if [[ "$base_bash_libs_pin_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the Base v1.5.0-compatible SHA.\n' >&2
+  exit 1
+fi
+
 grep -Fq 'validate-ubuntu:' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not declare the Ubuntu read-only validation job.\n' >&2
   exit 1
