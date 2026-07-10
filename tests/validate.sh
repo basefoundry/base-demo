@@ -169,6 +169,14 @@ grep -Fq -- '--branch v1.5.0' .github/workflows/tests.yml || {
   exit 1
 }
 
+base_bash_libs_pin_count="$(
+  grep -Fc 'ref: 34a71d08decf715f5767ab064197f7e63f418448' .github/workflows/tests.yml || true
+)"
+if [[ "$base_bash_libs_pin_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the Base v1.5.0-compatible SHA.\n' >&2
+  exit 1
+fi
+
 grep -Fq 'validate-ubuntu:' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not declare the Ubuntu read-only validation job.\n' >&2
   exit 1
@@ -604,6 +612,29 @@ grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md && grep -Fq '
 
 grep -Fq 'BASE_OS' .ai-context/manifest.md && grep -Fq 'BASE_PLATFORM' .ai-context/manifest.md && grep -Fq 'BASE_HOST' .ai-context/manifest.md || {
   printf '.ai-context/manifest.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST output.\n' >&2
+  exit 1
+}
+
+if grep -Fq 'will add service, infrastructure, UI' .ai-context/manifest.md; then
+  printf '.ai-context/manifest.md still describes committed representative environment commands as future work.\n' >&2
+  exit 1
+fi
+
+for ai_context_token in \
+  'services/catalog.json' \
+  'infra/compose.yaml' \
+  'multi-language service fixtures' \
+  'React/Vite console' \
+  'BASE_DEMO_SERVICES_DRY_RUN=1'
+do
+  grep -Fq "$ai_context_token" .ai-context/manifest.md || {
+    printf '.ai-context/manifest.md does not document current representative environment token: %s.\n' "$ai_context_token" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'docs/tool-boundaries.md' .ai-context/overview.md || {
+  printf '.ai-context/overview.md does not reference the Base tool-boundaries policy.\n' >&2
   exit 1
 }
 
