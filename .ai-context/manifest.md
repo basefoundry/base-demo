@@ -29,7 +29,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 The current manifest keeps the baseline fast and inspectable. It uses shell
 scripts, a small Python module, and explicit Base contracts so a fresh checkout
 can prove setup, activation, run, build, test, and demo behavior quickly. The
-`env` command makes the Base v1.5.0 runtime platform contract visible through
+`env` command makes the current Base runtime platform contract visible through
 `BASE_OS`, `BASE_PLATFORM`, and `BASE_HOST`.
 
 The representative environment is now part of the committed manifest surface.

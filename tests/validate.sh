@@ -164,18 +164,33 @@ if [[ -n "$floating_actions_refs" ]]; then
   exit 1
 fi
 
-grep -Fq -- '--branch v1.5.0' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not pin the Base checkout to v1.5.0.\n' >&2
+grep -Fq -- '--branch v1.6.1' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the Base checkout to v1.6.1.\n' >&2
   exit 1
 }
 
 base_bash_libs_pin_count="$(
-  grep -Fc 'ref: 34a71d08decf715f5767ab064197f7e63f418448' .github/workflows/tests.yml || true
+  grep -Fc 'ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27' .github/workflows/tests.yml || true
 )"
 if [[ "$base_bash_libs_pin_count" -ne 2 ]]; then
-  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the Base v1.5.0-compatible SHA.\n' >&2
+  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the Base v1.6.1-compatible SHA.\n' >&2
   exit 1
 fi
+
+grep -Fq 'Review base-demo manifest commands' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not review manifest-declared commands before trusting them.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl test base-demo --workspace .. --dry-run' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not dry-run the manifest test command before trust.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl trust allow base-demo --workspace ..' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not allow the base-demo manifest before executing trusted commands.\n' >&2
+  exit 1
+}
 
 grep -Fq 'validate-ubuntu:' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not declare the Ubuntu read-only validation job.\n' >&2
@@ -206,11 +221,6 @@ grep -Fq 'requirements-dev.txt' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not install the pinned Base Python requirements for Ubuntu CI.\n' >&2
   exit 1
 }
-
-if grep -Fq 'basectl setup base --no-notify --yes' .github/workflows/tests.yml; then
-  printf '.github/workflows/tests.yml must not pass --yes to the pinned Base v1.5.0 setup command.\n' >&2
-  exit 1
-fi
 
 grep -Fq 'basectl ci check base-demo --manifest ./base_manifest.yaml --format json' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not run base-demo read-only CI JSON validation on Ubuntu.\n' >&2
