@@ -6,10 +6,12 @@ Thank you for improving this project.
 
 Know the macOS/Ubuntu platform boundary before running validation. macOS is the
 supported platform for the full interactive setup, activation, check, doctor,
-build, test, and demo loop. Ubuntu and other Linux environments are supported
-for read-only CI validation through `basectl ci check base-demo --format json`;
-Brewfile reconciliation, Homebrew tools, mise setup, activation shells, and the
-full walkthrough require macOS.
+build, test, and demo loop. Ubuntu/Debian CI validates Base runtime setup, dev-profile prerequisites, and read-only project health checks through
+`basectl setup base --yes --no-notify`,
+`basectl setup base --profile dev --yes --no-notify`, and
+`basectl ci check base-demo --format json`. Brewfile reconciliation, project
+activation shells, and the full walkthrough remain macOS paths in this
+repository.
 
 ## Workflow
 
@@ -25,7 +27,7 @@ Useful commands:
 ```bash
 basectl check base-demo  # macOS interactive path
 basectl doctor base-demo  # macOS interactive path
-basectl ci check base-demo --format json
+basectl ci check base-demo --format json  # Ubuntu/Debian read-only project health
 basectl test base-demo
 basectl build base-demo
 ```
