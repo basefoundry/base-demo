@@ -24,10 +24,15 @@ macOS is the supported platform for the full interactive demo: setup,
 activation, human-readable check/doctor output, build/test orchestration, and
 the project-owned walkthrough.
 
-Ubuntu and other Linux environments are supported in read-only CI mode via
-`basectl ci check base-demo --format json`. Brewfile reconciliation, Homebrew
-tools, mise setup, activation shells, and the full interactive demo require
-macOS.
+Ubuntu/Debian CI validates Base runtime setup through
+`basectl setup base --yes --no-notify`, dev-profile prerequisites through
+`basectl setup base --profile dev --yes --no-notify`, and the base-demo
+read-only project health check through
+`basectl ci check base-demo --format json`. That proves Base can bootstrap on
+Ubuntu/Debian and install apt-backed dev tools (`bats`, `gh`, and `shellcheck`)
+without Homebrew. It does not make the full base-demo project setup,
+activation, build, test, or demo loop a Linux contract; those remain macOS
+paths in this repository.
 
 For the full Base platform policy, see
 [`docs/linux-support.md`](https://github.com/basefoundry/base/blob/main/docs/linux-support.md)
@@ -55,7 +60,7 @@ basectl setup base-demo  # macOS only
 basectl activate base-demo  # macOS only
 basectl check base-demo  # macOS interactive path
 basectl doctor base-demo  # macOS interactive path
-basectl ci check base-demo --format json  # Ubuntu/Linux read-only CI path
+basectl ci check base-demo --format json  # Ubuntu/Debian read-only project health
 basectl repo check .
 basectl workspace status --manifest workspace.yaml.example
 basectl run base-demo --list
@@ -85,7 +90,8 @@ The commands above exercise the complete Base project loop:
 - `basectl check base-demo` and `basectl doctor base-demo` validate the local
   project environment from that activated macOS shell.
 - `basectl ci check base-demo --format json` returns machine-readable project
-  health for read-only CI pipelines, including Ubuntu/Linux checks.
+  health for read-only CI pipelines, including the Ubuntu/Debian project health
+  check that runs after Base setup and the Base dev-profile setup.
 - `basectl repo check .` validates the standard repository baseline files.
 - `basectl workspace status --manifest workspace.yaml.example` shows a
   workspace-level view of the expected `base`, `base-demo`, optional

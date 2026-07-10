@@ -500,8 +500,23 @@ grep -Fq 'macOS is the supported platform for the full interactive demo' README.
   exit 1
 }
 
-grep -Fq 'Ubuntu' README.md && grep -Fq 'read-only CI mode' README.md || {
-  printf 'README.md does not document the Ubuntu/Linux read-only CI boundary.\n' >&2
+grep -Fq 'Ubuntu/Debian CI validates Base runtime setup' README.md || {
+  printf 'README.md does not document the Ubuntu/Debian Base setup CI boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base --yes --no-notify' README.md || {
+  printf 'README.md does not document the Ubuntu/Debian Base setup command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base --profile dev --yes --no-notify' README.md || {
+  printf 'README.md does not document the Ubuntu/Debian dev profile setup command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'read-only project health check' README.md || {
+  printf 'README.md does not document the Ubuntu/Debian read-only project health boundary.\n' >&2
   exit 1
 }
 
@@ -597,6 +612,16 @@ grep -Fq 'basectl activate base-demo  # macOS only' README.md || {
 
 grep -Fq 'macOS/Ubuntu platform boundary' CONTRIBUTING.md || {
   printf 'CONTRIBUTING.md does not document the macOS/Ubuntu platform boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Base runtime setup, dev-profile prerequisites, and read-only project health checks' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not document the Ubuntu/Debian CI setup/dev-profile boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base --profile dev --yes --no-notify' docs/contracts.md || {
+  printf 'docs/contracts.md does not bind Ubuntu dev-profile CI validation.\n' >&2
   exit 1
 }
 
