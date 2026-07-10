@@ -633,6 +633,11 @@ do
   }
 done
 
+grep -Fq 'docs/tool-boundaries.md' .ai-context/overview.md || {
+  printf '.ai-context/overview.md does not reference the Base tool-boundaries policy.\n' >&2
+  exit 1
+}
+
 grep -Fq 'Brewfile currently installs mise, uv, Gradle, and Maven' README.md || {
   printf 'README.md does not document current Brewfile dependencies.\n' >&2
   exit 1

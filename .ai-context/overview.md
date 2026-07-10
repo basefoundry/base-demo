@@ -15,6 +15,12 @@ This makes `base-demo` a bridge between a tiny sample and Banyan Labs. Base owns
 workspace orchestration, `base-demo` proves the representative shape, and
 Banyan Labs remains the full platform engineering lab.
 
+Base's `docs/tool-boundaries.md` is the framework-level policy for how Base
+coexists with mise, uv, Docker Compose, AI harnesses, Taskfile, devbox, and
+similar tools. Use that policy when interpreting the local `.mise.toml`,
+command-level `runner: uv`, `infra/compose.yaml`, and `.ai-context/` examples
+in this repository.
+
 ## Purpose
 
 - Show what a well-structured `base_manifest.yaml` looks like
