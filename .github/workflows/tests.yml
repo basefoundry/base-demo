@@ -43,12 +43,12 @@ jobs:
       # Pin to a Base release tag so CI is not affected by Base master changes.
       # Update this tag when a new Base release is made.
       - name: Check out Base
-        run: git clone --depth 1 --branch v1.5.0 https://github.com/basefoundry/base.git ../base
+        run: git clone --depth 1 --branch v1.6.1 https://github.com/basefoundry/base.git ../base
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 34a71d08decf715f5767ab064197f7e63f418448
+          ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27
           path: .dependencies/base-bash-libs
 
       - name: Set up Base
@@ -81,8 +81,14 @@ jobs:
       - name: Check repository baseline through Base
         run: ../base/bin/basectl repo check .
 
-      - name: List base-demo commands
-        run: ../base/bin/basectl run base-demo --workspace .. --list
+      - name: Review base-demo manifest commands
+        run: |
+          ../base/bin/basectl run base-demo --workspace .. --list
+          ../base/bin/basectl build base-demo --workspace .. --list
+          ../base/bin/basectl test base-demo --workspace .. --dry-run
+
+      - name: Trust base-demo manifest commands
+        run: ../base/bin/basectl trust allow base-demo --workspace ..
 
       - name: Run base-demo hello command
         run: ../base/bin/basectl run base-demo --workspace .. hello
@@ -110,9 +116,6 @@ jobs:
       - name: Test base-demo
         run: ../base/bin/basectl test base-demo --workspace ..
 
-      - name: Build base-demo (list targets)
-        run: ../base/bin/basectl build base-demo --workspace .. --list
-
       - name: Build base-demo
         run: ../base/bin/basectl build base-demo --workspace ..
 
@@ -137,12 +140,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip jq
 
       - name: Check out Base
-        run: git clone --depth 1 --branch v1.5.0 https://github.com/basefoundry/base.git ../base
+        run: git clone --depth 1 --branch v1.6.1 https://github.com/basefoundry/base.git ../base
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 34a71d08decf715f5767ab064197f7e63f418448
+          ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27
           path: .dependencies/base-bash-libs
 
       - name: Prepare Base runtime
