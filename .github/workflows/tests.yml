@@ -148,12 +148,15 @@ jobs:
           ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27
           path: .dependencies/base-bash-libs
 
-      - name: Prepare Base runtime
+      - name: Set up Base on Ubuntu
+        run: ../base/bin/basectl setup base --yes --no-notify
+
+      - name: Validate Ubuntu dev profile setup
         run: |
-          mkdir -p "$HOME/.base.d/base"
-          python3 -m venv "$HOME/.base.d/base/.venv"
-          "$HOME/.base.d/base/.venv/bin/python" -m pip install --upgrade pip
-          "$HOME/.base.d/base/.venv/bin/python" -m pip install -r ../base/requirements-dev.txt
+          ../base/bin/basectl setup base --profile dev --yes --no-notify
+          bats --version
+          gh --version
+          shellcheck --version
 
       - name: Check base-demo in CI mode
         run: ../base/bin/basectl ci check base-demo --manifest ./base_manifest.yaml --format json | tee /tmp/base-demo-ci.json

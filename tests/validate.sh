@@ -207,20 +207,42 @@ grep -Fq 'python3 python3-venv python3-pip jq' .github/workflows/tests.yml || {
   exit 1
 }
 
-grep -Fq 'Prepare Base runtime' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not prepare the Base runtime for Ubuntu CI.\n' >&2
+grep -Fq 'Set up Base on Ubuntu' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not set up Base through basectl on Ubuntu.\n' >&2
   exit 1
 }
 
-grep -Fq 'python3 -m venv "$HOME/.base.d/base/.venv"' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not create the Base runtime venv for Ubuntu CI.\n' >&2
+grep -Fq 'basectl setup base --yes --no-notify' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run the Ubuntu Base setup path with --yes.\n' >&2
   exit 1
 }
 
-grep -Fq 'requirements-dev.txt' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not install the pinned Base Python requirements for Ubuntu CI.\n' >&2
+grep -Fq 'Validate Ubuntu dev profile setup' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not validate the Ubuntu dev profile setup path.\n' >&2
   exit 1
 }
+
+grep -Fq 'basectl setup base --profile dev --yes --no-notify' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run the Ubuntu dev profile setup path with --yes.\n' >&2
+  exit 1
+}
+
+for ubuntu_dev_tool in 'bats --version' 'gh --version' 'shellcheck --version'; do
+  grep -Fq "$ubuntu_dev_tool" .github/workflows/tests.yml || {
+    printf '.github/workflows/tests.yml does not verify Ubuntu dev tool: %s.\n' "$ubuntu_dev_tool" >&2
+    exit 1
+  }
+done
+
+if grep -Fq 'python3 -m venv "$HOME/.base.d/base/.venv"' .github/workflows/tests.yml; then
+  printf '.github/workflows/tests.yml must not bootstrap the Ubuntu Base venv manually.\n' >&2
+  exit 1
+fi
+
+if grep -Fq 'requirements-dev.txt' .github/workflows/tests.yml; then
+  printf '.github/workflows/tests.yml must not install Base Python requirements manually on Ubuntu.\n' >&2
+  exit 1
+fi
 
 grep -Fq 'basectl ci check base-demo --manifest ./base_manifest.yaml --format json' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not run base-demo read-only CI JSON validation on Ubuntu.\n' >&2
