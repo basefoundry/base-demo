@@ -2,6 +2,13 @@ schema_version: 1
 
 project:
   name: base-demo
+  languages:
+    - python
+    - go
+    - java
+    - c
+    - cpp
+    - javascript
 
 brewfile: Brewfile
 
