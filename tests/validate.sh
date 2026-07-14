@@ -123,6 +123,18 @@ grep -Fq 'name: base-demo' base_manifest.yaml || {
   exit 1
 }
 
+grep -Fq '  languages:' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare project.languages.\n' >&2
+  exit 1
+}
+
+for language in python go java c cpp javascript; do
+  grep -Fxq "    - ${language}" base_manifest.yaml || {
+    printf 'base_manifest.yaml does not declare project language: %s.\n' "$language" >&2
+    exit 1
+  }
+done
+
 grep -Fq 'command: ./tests/validate.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the validation test command.\n' >&2
   exit 1
@@ -165,9 +177,23 @@ if [[ -n "$floating_actions_refs" ]]; then
 fi
 
 grep -Fq -- '--branch v1.6.1' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not pin the Base checkout to v1.6.1.\n' >&2
+  printf '.github/workflows/tests.yml does not use the v1.6.1 baseline before fetching the language-profile capability.\n' >&2
   exit 1
 }
+
+base_language_profile_sha='591e34a8fed6ce9cbe27f483f852bec81153f3eb'
+grep -Fq "git -C ../base fetch --depth 1 origin ${base_language_profile_sha}" .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not fetch the pinned Base language-profile capability.\n' >&2
+  exit 1
+}
+
+base_language_profile_checkout_count="$(
+  grep -Fc "git -C ../base checkout --detach ${base_language_profile_sha}" .github/workflows/tests.yml || true
+)"
+if [[ "$base_language_profile_checkout_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must check out the pinned Base language-profile capability in both jobs.\n' >&2
+  exit 1
+fi
 
 base_bash_libs_pin_count="$(
   grep -Fc 'ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27' .github/workflows/tests.yml || true
@@ -727,6 +753,16 @@ grep -Fq 'bats-core' .ai-context/manifest.md || {
 
 grep -Fq 'requires_python: "3.13"' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare python.requires_python 3.13.\n' >&2
+  exit 1
+}
+
+grep -Fq 'project.languages' README.md || {
+  printf 'README.md does not document project.languages.\n' >&2
+  exit 1
+}
+
+grep -Fq 'project.languages' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document project.languages.\n' >&2
   exit 1
 }
 

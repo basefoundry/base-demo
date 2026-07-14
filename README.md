@@ -186,8 +186,9 @@ deterministic without needing an interactive activated shell.
 
 ## Repository Shape
 
-- `base_manifest.yaml` declares the project name, activation source, command,
-  test command, and Brewfile location using current Base contracts.
+- `base_manifest.yaml` declares the project name, the repository's explicit
+  language taxonomy, activation source, command, test command, and Brewfile
+  location using current Base contracts.
 - `Brewfile` is the Homebrew-owned place for ordinary macOS tools. The
   Brewfile currently installs mise, uv, Gradle, and Maven so setup can
   demonstrate tool-version management, command runners, and representative
@@ -236,6 +237,7 @@ each field maps to a visible Base workflow:
 | --- | --- | --- |
 | `schema_version` | `basectl setup base-demo` | Declares the manifest contract version Base should parse. |
 | `project.name` | `basectl projects list` | Gives Base the stable project name used by setup, check, doctor, run, test, activate, and demo. |
+| `project.languages` | `basectl check base-demo` | Records the normalized Python, Go, Java, C, C++, and JavaScript profile represented by the service fixtures; this is taxonomy only and does not provision toolchains. |
 | `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`; currently installs mise, uv, Gradle, and Maven. |
 | `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; green in an activated shell and intentionally reported missing as a pre-activation diagnostic. |
 | `health.required_ports` | `basectl check base-demo` | Declares that the baseline `go-api` port 8010 should be free before services are started. |

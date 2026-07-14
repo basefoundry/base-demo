@@ -9,6 +9,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 |---|---|---|
 | `schema_version` | `basectl setup` | Manifest compatibility marker |
 | `project.name` | `basectl projects list` | Stable name for all Base commands |
+| `project.languages` | `basectl check` / `doctor` | Explicit normalized language taxonomy for the Python, Go, Java, C, C++, and JavaScript fixtures; metadata only, with no automatic toolchain provisioning |
 | `brewfile` | `basectl setup` | Delegates ordinary macOS dependencies to `brew bundle`; currently includes mise, uv, Gradle, and Maven |
 | `health.required_env` | `basectl check` / `doctor` | `BASE_DEMO_ENV=baseline` on the green path; missing before activation as a diagnostic example |
 | `health.required_ports` | `basectl check` / `doctor` | Baseline `go-api` port 8010 is expected to be free before services are started |

@@ -186,6 +186,13 @@ project_shape_step() {
 manifest_step() {
   step 2 "Manifest Contracts"
   run_command grep -n "name: base-demo" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n "languages:" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n -- "- python" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n -- "- go" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n -- "- java" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n -- "- c$" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n -- "- cpp" "$BASE_DEMO_ROOT/base_manifest.yaml"
+  run_command grep -n -- "- javascript" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "required_env:" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "required_ports:" "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_command grep -n "requires_python:" "$BASE_DEMO_ROOT/base_manifest.yaml"
