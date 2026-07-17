@@ -43,6 +43,8 @@ and versions are tracked in the repo-root `VERSION` file.
 - Added `.mise.toml` declaring Python 3.13 and a `validate` task; wired into the
   manifest via `mise: .mise.toml` so `basectl setup` installs tool versions.
 - Added `.github/pull_request_template.md` for consistent PR descriptions.
+- Added WSL2 readiness guidance for the Ubuntu/Debian Base path and exposed
+  `BASE_HOST_ENV` in the demo `env` command.
 
 ### Changed
 

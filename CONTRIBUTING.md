@@ -13,6 +13,12 @@ build, test, and demo loop. Ubuntu/Debian CI validates Base runtime setup, dev-p
 activation shells, and the full walkthrough remain macOS paths in this
 repository.
 
+Ubuntu/Debian under WSL2 uses the same Base Linux path when repositories live
+inside the WSL filesystem, not under `/mnt/c/...`. WSL2 smoke checks should
+cover Base setup plus read-only check/doctor diagnostics, expect
+`BASE_PLATFORM=linux-debian` and `BASE_HOST_ENV=wsl2`, and keep native Windows
+support out of scope.
+
 ## Workflow
 
 1. Create or choose a GitHub issue before starting implementation work.

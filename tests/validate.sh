@@ -305,8 +305,18 @@ grep -Fq 'print_var BASE_PLATFORM' src/env.sh || {
   exit 1
 }
 
+grep -Fq 'print_var BASE_HOST_ENV' src/env.sh || {
+  printf 'src/env.sh does not print BASE_HOST_ENV.\n' >&2
+  exit 1
+}
+
 grep -Fq 'print_var BASE_HOST' src/env.sh || {
   printf 'src/env.sh does not print BASE_HOST.\n' >&2
+  exit 1
+}
+
+grep -Fq 'require_contains "env command" "$env_output" "BASE_HOST_ENV="' demo/demo.sh || {
+  printf 'demo/demo.sh does not assert BASE_HOST_ENV in env command output.\n' >&2
   exit 1
 }
 
@@ -581,6 +591,41 @@ grep -Fq 'read-only project health check' README.md || {
   exit 1
 }
 
+grep -Fq 'Ubuntu/Debian under WSL2' README.md || {
+  printf 'README.md does not document the WSL2 readiness path.\n' >&2
+  exit 1
+}
+
+grep -Fq '/mnt/c/...' README.md || {
+  printf 'README.md does not warn WSL2 users away from /mnt/c checkouts.\n' >&2
+  exit 1
+}
+
+grep -Fq 'BASE_HOST_ENV=wsl2' README.md || {
+  printf 'README.md does not document expected WSL2 host metadata.\n' >&2
+  exit 1
+}
+
+grep -Fq 'doctor --ci base-demo --format json' README.md || {
+  printf 'README.md does not include doctor in the WSL2 smoke checklist.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Native Windows support remains out of scope.' README.md || {
+  printf 'README.md does not keep native Windows out of the WSL2 support claim.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Ubuntu/Debian under WSL2 uses the same Base Linux path' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not document the WSL2 platform boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'BASE_HOST_ENV=wsl2' .ai-context/overview.md || {
+  printf '.ai-context/overview.md does not document the WSL2 host metadata boundary.\n' >&2
+  exit 1
+}
+
 grep -Fq 'docs/linux-support.md' README.md || {
   printf 'README.md does not reference Base docs/linux-support.md.\n' >&2
   exit 1
@@ -729,13 +774,13 @@ do
   }
 done
 
-grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md && grep -Fq 'BASE_HOST' README.md || {
-  printf 'README.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST output.\n' >&2
+grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md && grep -Fq 'BASE_HOST_ENV' README.md && grep -Fq 'BASE_HOST' README.md || {
+  printf 'README.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST_ENV/BASE_HOST output.\n' >&2
   exit 1
 }
 
-grep -Fq 'BASE_OS' .ai-context/manifest.md && grep -Fq 'BASE_PLATFORM' .ai-context/manifest.md && grep -Fq 'BASE_HOST' .ai-context/manifest.md || {
-  printf '.ai-context/manifest.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST output.\n' >&2
+grep -Fq 'BASE_OS' .ai-context/manifest.md && grep -Fq 'BASE_PLATFORM' .ai-context/manifest.md && grep -Fq 'BASE_HOST_ENV' .ai-context/manifest.md && grep -Fq 'BASE_HOST' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST_ENV/BASE_HOST output.\n' >&2
   exit 1
 }
 

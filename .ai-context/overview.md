@@ -18,6 +18,9 @@ Banyan Labs remains the full platform engineering lab.
 Platform boundary: macOS is the full interactive base-demo loop. Ubuntu/Debian
 CI validates Base runtime setup, Base `--profile dev` prerequisites, and the
 read-only `basectl check --ci base-demo --format json` project health path.
+Ubuntu/Debian under WSL2 uses that same Base Linux path when repositories live
+inside the WSL filesystem; expect `BASE_PLATFORM=linux-debian` and
+`BASE_HOST_ENV=wsl2`, and do not imply native Windows support.
 
 Base's `docs/tool-boundaries.md` is the framework-level policy for how Base
 coexists with mise, uv, Docker Compose, AI harnesses, Taskfile, devbox, and

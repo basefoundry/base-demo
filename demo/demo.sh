@@ -335,6 +335,7 @@ inspection_step() {
   require_contains "env command" "$env_output" "BASE_PROJECT=base-demo"
   require_contains "env command" "$env_output" "BASE_OS="
   require_contains "env command" "$env_output" "BASE_PLATFORM="
+  require_contains "env command" "$env_output" "BASE_HOST_ENV="
   require_contains "env command" "$env_output" "BASE_HOST="
   require_contains "env command" "$env_output" "BASE_DEMO_PROJECT_KIND=reference-demo"
 
