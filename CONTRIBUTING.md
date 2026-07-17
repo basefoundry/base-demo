@@ -9,7 +9,7 @@ supported platform for the full interactive setup, activation, check, doctor,
 build, test, and demo loop. Ubuntu/Debian CI validates Base runtime setup, dev-profile prerequisites, and read-only project health checks through
 `basectl setup base --yes --no-notify`,
 `basectl setup base --profile dev --yes --no-notify`, and
-`basectl ci check base-demo --format json`. Brewfile reconciliation, project
+`basectl check --ci base-demo --format json`. Brewfile reconciliation, project
 activation shells, and the full walkthrough remain macOS paths in this
 repository.
 
@@ -27,7 +27,7 @@ Useful commands:
 ```bash
 basectl check base-demo  # macOS interactive path
 basectl doctor base-demo  # macOS interactive path
-basectl ci check base-demo --format json  # Ubuntu/Debian read-only project health
+basectl check --ci base-demo --format json  # Ubuntu/Debian read-only project health
 basectl trust status base-demo
 basectl run base-demo --list
 basectl test base-demo --dry-run

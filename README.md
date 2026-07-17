@@ -28,7 +28,7 @@ Ubuntu/Debian CI validates Base runtime setup through
 `basectl setup base --yes --no-notify`, dev-profile prerequisites through
 `basectl setup base --profile dev --yes --no-notify`, and the base-demo
 read-only project health check through
-`basectl ci check base-demo --format json`. That proves Base can bootstrap on
+`basectl check --ci base-demo --format json`. That proves Base can bootstrap on
 Ubuntu/Debian and install apt-backed dev tools (`bats`, `gh`, and `shellcheck`)
 without Homebrew. It does not make the full base-demo project setup,
 activation, build, test, or demo loop a Linux contract; those remain macOS
@@ -60,7 +60,7 @@ basectl setup base-demo  # macOS only
 basectl activate base-demo  # macOS only
 basectl check base-demo  # macOS interactive path
 basectl doctor base-demo  # macOS interactive path
-basectl ci check base-demo --format json  # Ubuntu/Debian read-only project health
+basectl check --ci base-demo --format json  # Ubuntu/Debian read-only project health
 basectl repo check .
 basectl workspace status --manifest workspace.yaml.example
 basectl trust status base-demo
@@ -93,7 +93,7 @@ The commands above exercise the complete Base project loop:
   source applied.
 - `basectl check base-demo` and `basectl doctor base-demo` validate the local
   project environment from that activated macOS shell.
-- `basectl ci check base-demo --format json` returns machine-readable project
+- `basectl check --ci base-demo --format json` returns machine-readable project
   health for read-only CI pipelines, including the Ubuntu/Debian project health
   check that runs after Base setup and the Base dev-profile setup.
 - `basectl repo check .` validates the standard repository baseline files.

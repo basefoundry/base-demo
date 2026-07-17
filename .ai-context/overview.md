@@ -17,7 +17,7 @@ Banyan Labs remains the full platform engineering lab.
 
 Platform boundary: macOS is the full interactive base-demo loop. Ubuntu/Debian
 CI validates Base runtime setup, Base `--profile dev` prerequisites, and the
-read-only `basectl ci check base-demo --format json` project health path.
+read-only `basectl check --ci base-demo --format json` project health path.
 
 Base's `docs/tool-boundaries.md` is the framework-level policy for how Base
 coexists with mise, uv, Docker Compose, AI harnesses, Taskfile, devbox, and

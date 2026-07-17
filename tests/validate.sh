@@ -275,7 +275,7 @@ if grep -Fq 'requirements-dev.txt' .github/workflows/tests.yml; then
   exit 1
 fi
 
-grep -Fq 'basectl ci check base-demo --manifest ./base_manifest.yaml --format json' .github/workflows/tests.yml || {
+grep -Fq 'basectl check --ci base-demo --manifest ./base_manifest.yaml --format json' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not run base-demo read-only CI JSON validation on Ubuntu.\n' >&2
   exit 1
 }
@@ -511,13 +511,13 @@ grep -Fq 'CI sets BASE_DEMO_ENV=baseline' README.md || {
   exit 1
 }
 
-grep -Fq 'ci check "$BASE_DEMO_PROJECT" --format json' demo/demo.sh || {
-  printf 'demo/demo.sh does not include the basectl ci check JSON walkthrough step.\n' >&2
+grep -Fq 'check --ci "$BASE_DEMO_PROJECT" --format json' demo/demo.sh || {
+  printf 'demo/demo.sh does not include the basectl check --ci JSON walkthrough step.\n' >&2
   exit 1
 }
 
-grep -Fq 'basectl ci check base-demo --format json' README.md || {
-  printf 'README.md does not document the basectl ci check JSON command.\n' >&2
+grep -Fq 'basectl check --ci base-demo --format json' README.md || {
+  printf 'README.md does not document the basectl check --ci JSON command.\n' >&2
   exit 1
 }
 

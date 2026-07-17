@@ -160,7 +160,7 @@ jobs:
           shellcheck --version
 
       - name: Check base-demo in CI mode
-        run: ../base/bin/basectl ci check base-demo --manifest ./base_manifest.yaml --format json | tee /tmp/base-demo-ci.json
+        run: ../base/bin/basectl check --ci base-demo --manifest ./base_manifest.yaml --format json | tee /tmp/base-demo-ci.json
 
       - name: Verify CI JSON status
         run: jq -e '.status' /tmp/base-demo-ci.json
