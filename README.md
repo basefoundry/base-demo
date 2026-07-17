@@ -34,6 +34,17 @@ without Homebrew. It does not make the full base-demo project setup,
 activation, build, test, or demo loop a Linux contract; those remain macOS
 paths in this repository.
 
+Ubuntu/Debian under WSL2 follows the same Base Linux contract when the `base`
+and `base-demo` checkouts live inside the WSL filesystem, for example under
+`~/work`, not under `/mnt/c/...`. A WSL2 smoke check should run
+`basectl setup base --yes --no-notify`,
+`basectl setup base --profile dev --yes --no-notify`,
+`BASE_DEMO_ENV=baseline basectl check --ci base-demo --format json`, and
+`BASE_DEMO_ENV=baseline basectl doctor --ci base-demo --format json`; keep full
+base-demo setup, activation, build, test, and demo expectations out of scope.
+Base should report `BASE_PLATFORM=linux-debian` with `BASE_HOST_ENV=wsl2`.
+Native Windows support remains out of scope.
+
 For the full Base platform policy, see
 [`docs/linux-support.md`](https://github.com/basefoundry/base/blob/main/docs/linux-support.md)
 in the Base repository.
@@ -111,7 +122,8 @@ The commands above exercise the complete Base project loop:
   after changing `base_manifest.yaml`.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
 - `basectl run base-demo env` shows Base runtime metadata such as `BASE_OS`,
-  `BASE_PLATFORM`, and `BASE_HOST` alongside project activation values.
+  `BASE_PLATFORM`, `BASE_HOST_ENV`, and `BASE_HOST` alongside project
+  activation values.
 - `basectl run base-demo python-info -- info` shows Base context values from
   `base_cli.Context`.
 - `basectl run base-demo python-info -- env` shows the `BASE_*` environment
@@ -162,6 +174,7 @@ BASE_PROJECT_MANIFEST=/path/to/base-demo/base_manifest.yaml
 BASE_PROJECT_VENV_DIR=/path/to/base-demo/.venv
 BASE_OS=macos
 BASE_PLATFORM=macos
+BASE_HOST_ENV=native
 BASE_HOST=dev-host
 BASE_DEMO_ENV=baseline
 BASE_DEMO_ACTIVATED=true
@@ -209,7 +222,7 @@ deterministic without needing an interactive activated shell.
 - `src/hello.sh`, `src/env.sh`, `src/manifest.sh`, and `src/build-info.sh` are
   tiny command and build targets for `basectl run` and `basectl build`;
   `src/env.sh` also exposes Base runtime metadata such as `BASE_OS`,
-  `BASE_PLATFORM`, and `BASE_HOST`.
+  `BASE_PLATFORM`, `BASE_HOST_ENV`, and `BASE_HOST`.
 - `lib/python/base_demo_cli` is a tiny Python command target that runs inside
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python
