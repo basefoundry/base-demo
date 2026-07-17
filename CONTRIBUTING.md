@@ -28,6 +28,10 @@ Useful commands:
 basectl check base-demo  # macOS interactive path
 basectl doctor base-demo  # macOS interactive path
 basectl ci check base-demo --format json  # Ubuntu/Debian read-only project health
+basectl trust status base-demo
+basectl run base-demo --list
+basectl test base-demo --dry-run
+basectl trust allow base-demo
 basectl test base-demo
 basectl build base-demo
 ```

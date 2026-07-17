@@ -516,6 +516,36 @@ grep -Fq 'basectl ci check base-demo --format json' README.md || {
   exit 1
 }
 
+grep -Fq 'basectl trust status base-demo' README.md || {
+  printf 'README.md does not document the manifest trust status command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl build base-demo --list' README.md || {
+  printf 'README.md does not document build target inspection before trust.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl test base-demo --dry-run' README.md || {
+  printf 'README.md does not document test dry-run inspection before trust.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl trust allow base-demo' README.md || {
+  printf 'README.md does not document the manifest trust approval command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'safe inspection commands before trust is' README.md || {
+  printf 'README.md does not explain the safe pre-trust inspection path.\n' >&2
+  exit 1
+}
+
+grep -Fq 'run`, `test`, `build`, `demo`, and `activate`' README.md || {
+  printf 'README.md does not name the trusted manifest execution surfaces.\n' >&2
+  exit 1
+}
+
 grep -Fq '## Platform Requirements' README.md || {
   printf 'README.md does not include a Platform Requirements section.\n' >&2
   exit 1
@@ -666,10 +696,16 @@ grep -Fq 'docs/contracts.md' CONTRIBUTING.md || {
   exit 1
 }
 
+grep -Fq 'basectl trust allow base-demo' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not include the manifest trust approval command in useful commands.\n' >&2
+  exit 1
+}
+
 for contract in \
   project-baseline-required \
   http-health-url \
   non-interactive-demo \
+  manifest-trust-flow \
   environment-schema \
   uv-runner-command \
   activation-owned-env \

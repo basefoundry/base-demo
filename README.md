@@ -63,7 +63,11 @@ basectl doctor base-demo  # macOS interactive path
 basectl ci check base-demo --format json  # Ubuntu/Debian read-only project health
 basectl repo check .
 basectl workspace status --manifest workspace.yaml.example
+basectl trust status base-demo
 basectl run base-demo --list
+basectl build base-demo --list
+basectl test base-demo --dry-run
+basectl trust allow base-demo
 basectl run base-demo hello
 basectl run base-demo env
 basectl run base-demo python-info -- info
@@ -96,7 +100,15 @@ The commands above exercise the complete Base project loop:
 - `basectl workspace status --manifest workspace.yaml.example` shows a
   workspace-level view of the expected `base`, `base-demo`, optional
   `base-platform-tools`, and optional `base-bash-libs` peer repositories.
-- `basectl run base-demo --list` shows the manifest-declared project commands.
+- `basectl trust status base-demo` shows whether the current manifest is already
+  approved for project-owned command execution on this machine.
+- `basectl run base-demo --list`, `basectl build base-demo --list`, and
+  `basectl test base-demo --dry-run` are safe inspection commands before trust is
+  granted.
+- `basectl trust allow base-demo` records local approval for the reviewed
+  manifest so Base can execute `run`, `test`, `build`, `demo`, and `activate`
+  commands declared by this repository. Re-run the review and approval step
+  after changing `base_manifest.yaml`.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
 - `basectl run base-demo env` shows Base runtime metadata such as `BASE_OS`,
   `BASE_PLATFORM`, and `BASE_HOST` alongside project activation values.
