@@ -101,6 +101,7 @@ required_files=(
   tests/native_services_test.bats
   tests/demo_console_test.bats
   .github/workflows/tests.yml
+  .github/workflows/issue-branch-policy.yml
   .github/pull_request_template.md
 )
 
@@ -176,30 +177,34 @@ if [[ -n "$floating_actions_refs" ]]; then
   exit 1
 fi
 
-grep -Fq -- '--branch v1.6.1' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not use the v1.6.1 baseline before fetching the language-profile capability.\n' >&2
+grep -Fq 'pull_request_target:' .github/workflows/issue-branch-policy.yml || {
+  printf '.github/workflows/issue-branch-policy.yml does not validate pull_request_target events.\n' >&2
   exit 1
 }
 
-base_language_profile_sha='591e34a8fed6ce9cbe27f483f852bec81153f3eb'
-grep -Fq "git -C ../base fetch --depth 1 origin ${base_language_profile_sha}" .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not fetch the pinned Base language-profile capability.\n' >&2
+grep -Fq 'POLICY_CONTEXT: base/issue-branch-policy' .github/workflows/issue-branch-policy.yml || {
+  printf '.github/workflows/issue-branch-policy.yml does not publish the Base issue-branch policy context.\n' >&2
   exit 1
 }
 
-base_language_profile_checkout_count="$(
-  grep -Fc "git -C ../base checkout --detach ${base_language_profile_sha}" .github/workflows/tests.yml || true
+base_release_pin_count="$(
+  grep -Fc 'git clone --depth 1 --branch v1.7.0 https://github.com/basefoundry/base.git ../base' .github/workflows/tests.yml || true
 )"
-if [[ "$base_language_profile_checkout_count" -ne 2 ]]; then
-  printf '.github/workflows/tests.yml must check out the pinned Base language-profile capability in both jobs.\n' >&2
+if [[ "$base_release_pin_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must pin both Base checkouts to the v1.7.0 release.\n' >&2
+  exit 1
+fi
+
+if grep -Fq '591e34a8fed6ce9cbe27f483f852bec81153f3eb' .github/workflows/tests.yml; then
+  printf '.github/workflows/tests.yml must not fetch the old unreleased language-profile commit.\n' >&2
   exit 1
 fi
 
 base_bash_libs_pin_count="$(
-  grep -Fc 'ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27' .github/workflows/tests.yml || true
+  grep -Fc 'ref: 5e52e79a8d6f61f82e5e95a07c75da256642f92e' .github/workflows/tests.yml || true
 )"
 if [[ "$base_bash_libs_pin_count" -ne 2 ]]; then
-  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the Base v1.6.1-compatible SHA.\n' >&2
+  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the Base v1.7.0-compatible SHA.\n' >&2
   exit 1
 fi
 

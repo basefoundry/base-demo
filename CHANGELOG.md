@@ -64,8 +64,9 @@ and versions are tracked in the repo-root `VERSION` file.
 ### CI
 
 - Updated Base-backed CI to exercise the explicit `project.languages` manifest
-  contract from the merged language-profile capability while it is still
-  unreleased.
+  contract from the Base v1.7.0 release with a compatible base-bash-libs pin.
+- Added the Base issue-branch policy workflow required by the Base v1.7.0 repo
+  baseline.
 - Pinned Base clone to `v0.4.4` tag to prevent master HEAD changes from
   breaking CI.
 - Added `brew install bash` before `basectl setup` to satisfy the Bash 4.2+
