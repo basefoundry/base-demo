@@ -1,0 +1,25 @@
+schema_version: 1
+
+workspace:
+  name: base-demo-reference
+
+repos:
+  - name: base
+    url: https://github.com/basefoundry/base.git
+    default_branch: main
+    required: true
+
+  - name: base-platform-tools
+    url: https://github.com/basefoundry/base-platform-tools.git
+    default_branch: main
+    required: false
+
+  - name: base-demo
+    url: https://github.com/basefoundry/base-demo.git
+    default_branch: main
+    required: true
+
+  - name: base-bash-libs
+    url: https://github.com/basefoundry/base-bash-libs.git
+    default_branch: main
+    required: false

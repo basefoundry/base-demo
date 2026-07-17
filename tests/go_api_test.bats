@@ -26,3 +26,8 @@ setup() {
   [[ "$output" == *"docker"* ]]
   [[ "$output" == *"8010"* ]]
 }
+
+@test "go api build target declares working_dir" {
+  grep -Fq "working_dir: services/go-api" "$TEST_ROOT/base_manifest.yaml"
+  grep -Fq "command: mkdir -p build && CGO_ENABLED=0 go build -o build/go-api ." "$TEST_ROOT/base_manifest.yaml"
+}

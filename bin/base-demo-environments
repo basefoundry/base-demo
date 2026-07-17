@@ -13,6 +13,11 @@ from typing import Any
 
 REQUIRED_FIELDS = ("name", "mode", "operational", "base_url", "logging", "services", "infrastructure")
 
+# Match base_cli.ExitCode without requiring standalone lifecycle commands to import base_cli.
+SUCCESS = 0
+FAILURE = 1
+USAGE_ERROR = 2
+
 
 def project_root() -> Path:
     root = os.environ.get("BASE_PROJECT_ROOT")
@@ -26,7 +31,7 @@ def environments_dir() -> Path:
 
 
 def environment_names() -> list[str]:
-    return ["dev", "staging", "prod"]
+    return sorted(path.stem for path in environments_dir().glob("*.json") if path.is_file())
 
 
 def load_environment(name: str) -> dict[str, Any]:
@@ -79,7 +84,7 @@ def cmd_list() -> int:
             f"{name:<8} {payload['mode']:<12} "
             f"{str(payload['operational']).lower():<11} {payload['base_url']}"
         )
-    return 0
+    return SUCCESS
 
 
 def cmd_show(name: str) -> int:
@@ -87,18 +92,18 @@ def cmd_show(name: str) -> int:
         payload, errors = load_validated(name)
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
-        return 2
+        return USAGE_ERROR
     if errors:
         for error in errors:
             print(f"{name} invalid {error}", file=sys.stderr)
-        return 1
+        return FAILURE
     print(f"name={payload['name']}")
     print(f"mode={payload['mode']}")
     print(f"operational={str(payload['operational']).lower()}")
     print(f"base_url={payload['base_url']}")
     print(f"logging.level={payload['logging'].get('level', '-')}")
     print(f"logging.format={payload['logging'].get('format', '-')}")
-    return 0
+    return SUCCESS
 
 
 def cmd_validate(name: str | None, all_envs: bool) -> int:
@@ -117,7 +122,7 @@ def cmd_validate(name: str | None, all_envs: bool) -> int:
                 print(f"{env_name} fail {error}")
         else:
             print(f"{env_name} ok")
-    return 1 if failed else 0
+    return FAILURE if failed else SUCCESS
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

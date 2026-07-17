@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+host_os="$(uname -s 2>/dev/null || printf 'unknown')"
+case "$host_os" in
+  Darwin)
+    ;;
+  Linux)
+    printf 'Linux detected: tests/validate.sh runs repository-local checks; full Base setup/demo is macOS-only.\n'
+    ;;
+  *)
+    printf 'Host OS %s detected: repository-local validation is supported, but full Base setup/demo is macOS-only.\n' "$host_os"
+    ;;
+esac
+
 required_files=(
   README.md
   VERSION
@@ -9,6 +21,8 @@ required_files=(
   skills.md
   LICENSE
   install.sh
+  workspace.yaml.example
+  docs/contracts.md
   docs/representative-environment.md
   base_manifest.yaml
   Brewfile
@@ -70,10 +84,13 @@ required_files=(
   src/env.sh
   src/manifest.sh
   src/build-info.sh
+  src/uv-info.py
   lib/python/base_demo_cli/__init__.py
   lib/python/base_demo_cli/__main__.py
+  lib/python/base_demo_cli/tests/test_cli.py
   demo/demo.sh
   tests/demo_test.bats
+  tests/install_test.bats
   tests/services_test.bats
   tests/environments_test.bats
   tests/infra_test.bats
@@ -94,7 +111,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments src/hello.sh src/env.sh src/manifest.sh src/build-info.sh src/uv-info.py services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -106,6 +123,18 @@ grep -Fq 'name: base-demo' base_manifest.yaml || {
   exit 1
 }
 
+grep -Fq '  languages:' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare project.languages.\n' >&2
+  exit 1
+}
+
+for language in python go java c cpp javascript; do
+  grep -Fxq "    - ${language}" base_manifest.yaml || {
+    printf 'base_manifest.yaml does not declare project language: %s.\n' "$language" >&2
+    exit 1
+  }
+done
+
 grep -Fq 'command: ./tests/validate.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the validation test command.\n' >&2
   exit 1
@@ -113,6 +142,141 @@ grep -Fq 'command: ./tests/validate.sh' base_manifest.yaml || {
 
 grep -Fq '.base/activate.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the activation source.\n' >&2
+  exit 1
+}
+
+stale_ref_scan_paths=(
+  README.md
+  install.sh
+  .github
+  services
+  docs
+  base_manifest.yaml
+  CHANGELOG.md
+  .ai-context
+)
+stale_github_refs="$(
+  grep -RInE '(github\.com|raw\.githubusercontent\.com)/codeforester|codeforester/(base-demo|banyanlabs|base)([^[:alnum:]_.-]|$)' "${stale_ref_scan_paths[@]}" || true
+)"
+if [[ -n "$stale_github_refs" ]]; then
+  printf 'Found stale codeforester GitHub references:\n%s\n' "$stale_github_refs" >&2
+  exit 1
+fi
+
+if grep -Fq 'raw.githubusercontent.com/basefoundry/base/master/' install.sh; then
+  printf 'install.sh must not use Base master branch raw URLs.\n' >&2
+  exit 1
+fi
+
+floating_actions_refs="$(
+  grep -RInE 'uses:[[:space:]]+actions/[^@]+@v[0-9]+' .github/workflows || true
+)"
+if [[ -n "$floating_actions_refs" ]]; then
+  printf 'Found floating GitHub Action refs; pin actions to full commit SHAs:\n%s\n' "$floating_actions_refs" >&2
+  exit 1
+fi
+
+grep -Fq -- '--branch v1.6.1' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not use the v1.6.1 baseline before fetching the language-profile capability.\n' >&2
+  exit 1
+}
+
+base_language_profile_sha='591e34a8fed6ce9cbe27f483f852bec81153f3eb'
+grep -Fq "git -C ../base fetch --depth 1 origin ${base_language_profile_sha}" .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not fetch the pinned Base language-profile capability.\n' >&2
+  exit 1
+}
+
+base_language_profile_checkout_count="$(
+  grep -Fc "git -C ../base checkout --detach ${base_language_profile_sha}" .github/workflows/tests.yml || true
+)"
+if [[ "$base_language_profile_checkout_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must check out the pinned Base language-profile capability in both jobs.\n' >&2
+  exit 1
+fi
+
+base_bash_libs_pin_count="$(
+  grep -Fc 'ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27' .github/workflows/tests.yml || true
+)"
+if [[ "$base_bash_libs_pin_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the Base v1.6.1-compatible SHA.\n' >&2
+  exit 1
+fi
+
+grep -Fq 'Review base-demo manifest commands' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not review manifest-declared commands before trusting them.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl test base-demo --workspace .. --dry-run' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not dry-run the manifest test command before trust.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl trust allow base-demo --workspace ..' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not allow the base-demo manifest before executing trusted commands.\n' >&2
+  exit 1
+}
+
+grep -Fq 'validate-ubuntu:' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not declare the Ubuntu read-only validation job.\n' >&2
+  exit 1
+}
+
+grep -Fq 'runs-on: ubuntu-latest' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run the Ubuntu validation job on ubuntu-latest.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python3 python3-venv python3-pip jq' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not install the Ubuntu CI prerequisites.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Set up Base on Ubuntu' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not set up Base through basectl on Ubuntu.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base --yes --no-notify' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run the Ubuntu Base setup path with --yes.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Validate Ubuntu dev profile setup' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not validate the Ubuntu dev profile setup path.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base --profile dev --yes --no-notify' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run the Ubuntu dev profile setup path with --yes.\n' >&2
+  exit 1
+}
+
+for ubuntu_dev_tool in 'bats --version' 'gh --version' 'shellcheck --version'; do
+  grep -Fq "$ubuntu_dev_tool" .github/workflows/tests.yml || {
+    printf '.github/workflows/tests.yml does not verify Ubuntu dev tool: %s.\n' "$ubuntu_dev_tool" >&2
+    exit 1
+  }
+done
+
+if grep -Fq 'python3 -m venv "$HOME/.base.d/base/.venv"' .github/workflows/tests.yml; then
+  printf '.github/workflows/tests.yml must not bootstrap the Ubuntu Base venv manually.\n' >&2
+  exit 1
+fi
+
+if grep -Fq 'requirements-dev.txt' .github/workflows/tests.yml; then
+  printf '.github/workflows/tests.yml must not install Base Python requirements manually on Ubuntu.\n' >&2
+  exit 1
+fi
+
+grep -Fq 'basectl ci check base-demo --manifest ./base_manifest.yaml --format json' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run base-demo read-only CI JSON validation on Ubuntu.\n' >&2
+  exit 1
+}
+
+grep -Fq "jq -e '.status'" .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not verify the Ubuntu CI JSON status field.\n' >&2
   exit 1
 }
 
@@ -126,6 +290,26 @@ grep -Fq 'env: ./src/env.sh' base_manifest.yaml || {
   exit 1
 }
 
+grep -Fq 'print_var BASE_OS' src/env.sh || {
+  printf 'src/env.sh does not print BASE_OS.\n' >&2
+  exit 1
+}
+
+grep -Fq 'print_var BASE_PLATFORM' src/env.sh || {
+  printf 'src/env.sh does not print BASE_PLATFORM.\n' >&2
+  exit 1
+}
+
+grep -Fq 'print_var BASE_HOST' src/env.sh || {
+  printf 'src/env.sh does not print BASE_HOST.\n' >&2
+  exit 1
+}
+
+grep -Fq 'require_contains "env command" "$env_output" "BASE_HOST="' demo/demo.sh || {
+  printf 'demo/demo.sh does not assert BASE_HOST in env command output.\n' >&2
+  exit 1
+}
+
 grep -Fq 'manifest: ./src/manifest.sh' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the manifest command.\n' >&2
   exit 1
@@ -135,6 +319,24 @@ grep -Fq 'python-info: ./bin/base-demo-python-info' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the python-info command.\n' >&2
   exit 1
 }
+
+grep -Fq '@app.subcommand()' lib/python/base_demo_cli/__main__.py || {
+  printf 'base_demo_cli does not declare subcommands.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base_cli.testing' lib/python/base_demo_cli/tests/test_cli.py || {
+  printf 'base_demo_cli tests do not use base_cli.testing.\n' >&2
+  exit 1
+}
+
+raw_lifecycle_exit_returns="$(
+  grep -nE 'return [012]($|[[:space:]])' bin/base-demo-services bin/base-demo-environments || true
+)"
+if [[ -n "$raw_lifecycle_exit_returns" ]]; then
+  printf 'Lifecycle scripts must use named exit code constants instead of raw return literals:\n%s\n' "$raw_lifecycle_exit_returns" >&2
+  exit 1
+fi
 
 grep -Fq 'services: ./bin/base-demo-services' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare the services command.\n' >&2
@@ -155,6 +357,32 @@ grep -Fq '"name": "project-baseline"' services/catalog.json || {
   printf 'services/catalog.json does not declare the project-baseline entry.\n' >&2
   exit 1
 }
+
+python3 - "$PWD/services/catalog.json" <<'PY'
+import json
+import sys
+
+catalog_path = sys.argv[1]
+with open(catalog_path, encoding="utf-8") as handle:
+    catalog = json.load(handle)
+
+services = catalog.get("services", [])
+baseline = next((service for service in services if service.get("name") == "project-baseline"), None)
+if baseline is None:
+    raise SystemExit("services/catalog.json does not declare project-baseline.")
+if baseline.get("required") is not True:
+    raise SystemExit("project-baseline must remain required: true.")
+
+missing_health_url = [
+    service.get("name", "<unnamed>")
+    for service in services
+    if service.get("check", {}).get("type") == "http" and not service.get("health_url")
+]
+if missing_health_url:
+    raise SystemExit(
+        "HTTP service checks must declare health_url: " + ", ".join(missing_health_url)
+    )
+PY
 
 for service in postgres mysql redis; do
   grep -Fq "\"name\": \"$service\"" services/catalog.json || {
@@ -248,8 +476,18 @@ for environment in dev staging prod; do
   }
 done
 
+grep -Fq 'REQUIRED_FIELDS = ("name", "mode", "operational", "base_url", "logging", "services", "infrastructure")' bin/base-demo-environments || {
+  printf 'bin/base-demo-environments does not declare the expected environment schema fields.\n' >&2
+  exit 1
+}
+
 grep -Fq 'required_env:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare health.required_env.\n' >&2
+  exit 1
+}
+
+grep -Fq 'export BASE_DEMO_ENV="${BASE_DEMO_ENV:-baseline}"' .base/activate.sh || {
+  printf '.base/activate.sh does not own the BASE_DEMO_ENV=baseline default.\n' >&2
   exit 1
 }
 
@@ -268,13 +506,369 @@ grep -Fq 'CI sets BASE_DEMO_ENV=baseline' README.md || {
   exit 1
 }
 
-grep -Fq 'Brewfile currently installs mise, Gradle, and Maven' README.md || {
+grep -Fq 'ci check "$BASE_DEMO_PROJECT" --format json' demo/demo.sh || {
+  printf 'demo/demo.sh does not include the basectl ci check JSON walkthrough step.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl ci check base-demo --format json' README.md || {
+  printf 'README.md does not document the basectl ci check JSON command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl trust status base-demo' README.md || {
+  printf 'README.md does not document the manifest trust status command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl build base-demo --list' README.md || {
+  printf 'README.md does not document build target inspection before trust.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl test base-demo --dry-run' README.md || {
+  printf 'README.md does not document test dry-run inspection before trust.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl trust allow base-demo' README.md || {
+  printf 'README.md does not document the manifest trust approval command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'safe inspection commands before trust is' README.md || {
+  printf 'README.md does not explain the safe pre-trust inspection path.\n' >&2
+  exit 1
+}
+
+grep -Fq 'run`, `test`, `build`, `demo`, and `activate`' README.md || {
+  printf 'README.md does not name the trusted manifest execution surfaces.\n' >&2
+  exit 1
+}
+
+grep -Fq '## Platform Requirements' README.md || {
+  printf 'README.md does not include a Platform Requirements section.\n' >&2
+  exit 1
+}
+
+grep -Fq 'macOS is the supported platform for the full interactive demo' README.md || {
+  printf 'README.md does not document the macOS full-demo platform boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Ubuntu/Debian CI validates Base runtime setup' README.md || {
+  printf 'README.md does not document the Ubuntu/Debian Base setup CI boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base --yes --no-notify' README.md || {
+  printf 'README.md does not document the Ubuntu/Debian Base setup command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base --profile dev --yes --no-notify' README.md || {
+  printf 'README.md does not document the Ubuntu/Debian dev profile setup command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'read-only project health check' README.md || {
+  printf 'README.md does not document the Ubuntu/Debian read-only project health boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'docs/linux-support.md' README.md || {
+  printf 'README.md does not reference Base docs/linux-support.md.\n' >&2
+  exit 1
+}
+
+grep -Fq '## Future Go/Cobra CLI Boundary' docs/representative-environment.md || {
+  printf 'docs/representative-environment.md does not document the future Go/Cobra CLI boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base-demo-go' docs/representative-environment.md || {
+  printf 'docs/representative-environment.md does not name base-demo-go as the future Go/Cobra split option.\n' >&2
+  exit 1
+}
+
+grep -Fq 'does not belong in the current baseline demo' docs/representative-environment.md || {
+  printf 'docs/representative-environment.md does not keep Go/Cobra out of the current baseline demo.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base-demo  # macOS only' README.md || {
+  printf 'README.md does not annotate setup as macOS-only in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl onboard base-demo' README.md || {
+  printf 'README.md does not document basectl onboard in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl onboard base-demo --dry-run' README.md || {
+  printf 'README.md does not document basectl onboard --dry-run in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'recommended guided path' README.md || {
+  printf 'README.md does not describe basectl onboard as the recommended guided path.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl docs --show-url' README.md || {
+  printf 'README.md does not document basectl docs --show-url in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Show Base docs URL' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not show the Base docs URL in CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl docs --show-url' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run basectl docs --show-url in CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'github.com/basefoundry/base' demo/demo.sh || {
+  printf 'demo/demo.sh does not validate the Base docs URL host.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base-platform-tools' workspace.yaml.example || {
+  printf 'workspace.yaml.example does not list base-platform-tools.\n' >&2
+  exit 1
+}
+
+grep -Fq 'https://github.com/basefoundry/base-platform-tools.git' workspace.yaml.example || {
+  printf 'workspace.yaml.example does not list the base-platform-tools GitHub URL.\n' >&2
+  exit 1
+}
+
+grep -A4 'name: base-platform-tools' workspace.yaml.example | grep -Fq 'required: false' || {
+  printf 'workspace.yaml.example does not mark base-platform-tools as optional.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base-platform-tools is an optional Base companion' demo/demo.sh || {
+  printf 'demo/demo.sh does not explain the optional base-platform-tools companion.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base-platform-tools' README.md || {
+  printf 'README.md does not document optional base-platform-tools workspace status.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl activate base-demo  # macOS only' README.md || {
+  printf 'README.md does not annotate activate as macOS-only in Quick Start.\n' >&2
+  exit 1
+}
+
+grep -Fq 'macOS/Ubuntu platform boundary' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not document the macOS/Ubuntu platform boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Base runtime setup, dev-profile prerequisites, and read-only project health checks' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not document the Ubuntu/Debian CI setup/dev-profile boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl setup base --profile dev --yes --no-notify' docs/contracts.md || {
+  printf 'docs/contracts.md does not bind Ubuntu dev-profile CI validation.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Linux detected: tests/validate.sh runs repository-local checks' tests/validate.sh || {
+  printf 'tests/validate.sh does not document the Linux repository-local validation boundary.\n' >&2
+  exit 1
+}
+
+grep -Fq 'docs/contracts.md' README.md || {
+  printf 'README.md does not reference docs/contracts.md.\n' >&2
+  exit 1
+}
+
+grep -Fq 'docs/contracts.md' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not reference docs/contracts.md.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl trust allow base-demo' CONTRIBUTING.md || {
+  printf 'CONTRIBUTING.md does not include the manifest trust approval command in useful commands.\n' >&2
+  exit 1
+}
+
+for contract in \
+  project-baseline-required \
+  http-health-url \
+  non-interactive-demo \
+  manifest-trust-flow \
+  environment-schema \
+  uv-runner-command \
+  activation-owned-env \
+  manifest-artifacts \
+  runtime-platform-env \
+  installer-checksum \
+  service-log-permissions \
+  ci-pinned-dependencies \
+  ubuntu-ci \
+  platform-boundary \
+  ci-json-check
+do
+  grep -Fq "| \`$contract\` |" docs/contracts.md || {
+    printf 'docs/contracts.md does not list contract %s.\n' "$contract" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'BASE_OS' README.md && grep -Fq 'BASE_PLATFORM' README.md && grep -Fq 'BASE_HOST' README.md || {
+  printf 'README.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST output.\n' >&2
+  exit 1
+}
+
+grep -Fq 'BASE_OS' .ai-context/manifest.md && grep -Fq 'BASE_PLATFORM' .ai-context/manifest.md && grep -Fq 'BASE_HOST' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document the env command BASE_OS/BASE_PLATFORM/BASE_HOST output.\n' >&2
+  exit 1
+}
+
+if grep -Fq 'will add service, infrastructure, UI' .ai-context/manifest.md; then
+  printf '.ai-context/manifest.md still describes committed representative environment commands as future work.\n' >&2
+  exit 1
+fi
+
+for ai_context_token in \
+  'services/catalog.json' \
+  'infra/compose.yaml' \
+  'multi-language service fixtures' \
+  'React/Vite console' \
+  'BASE_DEMO_SERVICES_DRY_RUN=1'
+do
+  grep -Fq "$ai_context_token" .ai-context/manifest.md || {
+    printf '.ai-context/manifest.md does not document current representative environment token: %s.\n' "$ai_context_token" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'docs/tool-boundaries.md' .ai-context/overview.md || {
+  printf '.ai-context/overview.md does not reference the Base tool-boundaries policy.\n' >&2
+  exit 1
+}
+
+grep -Fq 'Brewfile currently installs mise, uv, Gradle, and Maven' README.md || {
   printf 'README.md does not document current Brewfile dependencies.\n' >&2
   exit 1
 }
 
-grep -Fq 'currently includes mise, Gradle, and Maven' .ai-context/manifest.md || {
+grep -Fq 'currently includes mise, uv, Gradle, and Maven' .ai-context/manifest.md || {
   printf '.ai-context/manifest.md does not document current Brewfile dependencies.\n' >&2
+  exit 1
+}
+
+grep -Fq 'artifacts:' base_manifest.yaml && grep -Fq 'name: bats-core' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the bats-core artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq 'type: tool' base_manifest.yaml && grep -Fq 'version: latest' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the bats-core artifact as a latest tool artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq 'bats-core' README.md || {
+  printf 'README.md does not document the demonstrated bats-core artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq 'bats-core' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document the demonstrated bats-core artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq 'requires_python: "3.13"' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare python.requires_python 3.13.\n' >&2
+  exit 1
+}
+
+grep -Fq 'project.languages' README.md || {
+  printf 'README.md does not document project.languages.\n' >&2
+  exit 1
+}
+
+grep -Fq 'project.languages' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document project.languages.\n' >&2
+  exit 1
+}
+
+grep -Fq 'required_ports:' base_manifest.yaml && grep -Fq 'name: go-api' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the go-api required port health check.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python.requires_python' README.md || {
+  printf 'README.md does not document python.requires_python.\n' >&2
+  exit 1
+}
+
+grep -Fq 'health.required_ports' README.md || {
+  printf 'README.md does not document health.required_ports.\n' >&2
+  exit 1
+}
+
+grep -Fq 'working_dir: services/go-api' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare working_dir for the go-api build target.\n' >&2
+  exit 1
+}
+
+grep -Fq 'build.targets[*].working_dir' README.md || {
+  printf 'README.md does not document build target working_dir.\n' >&2
+  exit 1
+}
+
+grep -Fq 'brew "uv"' Brewfile || {
+  printf 'Brewfile does not include uv for the runner demo.\n' >&2
+  exit 1
+}
+
+grep -Fq 'uv-info:' base_manifest.yaml && grep -Fq 'runner: uv' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare a uv-backed command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'commands[*].runner' README.md || {
+  printf 'README.md does not document command runner fields.\n' >&2
+  exit 1
+}
+
+grep -Fq 'ide:' base_manifest.yaml && grep -Fq 'ms-python.python' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the VS Code IDE block.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python.defaultInterpreterPath: auto' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare automatic VS Code Python interpreter resolution.\n' >&2
+  exit 1
+}
+
+grep -Fq 'ide.vscode' README.md || {
+  printf 'README.md does not document ide.vscode.\n' >&2
+  exit 1
+}
+
+grep -Fq 'workspace:' workspace.yaml.example && grep -Fq 'base-demo-reference' workspace.yaml.example || {
+  printf 'workspace.yaml.example does not declare the base-demo reference workspace.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl workspace status --manifest workspace.yaml.example' README.md || {
+  printf 'README.md does not document workspace status.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl export-context base-demo --format markdown --print' README.md || {
+  printf 'README.md does not document export-context.\n' >&2
   exit 1
 }
 

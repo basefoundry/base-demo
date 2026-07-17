@@ -2,6 +2,11 @@
 
 setup() {
   TEST_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd -P)"
+  TEST_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/base-demo-environments-test.XXXXXX")"
+}
+
+teardown() {
+  rm -rf "$TEST_TMPDIR"
 }
 
 @test "environment command and config files are present" {
@@ -37,6 +42,32 @@ setup() {
   [[ "$output" == *"dev ok"* ]]
   [[ "$output" == *"staging ok"* ]]
   [[ "$output" == *"prod ok"* ]]
+}
+
+@test "environment command discovers additional JSON environments" {
+  cp -R "$TEST_ROOT/environments" "$TEST_TMPDIR/environments"
+  cat > "$TEST_TMPDIR/environments/local.json" <<'EOF'
+{
+  "name": "local",
+  "mode": "modeled",
+  "operational": false,
+  "base_url": "http://127.0.0.1:18080",
+  "logging": {
+    "level": "debug",
+    "format": "text"
+  },
+  "services": {},
+  "infrastructure": {}
+}
+EOF
+
+  run env BASE_PROJECT_ROOT="$TEST_TMPDIR" "$TEST_ROOT/bin/base-demo-environments" validate --all
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"dev ok"* ]]
+  [[ "$output" == *"local ok"* ]]
+  [[ "$output" == *"prod ok"* ]]
+  [[ "$output" == *"staging ok"* ]]
 }
 
 @test "services command validates requested environment" {

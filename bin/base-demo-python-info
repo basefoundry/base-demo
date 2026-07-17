@@ -17,4 +17,8 @@ else
 fi
 export PYTHONPATH
 
+if [[ "$#" -eq 0 ]]; then
+  set -- info
+fi
+
 exec "$BASE_HOME/bin/base-wrapper" --project "${BASE_PROJECT:-base-demo}" base_demo_cli "$@"

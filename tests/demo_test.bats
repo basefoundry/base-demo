@@ -28,6 +28,9 @@ teardown() {
   cat > "$fake_bin/basectl" <<'EOF'
 #!/usr/bin/env bash
 case "$*" in
+  repo\ check\ .)
+    printf 'Repository baseline: all 12 required files present.\n'
+    ;;
   projects\ list\ --workspace\ *)
     printf 'PROJECT     PATH\n'
     printf 'other-demo  /tmp/other-demo\n'
@@ -60,9 +63,22 @@ EOF
 #!/usr/bin/env bash
 printf 'basectl %s\n' "$*" >> "${BASE_DEMO_TEST_STATE:?}"
 case "$*" in
+  repo\ check\ .)
+    printf 'Repository baseline: all 12 required files present.\n'
+    ;;
   projects\ list\ --workspace\ *)
     printf 'PROJECT     PATH\n'
     printf 'base-demo   %s\n' "${BASE_PROJECT_ROOT:?}"
+    ;;
+  workspace\ status\ --workspace\ *\ --manifest\ *)
+    printf 'WORKSPACE base-demo-reference\n'
+    printf 'base present healthy\n'
+    printf 'base-demo present healthy\n'
+    printf 'base-platform-tools optional missing\n'
+    printf 'base-bash-libs optional missing\n'
+    ;;
+  setup\ base-demo\ --manifest\ *\ --dry-run\ --no-notify)
+    printf '[DRY-RUN] Would reconcile base_manifest.yaml, Brewfile, mise, project virtualenv, and bats-core artifact.\n'
     ;;
   check\ base-demo\ --manifest\ *)
     printf 'Base CLI environment check passed.\n'
@@ -71,11 +87,20 @@ case "$*" in
     printf 'Base doctor\n'
     printf 'ok     project base-demo is healthy.\n'
     ;;
+  ci\ check\ base-demo\ --format\ json\ --manifest\ *)
+    printf '{"project":"base-demo","status":"ok"}\n'
+    ;;
+  config\ show)
+    printf '{\n'
+    printf '  "workspace": {"root": "%s"}\n' "${BASE_PROJECT_ROOT%/base-demo}"
+    printf '}\n'
+    ;;
   run\ base-demo\ --workspace\ *\ --list)
     printf 'hello       ./src/hello.sh\n'
     printf 'env         ./src/env.sh\n'
     printf 'manifest    ./src/manifest.sh\n'
     printf 'python-info ./bin/base-demo-python-info\n'
+    printf 'uv-info     uv run -- python src/uv-info.py\n'
     printf 'services    ./bin/base-demo-services\n'
     printf 'environments ./bin/base-demo-environments\n'
     ;;
@@ -86,6 +111,9 @@ case "$*" in
     ;;
   run\ base-demo\ --workspace\ *\ env)
     printf 'BASE_PROJECT=base-demo\n'
+    printf 'BASE_OS=macos\n'
+    printf 'BASE_PLATFORM=macos\n'
+    printf 'BASE_HOST=dev-host\n'
     printf 'BASE_DEMO_PROJECT_KIND=%s\n' "${BASE_DEMO_PROJECT_KIND:-unset}"
     ;;
   run\ base-demo\ --workspace\ *\ manifest)
@@ -94,7 +122,25 @@ case "$*" in
     ;;
   run\ base-demo\ --workspace\ *\ python-info)
     printf 'base-demo python cli\n'
+    printf 'project_name=base-demo\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ python-info\ --\ info)
+    printf 'base-demo python cli\n'
+    printf 'project_name=base-demo\n'
+    printf 'project_root=%s\n' "${BASE_PROJECT_ROOT:?}"
+    printf 'workspace_root=%s\n' "$(dirname "${BASE_PROJECT_ROOT:?}")"
+    ;;
+  run\ base-demo\ --workspace\ *\ python-info\ --\ env)
     printf 'BASE_PROJECT=base-demo\n'
+    printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
+    ;;
+  run\ base-demo\ --workspace\ *\ python-info\ --\ --debug\ info)
+    printf 'DEBUG base_demo_cli info command\n' >&2
+    printf 'project_name=base-demo\n'
+    ;;
+  run\ base-demo\ --workspace\ *\ uv-info)
+    printf 'base-demo uv runner\n'
+    printf 'python=3.13\n'
     ;;
   run\ base-demo\ --workspace\ *\ services\ --\ status)
     printf 'environment=dev\n'
@@ -148,6 +194,12 @@ case "$*" in
   test\ base-demo\ --workspace\ *)
     printf 'Repository baseline is present.\n'
     ;;
+  logs\ --limit\ 3)
+    printf 'base-demo.log basectl run base-demo hello\n'
+    ;;
+  history\ --project\ base-demo\ --limit\ 5)
+    printf 'base-demo ok run hello\n'
+    ;;
   build\ base-demo\ --workspace\ *\ --list)
     printf 'info   Print project build info.\n'
     printf 'go-api Build the Go API service.\n'
@@ -158,6 +210,9 @@ case "$*" in
     printf 'cpp-service Build the native C++ service.\n'
     printf 'demo-console Build the React/Vite demo console.\n'
     ;;
+  build\ base-demo\ python-api\ --workspace\ *)
+    printf 'python-api build target validated\n'
+    ;;
   build\ base-demo\ --workspace\ *)
     printf 'project=base-demo\n'
     printf 'version=0.1.0\n'
@@ -165,6 +220,13 @@ case "$*" in
     ;;
   demo\ base-demo\ --workspace\ *\ --dry-run\ --\ --non-interactive)
     printf '[DRY-RUN] Would run demo for project base-demo.\n'
+    ;;
+  export-context\ base-demo\ --workspace\ *\ --format\ markdown\ --print)
+    printf '# AI Context Export: base-demo\n'
+    printf '## .ai-context/manifest.md\n'
+    ;;
+  docs\ --show-url)
+    printf 'https://github.com/basefoundry/base#readme\n'
     ;;
   *)
     printf 'unexpected basectl args: %s\n' "$*" >&2
@@ -184,12 +246,40 @@ EOF
   [ "$status" -eq 0 ]
   [[ "$output" == *"base-demo Walkthrough"* ]]
   [[ "$output" == *"Workspace Discovery"* ]]
+  [[ "$output" == *"base-demo-reference"* ]]
+  [[ "$output" == *"base-platform-tools is an optional Base companion"* ]]
+  [[ "$output" == *"Setup Contract"* ]]
+  [[ "$output" == *"bats-core"* ]]
+  [[ "$output" == *"languages:"* ]]
+  [[ "$output" == *"- python"* ]]
+  [[ "$output" == *"- go"* ]]
+  [[ "$output" == *"- java"* ]]
+  [[ "$output" == *"- c"* ]]
+  [[ "$output" == *"- cpp"* ]]
+  [[ "$output" == *"- javascript"* ]]
+  [[ "$output" == *"required_ports:"* ]]
+  [[ "$output" == *"requires_python:"* ]]
+  [[ "$output" == *"working_dir: services/go-api"* ]]
+  [[ "$output" == *"ms-python.python"* ]]
+  [[ "$output" == *"python.defaultInterpreterPath: auto"* ]]
+  [[ "$output" == *"uv-info:"* ]]
+  [[ "$output" == *"runner: uv"* ]]
   [[ "$output" == *"Project Diagnostics"* ]]
+  [[ "$output" == *"CI pipelines should prefer the JSON-safe ci check interface."* ]]
+  [[ "$output" == *'"project":"base-demo"'* ]]
+  [[ "$output" == *'"status":"ok"'* ]]
+  [[ "$output" == *"post-activation green path"* ]]
   [[ "$output" == *"Declared Commands"* ]]
   [[ "$output" == *"services    ./bin/base-demo-services"* ]]
   [[ "$output" == *"environments ./bin/base-demo-environments"* ]]
+  [[ "$output" == *"uv-info     uv run -- python src/uv-info.py"* ]]
   [[ "$output" == *"Inspection Commands"* ]]
+  [[ "$output" == *"workspace"* ]]
+  [[ "$output" == *"Inspecting activation and manifest environment values."* ]]
+  [[ "$output" == *"Reading the manifest summary command."* ]]
+  [[ "$output" == *"Checking representative service health."* ]]
   [[ "$output" == *"Representative Environment"* ]]
+  [[ "$output" == *"Dry-running service startup without launching dependencies."* ]]
   [[ "$output" == *"DRY-RUN docker compose"* ]]
   [[ "$output" == *"c-service ok"* ]]
   [[ "$output" == *"cpp-service ok"* ]]
@@ -197,10 +287,16 @@ EOF
   [[ "$output" == *"dev ok"* ]]
   [[ "$output" == *"prod ok"* ]]
   [[ "$output" == *"BASE_DEMO_ENV=baseline"* ]]
+  [[ "$output" == *"BASE_OS=macos"* ]]
+  [[ "$output" == *"BASE_PLATFORM=macos"* ]]
+  [[ "$output" == *"BASE_HOST=dev-host"* ]]
   [[ "$output" == *"BASE_DEMO_PROJECT_KIND=reference-demo"* ]]
   [[ "$output" == *"hello from base-demo"* ]]
   [[ "$output" == *"base-demo manifest"* ]]
   [[ "$output" == *"base-demo python cli"* ]]
+  [[ "$output" == *"project_name=base-demo"* ]]
+  [[ "$output" == *"workspace_root="* ]]
+  [[ "$output" == *"base-demo uv runner"* ]]
   [[ "$output" == *"project-baseline"* ]]
   [[ "$output" == *"postgres"* ]]
   [[ "$output" == *"mysql"* ]]
@@ -223,24 +319,49 @@ EOF
   [[ "$output" == *"staging"* ]]
   [[ "$output" == *"modeled"* ]]
   [[ "$output" == *"Repository baseline is present."* ]]
+  [[ "$output" == *"Observability"* ]]
+  [[ "$output" == *"base-demo.log"* ]]
   [[ "$output" == *"Build Targets"* ]]
   [[ "$output" == *"project=base-demo"* ]]
+  [[ "$output" == *"python-api build target validated"* ]]
+  [[ "$output" == *"AI Context Export"* ]]
+  [[ "$output" == *"AI Context Export: base-demo"* ]]
+  [[ "$output" == *"Documentation Shortcut"* ]]
+  [[ "$output" == *"github.com/basefoundry/base"* ]]
+  [[ "$output" == *"Manifest fields exercised:"* ]]
+  [[ "$output" == *"docs/representative-environment.md"* ]]
+  [[ "$output" == *"banyanlabs"* ]]
   [[ "$output" == *"base-demo walkthrough complete."* ]]
+  grep -Eq "^basectl repo check \\.$" "$state_file"
   grep -Fq "basectl projects list --workspace " "$state_file"
+  grep -Eq "^basectl workspace status --workspace .+ --manifest .+/workspace.yaml.example$" "$state_file"
+  grep -Eq "^basectl setup base-demo --manifest .+/base_manifest.yaml --dry-run --no-notify$" "$state_file"
   grep -Eq "^basectl check base-demo --manifest .+/base_manifest.yaml$" "$state_file"
   grep -Eq "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file"
+  [ "$(grep -Ec "^basectl check base-demo --manifest .+/base_manifest.yaml$" "$state_file")" -eq 2 ]
+  [ "$(grep -Ec "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file")" -eq 2 ]
+  grep -Eq "^basectl ci check base-demo --format json --manifest .+/base_manifest.yaml$" "$state_file"
+  grep -Eq "^basectl config show$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ env$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ manifest$" "$state_file"
-  grep -Eq "^basectl run base-demo --workspace .+ python-info$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ python-info -- info$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ python-info -- env$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ python-info -- --debug info$" "$state_file"
+  grep -Eq "^basectl run base-demo --workspace .+ uv-info$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- status$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- check$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ services -- start$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ environments -- list$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ environments -- validate --all$" "$state_file"
   grep -Eq "^basectl test base-demo --workspace .+$" "$state_file"
+  grep -Eq "^basectl logs --limit 3$" "$state_file"
+  grep -Eq "^basectl history --project base-demo --limit 5$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+$" "$state_file"
+  grep -Eq "^basectl build base-demo python-api --workspace .+$" "$state_file"
   grep -Eq "^basectl demo base-demo --workspace .+ --dry-run -- --non-interactive$" "$state_file"
+  grep -Eq "^basectl export-context base-demo --workspace .+ --format markdown --print$" "$state_file"
+  grep -Eq "^basectl docs --show-url$" "$state_file"
 }

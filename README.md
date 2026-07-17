@@ -14,6 +14,30 @@ The long-term direction is documented in
 shape of a realistic platform environment while keeping each service shallow so
 Base orchestration remains the point.
 
+Binding promises between the manifest, demo, services, installer, CI, and docs
+are tracked in [Contracts](docs/contracts.md). Update that registry whenever a
+new invariant becomes part of the reference project.
+
+## Platform Requirements
+
+macOS is the supported platform for the full interactive demo: setup,
+activation, human-readable check/doctor output, build/test orchestration, and
+the project-owned walkthrough.
+
+Ubuntu/Debian CI validates Base runtime setup through
+`basectl setup base --yes --no-notify`, dev-profile prerequisites through
+`basectl setup base --profile dev --yes --no-notify`, and the base-demo
+read-only project health check through
+`basectl ci check base-demo --format json`. That proves Base can bootstrap on
+Ubuntu/Debian and install apt-backed dev tools (`bats`, `gh`, and `shellcheck`)
+without Homebrew. It does not make the full base-demo project setup,
+activation, build, test, or demo loop a Linux contract; those remain macOS
+paths in this repository.
+
+For the full Base platform policy, see
+[`docs/linux-support.md`](https://github.com/basefoundry/base/blob/main/docs/linux-support.md)
+in the Base repository.
+
 ## Quick Start
 
 Clone `base` and `base-demo` as peer directories:
@@ -23,22 +47,40 @@ git clone https://github.com/basefoundry/base.git
 git clone https://github.com/basefoundry/base-demo.git
 ```
 
+For a first Base setup, `basectl onboard base-demo` is the recommended guided path.
+It wraps the setup, profile, doctor, and project-discovery flow for new Base
+users. Run `basectl onboard base-demo --dry-run` to preview the steps without
+changing local state.
+
 From the `base-demo` repository root on a machine where Base is already set up:
 
 ```bash
 basectl projects list
-basectl setup base-demo
-basectl activate base-demo
-basectl check base-demo
-basectl doctor base-demo
+basectl setup base-demo  # macOS only
+basectl activate base-demo  # macOS only
+basectl check base-demo  # macOS interactive path
+basectl doctor base-demo  # macOS interactive path
+basectl ci check base-demo --format json  # Ubuntu/Debian read-only project health
 basectl repo check .
+basectl workspace status --manifest workspace.yaml.example
+basectl trust status base-demo
 basectl run base-demo --list
+basectl build base-demo --list
+basectl test base-demo --dry-run
+basectl trust allow base-demo
 basectl run base-demo hello
+basectl run base-demo env
+basectl run base-demo python-info -- info
+basectl run base-demo python-info -- env
 basectl run base-demo services -- status
 basectl run base-demo environments -- list
 basectl test base-demo
+basectl logs --limit 3
+basectl history --project base-demo --limit 5
 basectl build base-demo
-basectl demo base-demo
+basectl demo base-demo  # macOS only
+basectl docs --show-url
+basectl export-context base-demo --format markdown --print
 ```
 
 The commands above exercise the complete Base project loop:
@@ -46,21 +88,46 @@ The commands above exercise the complete Base project loop:
 - `basectl projects list` proves the repository is discoverable from the
   workspace.
 - `basectl setup base-demo` reconciles the project manifest, Brewfile, and
-  project virtual environment.
-- `basectl activate base-demo` starts a project shell with the activation
+  project virtual environment on macOS.
+- `basectl activate base-demo` starts a macOS project shell with the activation
   source applied.
 - `basectl check base-demo` and `basectl doctor base-demo` validate the local
-  project environment from that activated shell.
+  project environment from that activated macOS shell.
+- `basectl ci check base-demo --format json` returns machine-readable project
+  health for read-only CI pipelines, including the Ubuntu/Debian project health
+  check that runs after Base setup and the Base dev-profile setup.
 - `basectl repo check .` validates the standard repository baseline files.
-- `basectl run base-demo --list` shows the manifest-declared project commands.
+- `basectl workspace status --manifest workspace.yaml.example` shows a
+  workspace-level view of the expected `base`, `base-demo`, optional
+  `base-platform-tools`, and optional `base-bash-libs` peer repositories.
+- `basectl trust status base-demo` shows whether the current manifest is already
+  approved for project-owned command execution on this machine.
+- `basectl run base-demo --list`, `basectl build base-demo --list`, and
+  `basectl test base-demo --dry-run` are safe inspection commands before trust is
+  granted.
+- `basectl trust allow base-demo` records local approval for the reviewed
+  manifest so Base can execute `run`, `test`, `build`, `demo`, and `activate`
+  commands declared by this repository. Re-run the review and approval step
+  after changing `base_manifest.yaml`.
 - `basectl run base-demo hello` runs the `hello` command from the project root.
+- `basectl run base-demo env` shows Base runtime metadata such as `BASE_OS`,
+  `BASE_PLATFORM`, and `BASE_HOST` alongside project activation values.
+- `basectl run base-demo python-info -- info` shows Base context values from
+  `base_cli.Context`.
+- `basectl run base-demo python-info -- env` shows the `BASE_*` environment
+  visible to the Python command.
 - `basectl run base-demo services -- status` shows the representative service
   catalog and current health state.
 - `basectl run base-demo environments -- list` shows the modeled
   `dev`/`staging`/`prod` configuration set.
 - `basectl test base-demo` runs the manifest-declared test command.
+- `basectl logs --limit 3` and `basectl history --project base-demo --limit 5`
+  show the local audit trail for recent Base activity.
 - `basectl build base-demo` runs the default build target (`info`) declared in the manifest.
-- `basectl demo base-demo` runs the project-owned walkthrough.
+- `basectl demo base-demo` runs the macOS project-owned walkthrough.
+- `basectl docs --show-url` prints the Base documentation home page URL without opening a browser.
+- `basectl export-context base-demo --format markdown --print` prints the
+  repository AI context bundle for assistant handoff.
 
 `basectl activate base-demo` spawns a new subshell, sources `.base/activate.sh`,
 and updates the prompt to `[base-demo: <branch>] ~/path $`. Inside that shell,
@@ -79,11 +146,34 @@ hello                ./src/hello.sh
 env                  ./src/env.sh
 manifest             ./src/manifest.sh
 python-info          ./bin/base-demo-python-info
+uv-info              uv run -- python src/uv-info.py
 services             ./bin/base-demo-services
 environments         ./bin/base-demo-environments
 
 $ basectl run base-demo hello
 hello from base-demo
+BASE_PROJECT=base-demo
+BASE_DEMO_ENV=baseline
+
+$ basectl run base-demo env
+BASE_PROJECT=base-demo
+BASE_PROJECT_ROOT=/path/to/base-demo
+BASE_PROJECT_MANIFEST=/path/to/base-demo/base_manifest.yaml
+BASE_PROJECT_VENV_DIR=/path/to/base-demo/.venv
+BASE_OS=macos
+BASE_PLATFORM=macos
+BASE_HOST=dev-host
+BASE_DEMO_ENV=baseline
+BASE_DEMO_ACTIVATED=true
+BASE_DEMO_PROJECT_KIND=reference-demo
+
+$ basectl run base-demo python-info -- info
+base-demo python cli
+project_name=base-demo
+project_root=/path/to/base-demo
+workspace_root=/path/to/work
+
+$ basectl run base-demo python-info -- env
 BASE_PROJECT=base-demo
 BASE_DEMO_ENV=baseline
 
@@ -108,18 +198,23 @@ deterministic without needing an interactive activated shell.
 
 ## Repository Shape
 
-- `base_manifest.yaml` declares the project name, activation source, command,
-  test command, and Brewfile location using current Base contracts.
+- `base_manifest.yaml` declares the project name, the repository's explicit
+  language taxonomy, activation source, command, test command, and Brewfile
+  location using current Base contracts.
 - `Brewfile` is the Homebrew-owned place for ordinary macOS tools. The
-  Brewfile currently installs mise, Gradle, and Maven so setup can demonstrate
-  tool-version management and representative Java build tools.
+  Brewfile currently installs mise, uv, Gradle, and Maven so setup can
+  demonstrate tool-version management, command runners, and representative
+  Java build tools.
 - `.base/activate.sh` demonstrates project activation state.
 - `src/hello.sh`, `src/env.sh`, `src/manifest.sh`, and `src/build-info.sh` are
-  tiny command and build targets for `basectl run` and `basectl build`.
+  tiny command and build targets for `basectl run` and `basectl build`;
+  `src/env.sh` also exposes Base runtime metadata such as `BASE_OS`,
+  `BASE_PLATFORM`, and `BASE_HOST`.
 - `lib/python/base_demo_cli` is a tiny Python command target that runs inside
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python
   package to `base-wrapper`.
+- `src/uv-info.py` is a tiny Python command routed through `runner: uv`.
 - `services/go-api` is a tiny Go HTTP API with `/healthz`, `/hello`, and
   `/info` endpoints. It is also the representative Dockerized app service.
 - `services/python-api` is a tiny standard-library Python HTTP API with the
@@ -154,15 +249,21 @@ each field maps to a visible Base workflow:
 | --- | --- | --- |
 | `schema_version` | `basectl setup base-demo` | Declares the manifest contract version Base should parse. |
 | `project.name` | `basectl projects list` | Gives Base the stable project name used by setup, check, doctor, run, test, activate, and demo. |
-| `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`; currently installs mise, Gradle, and Maven. |
+| `project.languages` | `basectl check base-demo` | Records the normalized Python, Go, Java, C, C++, and JavaScript profile represented by the service fixtures; this is taxonomy only and does not provision toolchains. |
+| `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`; currently installs mise, uv, Gradle, and Maven. |
 | `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; green in an activated shell and intentionally reported missing as a pre-activation diagnostic. |
+| `health.required_ports` | `basectl check base-demo` | Declares that the baseline `go-api` port 8010 should be free before services are started. |
 | `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
+| `python.requires_python` | `basectl check base-demo` | Lets Base verify Python 3.13 independently of the mise installer declaration. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
-| `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, `services`, and `environments`. |
+| `ide.vscode` | `basectl setup base-demo` | Declares VS Code Python extensions and auto-injects the project venv as `python.defaultInterpreterPath` when IDE setup is enabled. |
+| `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, `uv-info`, `services`, and `environments`. |
+| `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the `uv-info` command through `uv run --`, without making uv the project-wide Python manager. |
 | `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
+| `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the target command needing to change directories itself. |
 | `test.command` | `basectl test base-demo` | Defines the project-owned validation command. |
 | `demo.script` | `basectl demo base-demo` | Defines the project-owned interactive walkthrough. |
-| `artifacts` | `basectl setup base-demo` | Lists Base-managed artifacts. The baseline demo uses an empty list to avoid unnecessary installs. |
+| `artifacts` | `basectl setup base-demo` | Requests the `bats-core` tool artifact; the project setup layer reports whether Homebrew already has it or would install it. |
 
 The demo now includes a shallow but representative environment: multi-language
 service fixtures, one Dockerized app service, a React/Vite UI, Compose-backed

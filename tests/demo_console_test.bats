@@ -40,6 +40,26 @@ setup() {
   [[ "$output" == *"8070"* ]]
 }
 
+@test "demo console uses HTTP health check" {
+  run python3 - "$TEST_ROOT/services/catalog.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    catalog = json.load(handle)
+
+for service in catalog["services"]:
+    if service["name"] == "demo-console":
+        print(service["check"]["type"])
+        break
+else:
+    raise SystemExit("demo-console not found")
+PY
+
+  [ "$status" -eq 0 ]
+  [ "$output" = "http" ]
+}
+
 @test "services lifecycle dry-run includes demo console command" {
   run env BASE_DEMO_SERVICES_DRY_RUN=1 "$TEST_ROOT/bin/base-demo-services" start
 

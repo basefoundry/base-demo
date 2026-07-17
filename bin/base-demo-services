@@ -16,7 +16,19 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
+
+
+# Match base_cli.ExitCode without requiring standalone lifecycle commands to import base_cli.
+SUCCESS = 0
+FAILURE = 1
+USAGE_ERROR = 2
+
+
+class CheckResult(NamedTuple):
+    ok: bool
+    label: str
+    detail: str
 
 
 def project_root() -> Path:
@@ -97,6 +109,11 @@ def process_log_path(root: Path, service: dict[str, Any]) -> Path:
     return state_dir(root) / f"{service.get('name', 'service')}.log"
 
 
+def ensure_private_log_file(path: Path) -> None:
+    path.touch(mode=0o600, exist_ok=True)
+    path.chmod(0o600)
+
+
 def read_process_state(root: Path, service: dict[str, Any]) -> dict[str, Any] | None:
     path = process_state_path(root, service)
     try:
@@ -119,6 +136,35 @@ def process_is_running(pid: int | None) -> bool:
     return True
 
 
+def compose_state_service_name(service: dict[str, Any]) -> str | None:
+    service_name = service.get("compose_service")
+    if isinstance(service_name, str) and service_name:
+        return service_name
+    check = service.get("check") or {}
+    check_service_name = check.get("service")
+    if check.get("type") == "compose" and isinstance(check_service_name, str) and check_service_name:
+        return check_service_name
+    return None
+
+
+def compose_service_has_state(service: dict[str, Any], root: Path) -> bool:
+    service_name = compose_state_service_name(service)
+    if service_name is None or shutil.which("docker") is None:
+        return False
+    command = compose_command(root, ["ps", "--services", "--all"])
+    result = subprocess.run(command, check=False, capture_output=True, text=True)
+    if result.returncode != 0:
+        return False
+    return service_name in set(result.stdout.splitlines())
+
+
+def service_has_start_state(service: dict[str, Any], root: Path, process_state: dict[str, Any] | None) -> bool:
+    lifecycle = service.get("lifecycle") or {}
+    if lifecycle.get("type") == "process":
+        return process_state is not None
+    return compose_service_has_state(service, root)
+
+
 def compose_command(root: Path, args: list[str]) -> list[str]:
     return [
         "docker",
@@ -135,10 +181,10 @@ def run_compose(root: Path, args: list[str]) -> int:
     command = compose_command(root, args)
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN {shlex.join(command)}")
-        return 0
+        return SUCCESS
     if shutil.which("docker") is None:
         print("ERROR: docker is not available; cannot manage Compose services.", file=sys.stderr)
-        return 2
+        return USAGE_ERROR
     return subprocess.run(command, check=False).returncode
 
 
@@ -148,20 +194,21 @@ def start_process(service: dict[str, Any], root: Path) -> int:
         command = process_command(service)
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
-        return 2
+        return USAGE_ERROR
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN start {name}: {shlex.join(command)}")
-        return 0
+        return SUCCESS
 
     state = read_process_state(root, service)
     pid = state.get("pid") if state else None
     if isinstance(pid, int) and process_is_running(pid):
         print(f"{name} already running pid={pid}")
-        return 0
+        return SUCCESS
 
     directory = state_dir(root)
     directory.mkdir(parents=True, exist_ok=True)
     log_path = process_log_path(root, service)
+    ensure_private_log_file(log_path)
     env = os.environ.copy()
     env["BASE_PROJECT_ROOT"] = str(root)
     port = service.get("port")
@@ -187,14 +234,14 @@ def start_process(service: dict[str, Any], root: Path) -> int:
         json.dump(state_payload, handle, indent=2)
         handle.write("\n")
     print(f"{name} started pid={process.pid}")
-    return 0
+    return SUCCESS
 
 
 def stop_process(service: dict[str, Any], root: Path) -> int:
     name = str(service.get("name", "-"))
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN stop {name}")
-        return 0
+        return SUCCESS
     state_path = process_state_path(root, service)
     state = read_process_state(root, service)
     pid = state.get("pid") if state else None
@@ -202,7 +249,7 @@ def stop_process(service: dict[str, Any], root: Path) -> int:
         if state_path.exists():
             state_path.unlink()
         print(f"{name} stopped")
-        return 0
+        return SUCCESS
 
     os.kill(pid, signal.SIGTERM)
     for _ in range(20):
@@ -214,84 +261,78 @@ def stop_process(service: dict[str, Any], root: Path) -> int:
     if state_path.exists():
         state_path.unlink()
     print(f"{name} stopped")
-    return 0
+    return SUCCESS
 
 
-def check_service(service: dict[str, Any], root: Path) -> tuple[bool, str]:
+def check_service(service: dict[str, Any], root: Path) -> CheckResult:
     check = service.get("check") or {"type": "none"}
     check_type = check.get("type")
 
     if check_type == "none":
-        return True, "none"
+        return CheckResult(True, "none", "none")
 
     if check_type == "file":
         path_value = check.get("path")
         if not isinstance(path_value, str) or not path_value:
-            return False, "file:<missing path>"
+            return CheckResult(False, "file:<missing path>", "file:<missing path>")
         path = Path(path_value)
         if not path.is_absolute():
             path = root / path
-        return path.exists(), f"file:{path_value}"
+        label = f"file:{path_value}"
+        return CheckResult(path.exists(), label, label)
 
     if check_type == "http":
         url = service.get("health_url")
         if not isinstance(url, str) or not url:
-            return False, "http:<missing health_url>"
+            return CheckResult(False, "http:<missing health_url>", "http:<missing health_url>")
+        label = url
         try:
             with urllib.request.urlopen(url, timeout=1.0) as response:
-                return 200 <= response.status < 400, f"http:{url}"
+                return CheckResult(200 <= response.status < 400, label, f"http:{url}")
         except (OSError, urllib.error.URLError) as exc:
-            return False, f"http:{url} ({exc})"
+            return CheckResult(False, label, f"http:{url} ({exc})")
 
     if check_type == "compose":
         service_name = check.get("service") or service.get("compose_service") or service.get("name")
         if not isinstance(service_name, str) or not service_name:
-            return False, "compose:<missing service>"
+            return CheckResult(False, "compose:<missing service>", "compose:<missing service>")
+        label = f"compose:{service_name}"
         if shutil.which("docker") is None:
-            return False, f"compose:{service_name} unavailable"
+            return CheckResult(False, label, f"{label} unavailable")
         command = compose_command(root, ["ps", "--services", "--status", "running"])
         result = subprocess.run(command, check=False, capture_output=True, text=True)
         running = set(result.stdout.splitlines())
-        return service_name in running, f"compose:{service_name}"
+        return CheckResult(service_name in running, label, label)
 
     if check_type == "command":
         command = check.get("command")
         if not isinstance(command, list) or not all(isinstance(item, str) for item in command):
-            return False, "command:<invalid command>"
+            return CheckResult(False, "command:<invalid command>", "command:<invalid command>")
+        label = f"command:{shlex.join(command)}"
         try:
             result = subprocess.run(command, cwd=root, check=False, capture_output=True, text=True, timeout=3.0)
         except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired) as exc:
-            return False, f"command:{shlex.join(command)} ({exc})"
-        return result.returncode == 0, f"command:{shlex.join(command)}"
+            return CheckResult(False, label, f"{label} ({exc})")
+        return CheckResult(result.returncode == 0, label, label)
 
-    return False, f"unsupported:{check_type}"
-
-
-def health_label(service: dict[str, Any]) -> str:
-    check = service.get("check") or {"type": "none"}
-    if service.get("health_url"):
-        return str(service["health_url"])
-    if check.get("type") == "compose":
-        return f"compose:{check.get('service', service.get('compose_service', '-'))}"
-    if check.get("type") == "file":
-        return f"file:{check.get('path', '-')}"
-    if check.get("type") == "command":
-        command = check.get("command")
-        if isinstance(command, list) and all(isinstance(item, str) for item in command):
-            return f"command:{shlex.join(command)}"
-        return "command:<invalid command>"
-    return str(check.get("type") or "-")
+    detail = f"unsupported:{check_type}"
+    return CheckResult(False, detail, detail)
 
 
 def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for service in services:
-        ok, detail = check_service(service, root)
-        state = "healthy" if ok else "unhealthy"
-        if not ok and not service.get("required", False):
+        process_state = read_process_state(root, service)
+        check_result = check_service(service, root)
+        if check_result.ok:
+            state = "healthy"
+        elif service.get("required", False):
+            state = "unhealthy"
+        elif service_has_start_state(service, root, process_state):
+            state = "error"
+        else:
             state = "stopped"
         since = "-"
-        process_state = read_process_state(root, service)
         if process_state:
             started_at = process_state.get("started_at")
             if isinstance(started_at, str) and started_at:
@@ -302,11 +343,11 @@ def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, s
                 "kind": str(service.get("kind", "-")),
                 "runtime": str(service.get("runtime", "-")),
                 "port": str(service.get("port") or "-"),
-                "health": health_label(service),
+                "health": check_result.label,
                 "state": state,
                 "since": since,
                 "logs": str(service.get("logs") or "-"),
-                "detail": detail,
+                "detail": check_result.detail,
                 "required": "true" if service.get("required", False) else "false",
             }
         )
@@ -332,9 +373,9 @@ def cmd_status(services: list[dict[str, Any]], root: Path, environment: dict[str
     rows = service_rows(services, root)
     if not rows:
         print("No services configured.")
-        return 0
+        return SUCCESS
     print_table(rows)
-    return 0
+    return SUCCESS
 
 
 def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
@@ -343,12 +384,16 @@ def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
         if row["state"] == "healthy":
             print(f"{row['name']} ok")
             continue
+        if row["state"] == "error":
+            print(f"{row['name']} error {row['detail']}")
+            failed = True
+            continue
         if row["required"] == "true":
             print(f"{row['name']} fail {row['detail']}")
             failed = True
         else:
             print(f"{row['name']} skip optional {row['detail']}")
-    return 1 if failed else 0
+    return FAILURE if failed else SUCCESS
 
 
 def cmd_lifecycle(services: list[dict[str, Any]], root: Path, action: str) -> int:
@@ -363,7 +408,7 @@ def cmd_lifecycle(services: list[dict[str, Any]], root: Path, action: str) -> in
         if action == "start":
             result = run_compose(root, ["up", "-d", *compose_names])
         if action == "stop":
-            result = run_compose(root, ["down"])
+            result = run_compose(root, ["stop", *compose_names])
 
     for service in process_services(services):
         if action == "start":
@@ -410,7 +455,7 @@ def main(argv: list[str] | None = None) -> int:
         environment = load_environment(root, args.env)
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
-        return 2
+        return USAGE_ERROR
     services = load_catalog(Path(args.catalog))
 
     if args.command == "status":

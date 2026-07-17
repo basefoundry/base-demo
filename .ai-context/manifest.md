@@ -9,22 +9,35 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 |---|---|---|
 | `schema_version` | `basectl setup` | Manifest compatibility marker |
 | `project.name` | `basectl projects list` | Stable name for all Base commands |
-| `brewfile` | `basectl setup` | Delegates ordinary macOS dependencies to `brew bundle`; currently includes mise, Gradle, and Maven |
+| `project.languages` | `basectl check` / `doctor` | Explicit normalized language taxonomy for the Python, Go, Java, C, C++, and JavaScript fixtures; metadata only, with no automatic toolchain provisioning |
+| `brewfile` | `basectl setup` | Delegates ordinary macOS dependencies to `brew bundle`; currently includes mise, uv, Gradle, and Maven |
 | `health.required_env` | `basectl check` / `doctor` | `BASE_DEMO_ENV=baseline` on the green path; missing before activation as a diagnostic example |
+| `health.required_ports` | `basectl check` / `doctor` | Baseline `go-api` port 8010 is expected to be free before services are started |
 | `mise` | `basectl setup` | Declares `.mise.toml`; setup installs tool versions (Python 3.13) via mise |
+| `python.requires_python` | `basectl check` / `doctor` | Base validates Python 3.13 separately from mise installing it |
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
-| `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, services, environments |
-| `build.targets` | `basectl build` | `info` target runs `src/build-info.sh` |
+| `ide.vscode` | `basectl setup` | Declares VS Code Python extensions and project venv auto-injection when IDE setup is enabled |
+| `commands` | `basectl run --list` | Named commands: hello, env, manifest, python-info, uv-info, services, environments; `env` prints Base runtime metadata including `BASE_OS`, `BASE_PLATFORM`, and `BASE_HOST` |
+| `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the uv-info command through `uv run --` |
+| `build.targets` | `basectl build` | Default `info` target plus Go, Python, Java, C/C++, and demo-console service build targets |
+| `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the command changing directories |
 | `test.command` | `basectl test` | Runs `tests/validate.sh` |
 | `demo.script` | `basectl demo` | Runs `demo/demo.sh` |
-| `artifacts` | `basectl setup` | Empty — no external Python packages needed |
+| `artifacts` | `basectl setup` | Requests the `bats-core` tool artifact; setup reports whether the Homebrew package is already current or would be installed |
 
 ## Design Intent
 
 The current manifest keeps the baseline fast and inspectable. It uses shell
 scripts, a small Python module, and explicit Base contracts so a fresh checkout
-can prove setup, activation, run, build, test, and demo behavior quickly.
+can prove setup, activation, run, build, test, and demo behavior quickly. The
+`env` command makes the current Base runtime platform contract visible through
+`BASE_OS`, `BASE_PLATFORM`, and `BASE_HOST`.
 
-The representative environment direction will add service, infrastructure, UI,
-and environment-modeling commands in focused slices while preserving this
-readable manifest contract.
+The representative environment is now part of the committed manifest surface.
+The `services` command reads `services/catalog.json`, reports catalog health,
+and exercises dry-run startup through `BASE_DEMO_SERVICES_DRY_RUN=1`.
+Compose-backed infrastructure lives in `infra/compose.yaml`.
+Current multi-language service fixtures live under `services/`.
+The React/Vite console provides the catalog UI. The `environments` command
+validates the `dev`/`staging`/`prod` configuration model while keeping only
+local `dev` operational by default.

@@ -15,6 +15,16 @@ This makes `base-demo` a bridge between a tiny sample and Banyan Labs. Base owns
 workspace orchestration, `base-demo` proves the representative shape, and
 Banyan Labs remains the full platform engineering lab.
 
+Platform boundary: macOS is the full interactive base-demo loop. Ubuntu/Debian
+CI validates Base runtime setup, Base `--profile dev` prerequisites, and the
+read-only `basectl ci check base-demo --format json` project health path.
+
+Base's `docs/tool-boundaries.md` is the framework-level policy for how Base
+coexists with mise, uv, Docker Compose, AI harnesses, Taskfile, devbox, and
+similar tools. Use that policy when interpreting the local `.mise.toml`,
+command-level `runner: uv`, `infra/compose.yaml`, and `.ai-context/` examples
+in this repository.
+
 ## Purpose
 
 - Show what a well-structured `base_manifest.yaml` looks like
@@ -30,7 +40,7 @@ Banyan Labs remains the full platform engineering lab.
 | `base_manifest.yaml` | Project contract Base reads |
 | `.base/activate.sh` | Sets `BASE_DEMO_ENV=baseline` in the project shell |
 | `src/hello.sh` | Simple `basectl run` target |
-| `src/env.sh` | Shows Base project environment variables |
+| `src/env.sh` | Shows Base project and runtime platform environment variables |
 | `src/manifest.sh` | Prints manifest fields |
 | `src/build-info.sh` | Build target: prints project and version |
 | `bin/base-demo-python-info` | Bash launcher for the Python CLI |

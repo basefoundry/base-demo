@@ -2,12 +2,27 @@ schema_version: 1
 
 project:
   name: base-demo
+  languages:
+    - python
+    - go
+    - java
+    - c
+    - cpp
+    - javascript
 
 brewfile: Brewfile
 
 health:
   required_env:
     - BASE_DEMO_ENV
+  required_ports:
+    - name: go-api
+      host: 127.0.0.1
+      port: 8010
+      state: free
+
+python:
+  requires_python: "3.13"
 
 mise: .mise.toml
 
@@ -15,11 +30,23 @@ activate:
   source:
     - .base/activate.sh
 
+ide:
+  vscode:
+    install: false
+    extensions:
+      - ms-python.python
+      - ms-python.vscode-pylance
+    settings:
+      python.defaultInterpreterPath: auto
+
 commands:
   hello: ./src/hello.sh
   env: ./src/env.sh
   manifest: ./src/manifest.sh
   python-info: ./bin/base-demo-python-info
+  uv-info:
+    command: python src/uv-info.py
+    runner: uv
   services: ./bin/base-demo-services
   environments: ./bin/base-demo-environments
 
@@ -32,7 +59,8 @@ build:
       command: ./src/build-info.sh
     go-api:
       description: Build the Go API service.
-      command: ./services/go-api/build.sh
+      working_dir: services/go-api
+      command: mkdir -p build && CGO_ENABLED=0 go build -o build/go-api .
     python-api:
       description: Validate the Python API service.
       command: ./services/python-api/build.sh
@@ -59,4 +87,7 @@ demo:
   script: ./demo/demo.sh
   description: Interactive walkthrough of Base-managed project conventions
 
-artifacts: []
+artifacts:
+  - type: tool
+    name: bats-core
+    version: latest

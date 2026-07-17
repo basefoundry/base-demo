@@ -9,7 +9,10 @@ PROJECT_REPO_URL="${PROJECT_REPO_URL:-https://github.com/basefoundry/base-demo.g
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/work}"
 BASE_DIR="${BASE_DIR:-$WORKSPACE_DIR/base}"
 PROJECT_DIR="${PROJECT_DIR:-$WORKSPACE_DIR/$PROJECT_NAME}"
-BASE_INSTALL_URL="${BASE_INSTALL_URL:-https://raw.githubusercontent.com/basefoundry/base/master/install.sh}"
+BASE_INSTALL_URL="${BASE_INSTALL_URL:-https://raw.githubusercontent.com/basefoundry/base/HEAD/install.sh}"
+# Matches Base's project installer policy: mutable installer URLs warn when
+# unverified; pinned installer URLs should set BASE_INSTALL_SHA256.
+BASE_INSTALL_SHA256="${BASE_INSTALL_SHA256:-}"
 RUN_UPDATE_PROFILE="${RUN_UPDATE_PROFILE:-true}"
 
 INSTALLER_TMP=""
@@ -28,6 +31,26 @@ run() {
     printf ' %q' "$@"
     printf '\n'
     "$@"
+}
+
+verify_base_installer_checksum() {
+    local installer_file="$1"
+    local checksum
+    local actual_sha256
+
+    if [[ -z "$BASE_INSTALL_SHA256" ]]; then
+        log "WARNING: Base installer checksum verification skipped; set BASE_INSTALL_SHA256 for pinned installers."
+        return 0
+    fi
+
+    require_command shasum
+    checksum="$(shasum -a 256 "$installer_file")" || die "Failed to compute Base installer checksum."
+    actual_sha256="${checksum%% *}"
+    if [[ "$actual_sha256" != "$BASE_INSTALL_SHA256" ]]; then
+        die "Base installer checksum mismatch (expected $BASE_INSTALL_SHA256, got $actual_sha256)."
+    fi
+
+    log "Verified Base installer SHA-256 $actual_sha256."
 }
 
 cleanup() {
@@ -62,6 +85,7 @@ install_or_update_base() {
     INSTALLER_TMP="$(mktemp "${TMPDIR:-/tmp}/base-install.XXXXXX")" || die "Failed to create installer temp file."
     log "Installing Base into '$BASE_DIR'."
     run curl -fsSL -o "$INSTALLER_TMP" "$BASE_INSTALL_URL" || die "Failed to download Base installer."
+    verify_base_installer_checksum "$INSTALLER_TMP" || die "Base installer checksum verification failed."
     run bash "$INSTALLER_TMP" --dir "$BASE_DIR" --no-profile || die "Failed to install Base into '$BASE_DIR'."
 }
 
