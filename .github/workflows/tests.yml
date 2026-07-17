@@ -40,18 +40,15 @@ jobs:
           tests/native_services_test.bats
           tests/demo_console_test.bats
 
-      # Start from the latest release baseline, then pin the unreleased
-      # language-profile capability until it is included in a Base release.
+      # Pin the released Base version that includes language-profile support.
       - name: Check out Base
         run: |
-          git clone --depth 1 --branch v1.6.1 https://github.com/basefoundry/base.git ../base
-          git -C ../base fetch --depth 1 origin 591e34a8fed6ce9cbe27f483f852bec81153f3eb
-          git -C ../base checkout --detach 591e34a8fed6ce9cbe27f483f852bec81153f3eb
+          git clone --depth 1 --branch v1.7.0 https://github.com/basefoundry/base.git ../base
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27
+          ref: 5e52e79a8d6f61f82e5e95a07c75da256642f92e
           path: .dependencies/base-bash-libs
 
       - name: Set up Base
@@ -144,14 +141,12 @@ jobs:
 
       - name: Check out Base
         run: |
-          git clone --depth 1 --branch v1.6.1 https://github.com/basefoundry/base.git ../base
-          git -C ../base fetch --depth 1 origin 591e34a8fed6ce9cbe27f483f852bec81153f3eb
-          git -C ../base checkout --detach 591e34a8fed6ce9cbe27f483f852bec81153f3eb
+          git clone --depth 1 --branch v1.7.0 https://github.com/basefoundry/base.git ../base
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 8bcc1d2c1104ffa6c8bb4a95b3f328811401bf27
+          ref: 5e52e79a8d6f61f82e5e95a07c75da256642f92e
           path: .dependencies/base-bash-libs
 
       - name: Set up Base on Ubuntu
