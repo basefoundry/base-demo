@@ -87,7 +87,7 @@ case "$*" in
     printf 'Base doctor\n'
     printf 'ok     project base-demo is healthy.\n'
     ;;
-  ci\ check\ base-demo\ --format\ json\ --manifest\ *)
+  check\ --ci\ base-demo\ --format\ json\ --manifest\ *)
     printf '{"project":"base-demo","status":"ok"}\n'
     ;;
   config\ show)
@@ -265,7 +265,7 @@ EOF
   [[ "$output" == *"uv-info:"* ]]
   [[ "$output" == *"runner: uv"* ]]
   [[ "$output" == *"Project Diagnostics"* ]]
-  [[ "$output" == *"CI pipelines should prefer the JSON-safe ci check interface."* ]]
+  [[ "$output" == *"CI pipelines should prefer the JSON-safe check --ci interface."* ]]
   [[ "$output" == *'"project":"base-demo"'* ]]
   [[ "$output" == *'"status":"ok"'* ]]
   [[ "$output" == *"post-activation green path"* ]]
@@ -340,7 +340,7 @@ EOF
   grep -Eq "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file"
   [ "$(grep -Ec "^basectl check base-demo --manifest .+/base_manifest.yaml$" "$state_file")" -eq 2 ]
   [ "$(grep -Ec "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file")" -eq 2 ]
-  grep -Eq "^basectl ci check base-demo --format json --manifest .+/base_manifest.yaml$" "$state_file"
+  grep -Eq "^basectl check --ci base-demo --format json --manifest .+/base_manifest.yaml$" "$state_file"
   grep -Eq "^basectl config show$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"

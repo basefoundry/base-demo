@@ -264,11 +264,11 @@ diagnostics_step() {
   run_observed_command "$BASE_DEMO_BASECTL" check "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml"
   run_observed_command "$BASE_DEMO_BASECTL" doctor "$BASE_DEMO_PROJECT" --manifest "$BASE_DEMO_ROOT/base_manifest.yaml"
 
-  printf '\nCI pipelines should prefer the JSON-safe ci check interface.\n'
+  printf '\nCI pipelines should prefer the JSON-safe check --ci interface.\n'
   printf 'It emits machine-readable status while check and doctor stay human-readable.\n'
-  ci_output="$(capture_observed_command "$BASE_DEMO_BASECTL" ci check "$BASE_DEMO_PROJECT" --format json --manifest "$BASE_DEMO_ROOT/base_manifest.yaml")"
+  ci_output="$(capture_observed_command "$BASE_DEMO_BASECTL" check --ci "$BASE_DEMO_PROJECT" --format json --manifest "$BASE_DEMO_ROOT/base_manifest.yaml")"
   printf '%s\n' "$ci_output"
-  require_contains "ci check json" "$ci_output" '"status"'
+  require_contains "check --ci json" "$ci_output" '"status"'
   pause
 }
 
