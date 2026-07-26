@@ -278,6 +278,8 @@ deterministic without needing an interactive activated shell.
   delegate to Base commands without replacing the `basectl` contract.
 - `examples/tooling/env-dotfiles/` contains reference-only direnv, asdf,
   chezmoi, and dotbot examples that are not active in the default checkout.
+- `examples/tooling/multi-repo/` contains read-only mani, gita, vcs2l, and west
+  examples aligned to `workspace.yaml.example`.
 - `docs/tooling-testbed.md` defines how base-demo represents tools such as
   direnv, asdf, chezmoi, dotbot, just, Taskfile, mani, gita, vcs2l, west,
   devcontainers, Nix/devenv, and future Docker service support.

@@ -1,0 +1,9 @@
+# Reference-only gita registration commands for the Base demo workspace.
+# Run from a user-owned shell if you want gita to track these repositories.
+
+gita add ../base
+gita add .
+gita add ../base-platform-tools
+gita add ../base-bash-libs
+gita group add base-stack base base-demo base-platform-tools base-bash-libs
+gita ll base-stack

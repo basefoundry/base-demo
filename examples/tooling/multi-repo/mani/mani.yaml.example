@@ -1,0 +1,29 @@
+# Reference-only mani example for the Base demo workspace.
+
+projects:
+  base:
+    path: ../base
+    url: https://github.com/basefoundry/base.git
+  base-demo:
+    path: .
+    url: https://github.com/basefoundry/base-demo.git
+  base-platform-tools:
+    path: ../base-platform-tools
+    url: https://github.com/basefoundry/base-platform-tools.git
+    optional: true
+  base-bash-libs:
+    path: ../base-bash-libs
+    url: https://github.com/basefoundry/base-bash-libs.git
+    optional: true
+
+groups:
+  base-stack:
+    - base
+    - base-demo
+    - base-platform-tools
+    - base-bash-libs
+
+tasks:
+  status:
+    desc: Show repository status without modifying checkouts.
+    cmd: git status --short --branch

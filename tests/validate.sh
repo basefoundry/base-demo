@@ -34,6 +34,11 @@ required_files=(
   examples/tooling/env-dotfiles/asdf/tool-versions.example
   examples/tooling/env-dotfiles/chezmoi/dot_config/base-demo/base-demo.env.tmpl
   examples/tooling/env-dotfiles/dotbot/install.conf.yaml.example
+  examples/tooling/multi-repo/README.md
+  examples/tooling/multi-repo/mani/mani.yaml.example
+  examples/tooling/multi-repo/gita/gita-commands.example
+  examples/tooling/multi-repo/vcs2l/vcs2l.yaml.example
+  examples/tooling/multi-repo/west/west.yml.example
   .mise.toml
   .base/activate.sh
   bin/base-demo-python-info
@@ -778,10 +783,46 @@ for contract in \
   tooling-testbed-boundary \
   base-generated-environment-reports \
   optional-task-runner-wrappers \
-  reference-env-dotfile-examples
+  reference-env-dotfile-examples \
+  reference-multirepo-examples
 do
   grep -Fq "| \`$contract\` |" docs/contracts.md || {
     printf 'docs/contracts.md does not list contract %s.\n' "$contract" >&2
+    exit 1
+  }
+done
+
+for forbidden_active_multirepo_file in mani.yaml vcs2l.yaml west.yml; do
+  if [[ -e "$forbidden_active_multirepo_file" ]]; then
+    printf 'Reference multi-repo examples must not create active root file: %s.\n' "$forbidden_active_multirepo_file" >&2
+    exit 1
+  fi
+done
+
+grep -Fq 'examples/tooling/multi-repo/' README.md || {
+  printf 'README.md does not document reference multi-repo examples.\n' >&2
+  exit 1
+}
+
+for multirepo_token in mani gita vcs2l west 'workspace.yaml.example' 'read-only'; do
+  grep -Fq "$multirepo_token" examples/tooling/multi-repo/README.md || {
+    printf 'multi-repo README does not document token: %s.\n' "$multirepo_token" >&2
+    exit 1
+  }
+done
+
+for multirepo_example in \
+  examples/tooling/multi-repo/mani/mani.yaml.example \
+  examples/tooling/multi-repo/gita/gita-commands.example \
+  examples/tooling/multi-repo/vcs2l/vcs2l.yaml.example \
+  examples/tooling/multi-repo/west/west.yml.example
+do
+  grep -Fq 'base' "$multirepo_example" || {
+    printf '%s does not reference the Base repository name.\n' "$multirepo_example" >&2
+    exit 1
+  }
+  grep -Fq 'base-demo' "$multirepo_example" || {
+    printf '%s does not reference the base-demo repository name.\n' "$multirepo_example" >&2
     exit 1
   }
 done
