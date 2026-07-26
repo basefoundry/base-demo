@@ -34,7 +34,7 @@ contract.
 | Baseline | Brewfile, mise, uv, Docker Compose, VS Code manifest fields | Active. `Brewfile`, `.mise.toml`, command-level `runner: uv`, `infra/compose.yaml`, and `base_manifest.yaml` are part of the committed demo contract. | Keep validated through `tests/validate.sh`, BATS suites, and Base-backed CI. |
 | Base-generated environment views | `basectl devcontainer`, `basectl devenv-report`, Nix/devenv policy | CI-visible read-only reports. Base previews Dev Containers metadata and classifies Nix/devenv mappings without writing generated files or requiring Docker, Nix, or devenv. | Keep the reports in JSON-mode CI and avoid committing `.devcontainer/` or generated Nix/devenv files by default. |
 | Optional live task wrappers | just, Taskfile | Active but optional. `justfile` and `Taskfile.yml` expose ergonomic aliases for check, CI check, test, build, demo, and service status while delegating to `basectl`. | Keep wrappers thin and validation-only; do not make `just` or Task required for baseline CI. |
-| Reference-only shell and dotfile tools | direnv, asdf, chezmoi, dotbot | Not present. These tools can teach adoption boundaries, but root-level activation files would change developer state too aggressively for the baseline. | Issue #179: add reference examples and docs under an examples path, not active root files. |
+| Reference-only shell and dotfile tools | direnv, asdf, chezmoi, dotbot | Present under `examples/tooling/env-dotfiles/` only. No root `.envrc`, `.tool-versions`, chezmoi source tree, or dotbot installer is active by default. | Keep examples inactive until a separate issue promotes a tool into the baseline. |
 | Reference-only multi-repo managers | mani, gita, vcs2l, west | Not present. Base's current workspace view is `workspace.yaml.example`; multi-repo managers should illustrate coexistence without owning checkout synchronization. | Issue #181: add read-only example configs that point at the Base workspace shape. |
 | Future Docker service | `basectl docker-service` | Blocked upstream. `base-demo` already has Compose-backed services, but it should not invent a Base docker-service contract before Base lands it. | Issue #163 remains blocked on basefoundry/base#124. |
 
@@ -88,3 +88,14 @@ already use `just` or Task. They intentionally expose only thin aliases:
 Every wrapper command delegates to `basectl`. The files do not introduce a
 second task contract, and baseline validation checks their contents without
 requiring either task runner to be installed.
+
+## Reference Shell And Dotfile Examples
+
+`examples/tooling/env-dotfiles/` contains inactive examples for `direnv`,
+`asdf`, `chezmoi`, and `dotbot`.
+
+These files can help adopters map their existing shell and dotfile habits onto
+Base, but they are not part of setup or CI. Keep root `.envrc`, `.tool-versions`,
+chezmoi source trees, and dotbot installer files out of the repository unless a
+future issue intentionally promotes one of those tools into the active
+baseline.

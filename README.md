@@ -276,6 +276,8 @@ deterministic without needing an interactive activated shell.
 - `.mise.toml` declares tool versions (Python 3.13) managed by mise.
 - `justfile` and `Taskfile.yml` provide optional task-runner wrappers that
   delegate to Base commands without replacing the `basectl` contract.
+- `examples/tooling/env-dotfiles/` contains reference-only direnv, asdf,
+  chezmoi, and dotbot examples that are not active in the default checkout.
 - `docs/tooling-testbed.md` defines how base-demo represents tools such as
   direnv, asdf, chezmoi, dotbot, just, Taskfile, mani, gita, vcs2l, west,
   devcontainers, Nix/devenv, and future Docker service support.

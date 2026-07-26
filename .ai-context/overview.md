@@ -33,8 +33,9 @@ Brewfile, mise, uv, Docker Compose, and VS Code manifest fields in the active
 Baseline, demonstrates `basectl devcontainer` and `basectl devenv-report` as
 CI-visible read-only compatibility reports, includes `justfile` and
 `Taskfile.yml` as optional live wrappers that delegate to Base commands, and
-treats direnv, asdf, chezmoi, dotbot, mani, gita, vcs2l, west, and future
-docker-service work as reference-only or blocked until their issue slice
+treats `examples/tooling/env-dotfiles/` direnv, asdf, chezmoi, and dotbot files
+as reference-only shell/dotfile examples. mani, gita, vcs2l, west, and future
+docker-service work remain reference-only or blocked until their issue slice
 promotes them.
 
 ## Purpose
@@ -70,6 +71,7 @@ promotes them.
 | `environments/*.json` | `dev`, `staging`, and `prod` environment configuration |
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |
 | `justfile`, `Taskfile.yml` | Optional task-runner wrappers that delegate to `basectl` |
+| `examples/tooling/env-dotfiles/` | Reference-only direnv, asdf, chezmoi, and dotbot coexistence examples |
 | `demo/demo.sh` | Interactive walkthrough |
 | `tests/validate.sh` | Baseline validation (the declared test command) |
 | `docs/representative-environment.md` | Direction for the multi-language representative environment |

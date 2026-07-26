@@ -1,0 +1,11 @@
+# Reference-only dotbot example for base-demo.
+# Do not run from repository setup or CI.
+
+- defaults:
+    link:
+      create: true
+      relink: true
+
+- link:
+    ~/.config/base-demo/base-demo.env:
+      path: examples/tooling/env-dotfiles/chezmoi/dot_config/base-demo/base-demo.env.tmpl

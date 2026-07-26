@@ -1,0 +1,4 @@
+# Reference-only asdf example for base-demo.
+# Base demonstrates mise as the active tool-version manager today.
+
+python 3.13.0

@@ -29,6 +29,11 @@ required_files=(
   Brewfile
   justfile
   Taskfile.yml
+  examples/tooling/env-dotfiles/README.md
+  examples/tooling/env-dotfiles/direnv/envrc.example
+  examples/tooling/env-dotfiles/asdf/tool-versions.example
+  examples/tooling/env-dotfiles/chezmoi/dot_config/base-demo/base-demo.env.tmpl
+  examples/tooling/env-dotfiles/dotbot/install.conf.yaml.example
   .mise.toml
   .base/activate.sh
   bin/base-demo-python-info
@@ -772,13 +777,43 @@ for contract in \
   ci-json-check \
   tooling-testbed-boundary \
   base-generated-environment-reports \
-  optional-task-runner-wrappers
+  optional-task-runner-wrappers \
+  reference-env-dotfile-examples
 do
   grep -Fq "| \`$contract\` |" docs/contracts.md || {
     printf 'docs/contracts.md does not list contract %s.\n' "$contract" >&2
     exit 1
   }
 done
+
+for forbidden_active_dotfile in .envrc .tool-versions install.conf.yaml; do
+  if [[ -e "$forbidden_active_dotfile" ]]; then
+    printf 'Reference shell/dotfile examples must not create active root file: %s.\n' "$forbidden_active_dotfile" >&2
+    exit 1
+  fi
+done
+
+grep -Fq 'examples/tooling/env-dotfiles/' README.md || {
+  printf 'README.md does not document reference shell/dotfile examples.\n' >&2
+  exit 1
+}
+
+for reference_dotfile_token in direnv asdf chezmoi dotbot 'reference-only'; do
+  grep -Fq "$reference_dotfile_token" examples/tooling/env-dotfiles/README.md || {
+    printf 'env-dotfiles README does not document token: %s.\n' "$reference_dotfile_token" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'basectl activate base-demo' examples/tooling/env-dotfiles/direnv/envrc.example || {
+  printf 'direnv example does not point back to Base activation.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python 3.13.0' examples/tooling/env-dotfiles/asdf/tool-versions.example || {
+  printf 'asdf example does not mirror the reference Python version.\n' >&2
+  exit 1
+}
 
 grep -Fq 'justfile' README.md && grep -Fq 'Taskfile.yml' README.md || {
   printf 'README.md does not document optional task-runner wrappers.\n' >&2
