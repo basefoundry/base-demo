@@ -32,7 +32,7 @@ contract.
 | Layer | Tools | Current base-demo stance | Next action |
 | --- | --- | --- | --- |
 | Baseline | Brewfile, mise, uv, Docker Compose, VS Code manifest fields | Active. `Brewfile`, `.mise.toml`, command-level `runner: uv`, `infra/compose.yaml`, and `base_manifest.yaml` are part of the committed demo contract. | Keep validated through `tests/validate.sh`, BATS suites, and Base-backed CI. |
-| Base-generated environment views | `basectl devcontainer`, `basectl devenv-report`, Nix/devenv policy | Not yet demonstrated locally. These should prove Base can describe the project for container and Nix/devenv-style environments without making either the baseline runtime. | Issue #182: add generated or dry-run artifacts and CI checks for the reports. |
+| Base-generated environment views | `basectl devcontainer`, `basectl devenv-report`, Nix/devenv policy | CI-visible read-only reports. Base previews Dev Containers metadata and classifies Nix/devenv mappings without writing generated files or requiring Docker, Nix, or devenv. | Keep the reports in JSON-mode CI and avoid committing `.devcontainer/` or generated Nix/devenv files by default. |
 | Optional live task wrappers | just, Taskfile | Not present. They are useful as ergonomic aliases, but they must call `basectl` rather than create a second command contract. | Issue #180: add optional wrappers and validation that they delegate to Base commands. |
 | Reference-only shell and dotfile tools | direnv, asdf, chezmoi, dotbot | Not present. These tools can teach adoption boundaries, but root-level activation files would change developer state too aggressively for the baseline. | Issue #179: add reference examples and docs under an examples path, not active root files. |
 | Reference-only multi-repo managers | mani, gita, vcs2l, west | Not present. Base's current workspace view is `workspace.yaml.example`; multi-repo managers should illustrate coexistence without owning checkout synchronization. | Issue #181: add read-only example configs that point at the Base workspace shape. |
@@ -43,7 +43,7 @@ contract.
 | Order | Issue | Purpose | Expected PR shape |
 | --- | --- | --- | --- |
 | 1 | #178 | Define the tooling adapter matrix. | Docs, contract registry, AI context, and validation guards. |
-| 2 | #182 | Demonstrate Base-generated environment reports. | Add `devcontainer` and `devenv-report` dry-run or generated artifacts with CI-safe checks. |
+| 2 | #182 | Demonstrate Base-generated environment reports. | Run `devcontainer` and `devenv-report` as dry-run JSON checks in CI. |
 | 3 | #180 | Add optional task-runner aliases. | Add `just` and Taskfile examples that delegate to `basectl` and are not required for baseline CI. |
 | 4 | #179 | Add reference env and dotfile examples. | Add inactive examples for `direnv`, `asdf`, `chezmoi`, and `dotbot` with docs that explain trust and activation boundaries. |
 | 5 | #181 | Add read-only multi-repo manager examples. | Add inactive examples for `mani`, `gita`, `vcs2l`, and `west` aligned to `workspace.yaml.example`. |
@@ -61,3 +61,20 @@ A new tool graduates into the baseline only when all of these are true:
 
 Until then, the tool belongs in optional wrappers, generated artifacts, or
 reference-only examples.
+
+## Base-Generated Environment Reports
+
+`basectl devcontainer base-demo --format json` is a dry-run preview by default.
+It reports the `.devcontainer/devcontainer.json` target path and the manifest
+fields Base can safely translate, such as VS Code extensions and settings. It
+also reports unsupported or ambiguous fields instead of inventing a container
+policy for Brewfile, mise, artifacts, health checks, commands, activation, test,
+or build targets.
+
+`basectl devenv-report base-demo --format json` is read-only. It classifies
+manifest fields for Nix/devenv adoption as supported, unsupported, lossy, or
+project-owned, then leaves generation decisions to a future explicit policy.
+
+Both commands are exercised in CI with `--workspace ..` and JSON assertions.
+They are compatibility evidence, not a requirement that Docker, VS Code, Nix, or
+devenv be installed for the baseline demo.

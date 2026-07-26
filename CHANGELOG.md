@@ -70,6 +70,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 - Updated Base-backed CI to exercise the explicit `project.languages` manifest
   contract from the Base v1.7.0 release with a compatible base-bash-libs pin.
+- Added read-only `basectl devcontainer` and `basectl devenv-report` JSON
+  checks so Base-generated environment compatibility stays visible on macOS and
+  Ubuntu CI.
 - Added the Base issue-branch policy workflow required by the Base v1.7.0 repo
   baseline.
 - Switched the documented CI-safe project health command from the compatibility
