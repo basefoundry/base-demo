@@ -27,6 +27,8 @@ required_files=(
   docs/tooling-testbed.md
   base_manifest.yaml
   Brewfile
+  justfile
+  Taskfile.yml
   .mise.toml
   .base/activate.sh
   bin/base-demo-python-info
@@ -769,13 +771,40 @@ for contract in \
   platform-boundary \
   ci-json-check \
   tooling-testbed-boundary \
-  base-generated-environment-reports
+  base-generated-environment-reports \
+  optional-task-runner-wrappers
 do
   grep -Fq "| \`$contract\` |" docs/contracts.md || {
     printf 'docs/contracts.md does not list contract %s.\n' "$contract" >&2
     exit 1
   }
 done
+
+grep -Fq 'justfile' README.md && grep -Fq 'Taskfile.yml' README.md || {
+  printf 'README.md does not document optional task-runner wrappers.\n' >&2
+  exit 1
+}
+
+for task_runner_file in justfile Taskfile.yml; do
+  for delegated_command in \
+    'basectl check' \
+    'basectl check --ci' \
+    'basectl test' \
+    'basectl build' \
+    'basectl demo' \
+    'basectl run'
+  do
+    grep -Fq "$delegated_command" "$task_runner_file" || {
+      printf '%s does not delegate command to Base: %s.\n' "$task_runner_file" "$delegated_command" >&2
+      exit 1
+    }
+  done
+done
+
+grep -Fq 'installing `just` or Task is not required' README.md || {
+  printf 'README.md does not state that task runners are optional.\n' >&2
+  exit 1
+}
 
 grep -Fq 'basectl devcontainer base-demo --format json' README.md || {
   printf 'README.md does not document the devcontainer report command.\n' >&2

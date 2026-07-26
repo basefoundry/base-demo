@@ -48,6 +48,8 @@ and versions are tracked in the repo-root `VERSION` file.
 - Added `docs/tooling-testbed.md` and a tooling PR-train plan to separate
   active baseline tools from optional wrappers, reference-only examples, and
   future Base contracts.
+- Added optional `justfile` and `Taskfile.yml` wrappers that delegate common
+  check, test, build, demo, and service status tasks to `basectl`.
 
 ### Changed
 
