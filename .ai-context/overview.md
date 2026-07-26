@@ -28,6 +28,13 @@ similar tools. Use that policy when interpreting the local `.mise.toml`,
 command-level `runner: uv`, `infra/compose.yaml`, and `.ai-context/` examples
 in this repository.
 
+Local tooling-testbed policy lives in `docs/tooling-testbed.md`. It keeps
+Brewfile, mise, uv, Docker Compose, and VS Code manifest fields in the active
+Baseline while treating `devcontainer`, `devenv-report`, Nix/devenv, just,
+Taskfile, direnv, asdf, chezmoi, dotbot, mani, gita, vcs2l, west, and future
+docker-service work as optional, reference-only, or blocked until their issue
+slice promotes them.
+
 ## Purpose
 
 - Show what a well-structured `base_manifest.yaml` looks like
@@ -63,6 +70,7 @@ in this repository.
 | `demo/demo.sh` | Interactive walkthrough |
 | `tests/validate.sh` | Baseline validation (the declared test command) |
 | `docs/representative-environment.md` | Direction for the multi-language representative environment |
+| `docs/tooling-testbed.md` | Local matrix for active, optional, reference-only, and future external tool examples |
 
 ## Quick Loop
 
