@@ -45,6 +45,9 @@ and versions are tracked in the repo-root `VERSION` file.
 - Added `.github/pull_request_template.md` for consistent PR descriptions.
 - Added WSL2 readiness guidance for the Ubuntu/Debian Base path and exposed
   `BASE_HOST_ENV` in the demo `env` command.
+- Added `docs/tooling-testbed.md` and a tooling PR-train plan to separate
+  active baseline tools from optional wrappers, reference-only examples, and
+  future Base contracts.
 
 ### Changed
 

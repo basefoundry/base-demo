@@ -18,6 +18,12 @@ Binding promises between the manifest, demo, services, installer, CI, and docs
 are tracked in [Contracts](docs/contracts.md). Update that registry whenever a
 new invariant becomes part of the reference project.
 
+The external tooling direction is tracked in
+[Tooling Test Bed](docs/tooling-testbed.md). That matrix separates active
+baseline tools from optional wrappers, reference-only examples, and future Base
+contracts so `base-demo` can test adoption paths without hiding new
+requirements in the default demo.
+
 ## Platform Requirements
 
 macOS is the supported platform for the full interactive demo: setup,
@@ -250,6 +256,9 @@ deterministic without needing an interactive activated shell.
   `environments/prod.json` model environment-specific configuration. Only
   `dev` is operational by default.
 - `.mise.toml` declares tool versions (Python 3.13) managed by mise.
+- `docs/tooling-testbed.md` defines how base-demo represents tools such as
+  direnv, asdf, chezmoi, dotbot, just, Taskfile, mani, gita, vcs2l, west,
+  devcontainers, Nix/devenv, and future Docker service support.
 - `demo/demo.sh` is the interactive walkthrough.
 - `tests/validate.sh` verifies that the repository baseline is intact.
 

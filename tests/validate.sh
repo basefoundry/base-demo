@@ -24,6 +24,7 @@ required_files=(
   workspace.yaml.example
   docs/contracts.md
   docs/representative-environment.md
+  docs/tooling-testbed.md
   base_manifest.yaml
   Brewfile
   .mise.toml
@@ -766,10 +767,50 @@ for contract in \
   ci-pinned-dependencies \
   ubuntu-ci \
   platform-boundary \
-  ci-json-check
+  ci-json-check \
+  tooling-testbed-boundary
 do
   grep -Fq "| \`$contract\` |" docs/contracts.md || {
     printf 'docs/contracts.md does not list contract %s.\n' "$contract" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'docs/tooling-testbed.md' README.md || {
+  printf 'README.md does not reference docs/tooling-testbed.md.\n' >&2
+  exit 1
+}
+
+grep -Fq 'docs/tooling-testbed.md' .ai-context/overview.md || {
+  printf '.ai-context/overview.md does not reference docs/tooling-testbed.md.\n' >&2
+  exit 1
+}
+
+for tooling_section in Baseline 'Optional live' 'Reference-only'; do
+  grep -Fq "$tooling_section" docs/tooling-testbed.md || {
+    printf 'docs/tooling-testbed.md does not document tooling section: %s.\n' "$tooling_section" >&2
+    exit 1
+  }
+done
+
+for tooling_token in \
+  direnv \
+  asdf \
+  chezmoi \
+  dotbot \
+  just \
+  Taskfile \
+  mani \
+  gita \
+  vcs2l \
+  west \
+  devcontainer \
+  devenv-report \
+  'Nix/devenv' \
+  docker-service
+do
+  grep -Fq "$tooling_token" docs/tooling-testbed.md || {
+    printf 'docs/tooling-testbed.md does not document tooling token: %s.\n' "$tooling_token" >&2
     exit 1
   }
 done
