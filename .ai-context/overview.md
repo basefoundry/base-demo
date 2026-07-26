@@ -34,9 +34,10 @@ Baseline, demonstrates `basectl devcontainer` and `basectl devenv-report` as
 CI-visible read-only compatibility reports, includes `justfile` and
 `Taskfile.yml` as optional live wrappers that delegate to Base commands, and
 treats `examples/tooling/env-dotfiles/` direnv, asdf, chezmoi, and dotbot files
-as reference-only shell/dotfile examples. mani, gita, vcs2l, west, and future
-docker-service work remain reference-only or blocked until their issue slice
-promotes them.
+as reference-only shell/dotfile examples, and treats
+`examples/tooling/multi-repo/` mani, gita, vcs2l, and west files as read-only
+workspace-manager examples. Future docker-service work remains blocked until
+Base publishes that contract.
 
 ## Purpose
 
@@ -72,6 +73,7 @@ promotes them.
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |
 | `justfile`, `Taskfile.yml` | Optional task-runner wrappers that delegate to `basectl` |
 | `examples/tooling/env-dotfiles/` | Reference-only direnv, asdf, chezmoi, and dotbot coexistence examples |
+| `examples/tooling/multi-repo/` | Read-only mani, gita, vcs2l, and west examples aligned to `workspace.yaml.example` |
 | `demo/demo.sh` | Interactive walkthrough |
 | `tests/validate.sh` | Baseline validation (the declared test command) |
 | `docs/representative-environment.md` | Direction for the multi-language representative environment |

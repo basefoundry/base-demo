@@ -1,0 +1,23 @@
+# Reference-only west manifest example for the Base demo workspace.
+
+manifest:
+  remotes:
+    - name: basefoundry
+      url-base: https://github.com/basefoundry
+
+  projects:
+    - name: base
+      remote: basefoundry
+      repo-path: base
+      path: base
+    - name: base-platform-tools
+      remote: basefoundry
+      repo-path: base-platform-tools
+      path: base-platform-tools
+    - name: base-bash-libs
+      remote: basefoundry
+      repo-path: base-bash-libs
+      path: base-bash-libs
+
+  self:
+    path: base-demo

@@ -52,6 +52,8 @@ and versions are tracked in the repo-root `VERSION` file.
   check, test, build, demo, and service status tasks to `basectl`.
 - Added reference-only direnv, asdf, chezmoi, and dotbot examples under
   `examples/tooling/env-dotfiles/`.
+- Added read-only mani, gita, vcs2l, and west examples under
+  `examples/tooling/multi-repo/`.
 
 ### Changed
 

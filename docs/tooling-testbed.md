@@ -35,7 +35,7 @@ contract.
 | Base-generated environment views | `basectl devcontainer`, `basectl devenv-report`, Nix/devenv policy | CI-visible read-only reports. Base previews Dev Containers metadata and classifies Nix/devenv mappings without writing generated files or requiring Docker, Nix, or devenv. | Keep the reports in JSON-mode CI and avoid committing `.devcontainer/` or generated Nix/devenv files by default. |
 | Optional live task wrappers | just, Taskfile | Active but optional. `justfile` and `Taskfile.yml` expose ergonomic aliases for check, CI check, test, build, demo, and service status while delegating to `basectl`. | Keep wrappers thin and validation-only; do not make `just` or Task required for baseline CI. |
 | Reference-only shell and dotfile tools | direnv, asdf, chezmoi, dotbot | Present under `examples/tooling/env-dotfiles/` only. No root `.envrc`, `.tool-versions`, chezmoi source tree, or dotbot installer is active by default. | Keep examples inactive until a separate issue promotes a tool into the baseline. |
-| Reference-only multi-repo managers | mani, gita, vcs2l, west | Not present. Base's current workspace view is `workspace.yaml.example`; multi-repo managers should illustrate coexistence without owning checkout synchronization. | Issue #181: add read-only example configs that point at the Base workspace shape. |
+| Reference-only multi-repo managers | mani, gita, vcs2l, west | Present under `examples/tooling/multi-repo/` only. Base's current workspace view remains `workspace.yaml.example`; these managers illustrate coexistence without owning checkout synchronization. | Keep examples read-only unless Base gains an explicit adapter contract. |
 | Future Docker service | `basectl docker-service` | Blocked upstream. `base-demo` already has Compose-backed services, but it should not invent a Base docker-service contract before Base lands it. | Issue #163 remains blocked on basefoundry/base#124. |
 
 ## PR Train
@@ -99,3 +99,12 @@ Base, but they are not part of setup or CI. Keep root `.envrc`, `.tool-versions`
 chezmoi source trees, and dotbot installer files out of the repository unless a
 future issue intentionally promotes one of those tools into the active
 baseline.
+
+## Reference Multi-Repo Examples
+
+`examples/tooling/multi-repo/` contains read-only examples for `mani`, `gita`,
+`vcs2l`, and `west`.
+
+Those tools can materialize or inspect repository sets before Base discovers
+opted-in projects. Base does not import or synchronize these formats today, and
+`workspace.yaml.example` remains the Base-owned expected-set example.

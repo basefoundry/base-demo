@@ -1,0 +1,17 @@
+# Reference-only vcs2l example for the Base demo workspace.
+
+repositories:
+  - name: base
+    path: ../base
+    url: https://github.com/basefoundry/base.git
+  - name: base-demo
+    path: .
+    url: https://github.com/basefoundry/base-demo.git
+  - name: base-platform-tools
+    path: ../base-platform-tools
+    url: https://github.com/basefoundry/base-platform-tools.git
+    optional: true
+  - name: base-bash-libs
+    path: ../base-bash-libs
+    url: https://github.com/basefoundry/base-bash-libs.git
+    optional: true
