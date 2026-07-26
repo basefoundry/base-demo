@@ -1,0 +1,33 @@
+version: "3"
+
+vars:
+  PROJECT: base-demo
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  check:
+    cmds:
+      - basectl check {{.PROJECT}}
+
+  ci-check:
+    cmds:
+      - basectl check --ci {{.PROJECT}} --format json
+
+  test:
+    cmds:
+      - basectl test {{.PROJECT}}
+
+  build:
+    cmds:
+      - basectl build {{.PROJECT}}
+
+  demo:
+    cmds:
+      - basectl demo {{.PROJECT}}
+
+  services:
+    cmds:
+      - basectl run {{.PROJECT}} services -- status

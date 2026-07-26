@@ -33,7 +33,7 @@ contract.
 | --- | --- | --- | --- |
 | Baseline | Brewfile, mise, uv, Docker Compose, VS Code manifest fields | Active. `Brewfile`, `.mise.toml`, command-level `runner: uv`, `infra/compose.yaml`, and `base_manifest.yaml` are part of the committed demo contract. | Keep validated through `tests/validate.sh`, BATS suites, and Base-backed CI. |
 | Base-generated environment views | `basectl devcontainer`, `basectl devenv-report`, Nix/devenv policy | CI-visible read-only reports. Base previews Dev Containers metadata and classifies Nix/devenv mappings without writing generated files or requiring Docker, Nix, or devenv. | Keep the reports in JSON-mode CI and avoid committing `.devcontainer/` or generated Nix/devenv files by default. |
-| Optional live task wrappers | just, Taskfile | Not present. They are useful as ergonomic aliases, but they must call `basectl` rather than create a second command contract. | Issue #180: add optional wrappers and validation that they delegate to Base commands. |
+| Optional live task wrappers | just, Taskfile | Active but optional. `justfile` and `Taskfile.yml` expose ergonomic aliases for check, CI check, test, build, demo, and service status while delegating to `basectl`. | Keep wrappers thin and validation-only; do not make `just` or Task required for baseline CI. |
 | Reference-only shell and dotfile tools | direnv, asdf, chezmoi, dotbot | Not present. These tools can teach adoption boundaries, but root-level activation files would change developer state too aggressively for the baseline. | Issue #179: add reference examples and docs under an examples path, not active root files. |
 | Reference-only multi-repo managers | mani, gita, vcs2l, west | Not present. Base's current workspace view is `workspace.yaml.example`; multi-repo managers should illustrate coexistence without owning checkout synchronization. | Issue #181: add read-only example configs that point at the Base workspace shape. |
 | Future Docker service | `basectl docker-service` | Blocked upstream. `base-demo` already has Compose-backed services, but it should not invent a Base docker-service contract before Base lands it. | Issue #163 remains blocked on basefoundry/base#124. |
@@ -44,7 +44,7 @@ contract.
 | --- | --- | --- | --- |
 | 1 | #178 | Define the tooling adapter matrix. | Docs, contract registry, AI context, and validation guards. |
 | 2 | #182 | Demonstrate Base-generated environment reports. | Run `devcontainer` and `devenv-report` as dry-run JSON checks in CI. |
-| 3 | #180 | Add optional task-runner aliases. | Add `just` and Taskfile examples that delegate to `basectl` and are not required for baseline CI. |
+| 3 | #180 | Add optional task-runner aliases. | Add `just` and Taskfile wrappers that delegate to `basectl` and are not required for baseline CI. |
 | 4 | #179 | Add reference env and dotfile examples. | Add inactive examples for `direnv`, `asdf`, `chezmoi`, and `dotbot` with docs that explain trust and activation boundaries. |
 | 5 | #181 | Add read-only multi-repo manager examples. | Add inactive examples for `mani`, `gita`, `vcs2l`, and `west` aligned to `workspace.yaml.example`. |
 | Hold | #163 | Adopt future Base Docker service support. | Wait for basefoundry/base#124, then wire the contract through service docs and validation. |
@@ -78,3 +78,13 @@ project-owned, then leaves generation decisions to a future explicit policy.
 Both commands are exercised in CI with `--workspace ..` and JSON assertions.
 They are compatibility evidence, not a requirement that Docker, VS Code, Nix, or
 devenv be installed for the baseline demo.
+
+## Optional Task-Runner Wrappers
+
+`justfile` and `Taskfile.yml` are optional live wrappers for developers who
+already use `just` or Task. They intentionally expose only thin aliases:
+`check`, `ci-check`, `test`, `build`, `demo`, and `services`.
+
+Every wrapper command delegates to `basectl`. The files do not introduce a
+second task contract, and baseline validation checks their contents without
+requiring either task runner to be installed.

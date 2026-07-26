@@ -31,9 +31,11 @@ in this repository.
 Local tooling-testbed policy lives in `docs/tooling-testbed.md`. It keeps
 Brewfile, mise, uv, Docker Compose, and VS Code manifest fields in the active
 Baseline, demonstrates `basectl devcontainer` and `basectl devenv-report` as
-CI-visible read-only compatibility reports, and treats just, Taskfile, direnv,
-asdf, chezmoi, dotbot, mani, gita, vcs2l, west, and future docker-service work
-as optional, reference-only, or blocked until their issue slice promotes them.
+CI-visible read-only compatibility reports, includes `justfile` and
+`Taskfile.yml` as optional live wrappers that delegate to Base commands, and
+treats direnv, asdf, chezmoi, dotbot, mani, gita, vcs2l, west, and future
+docker-service work as reference-only or blocked until their issue slice
+promotes them.
 
 ## Purpose
 
@@ -67,6 +69,7 @@ as optional, reference-only, or blocked until their issue slice promotes them.
 | `infra/compose.yaml` | Local Postgres, MySQL, Redis, and Go API Compose fixtures |
 | `environments/*.json` | `dev`, `staging`, and `prod` environment configuration |
 | `lib/python/base_demo_cli/` | Python CLI using `base_cli.App` |
+| `justfile`, `Taskfile.yml` | Optional task-runner wrappers that delegate to `basectl` |
 | `demo/demo.sh` | Interactive walkthrough |
 | `tests/validate.sh` | Baseline validation (the declared test command) |
 | `docs/representative-environment.md` | Direction for the multi-language representative environment |

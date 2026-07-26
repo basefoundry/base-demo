@@ -102,6 +102,18 @@ basectl docs --show-url
 basectl export-context base-demo --format markdown --print
 ```
 
+If `just` or Task are already installed, optional wrappers are available:
+
+```bash
+just check
+just ci-check
+task check
+task ci-check
+```
+
+Those wrappers delegate to `basectl`; installing `just` or Task is not required
+for setup, validation, CI, or the baseline demo.
+
 The commands above exercise the complete Base project loop:
 
 - `basectl projects list` proves the repository is discoverable from the
@@ -262,6 +274,8 @@ deterministic without needing an interactive activated shell.
   `environments/prod.json` model environment-specific configuration. Only
   `dev` is operational by default.
 - `.mise.toml` declares tool versions (Python 3.13) managed by mise.
+- `justfile` and `Taskfile.yml` provide optional task-runner wrappers that
+  delegate to Base commands without replacing the `basectl` contract.
 - `docs/tooling-testbed.md` defines how base-demo represents tools such as
   direnv, asdf, chezmoi, dotbot, just, Taskfile, mani, gita, vcs2l, west,
   devcontainers, Nix/devenv, and future Docker service support.
