@@ -30,10 +30,10 @@ in this repository.
 
 Local tooling-testbed policy lives in `docs/tooling-testbed.md`. It keeps
 Brewfile, mise, uv, Docker Compose, and VS Code manifest fields in the active
-Baseline while treating `devcontainer`, `devenv-report`, Nix/devenv, just,
-Taskfile, direnv, asdf, chezmoi, dotbot, mani, gita, vcs2l, west, and future
-docker-service work as optional, reference-only, or blocked until their issue
-slice promotes them.
+Baseline, demonstrates `basectl devcontainer` and `basectl devenv-report` as
+CI-visible read-only compatibility reports, and treats just, Taskfile, direnv,
+asdf, chezmoi, dotbot, mani, gita, vcs2l, west, and future docker-service work
+as optional, reference-only, or blocked until their issue slice promotes them.
 
 ## Purpose
 

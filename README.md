@@ -80,6 +80,8 @@ basectl doctor base-demo  # macOS interactive path
 basectl check --ci base-demo --format json  # Ubuntu/Debian read-only project health
 basectl repo check .
 basectl workspace status --manifest workspace.yaml.example
+basectl devcontainer base-demo --format json
+basectl devenv-report base-demo --format json
 basectl trust status base-demo
 basectl run base-demo --list
 basectl build base-demo --list
@@ -117,6 +119,10 @@ The commands above exercise the complete Base project loop:
 - `basectl workspace status --manifest workspace.yaml.example` shows a
   workspace-level view of the expected `base`, `base-demo`, optional
   `base-platform-tools`, and optional `base-bash-libs` peer repositories.
+- `basectl devcontainer base-demo --format json` previews the Dev Containers
+  metadata Base can derive from the manifest without writing `.devcontainer/`.
+- `basectl devenv-report base-demo --format json` reports how the manifest maps
+  to Nix/devenv-style environment concepts without requiring Nix or devenv.
 - `basectl trust status base-demo` shows whether the current manifest is already
   approved for project-owned command execution on this machine.
 - `basectl run base-demo --list`, `basectl build base-demo --list`, and

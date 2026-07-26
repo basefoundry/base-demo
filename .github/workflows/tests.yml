@@ -78,6 +78,13 @@ jobs:
       - name: Doctor base-demo
         run: ../base/bin/basectl doctor base-demo --manifest ./base_manifest.yaml
 
+      - name: Show Base-generated environment reports
+        run: |
+          ../base/bin/basectl devcontainer base-demo --workspace .. --format json | tee /tmp/base-demo-devcontainer.json
+          jq -e '.project == "base-demo" and .write == false and (.supported | index("ide.vscode.extensions"))' /tmp/base-demo-devcontainer.json
+          ../base/bin/basectl devenv-report base-demo --workspace .. --format json | tee /tmp/base-demo-devenv-report.json
+          jq -e '.project == "base-demo" and .target == "nix/devenv" and .summary.supported >= 1' /tmp/base-demo-devenv-report.json
+
       - name: Check repository baseline through Base
         run: ../base/bin/basectl repo check .
 
@@ -164,3 +171,10 @@ jobs:
 
       - name: Verify CI JSON status
         run: jq -e '.status' /tmp/base-demo-ci.json
+
+      - name: Show Base-generated environment reports
+        run: |
+          ../base/bin/basectl devcontainer base-demo --workspace .. --format json | tee /tmp/base-demo-devcontainer.json
+          jq -e '.project == "base-demo" and .write == false and (.supported | index("ide.vscode.extensions"))' /tmp/base-demo-devcontainer.json
+          ../base/bin/basectl devenv-report base-demo --workspace .. --format json | tee /tmp/base-demo-devenv-report.json
+          jq -e '.project == "base-demo" and .target == "nix/devenv" and .summary.supported >= 1' /tmp/base-demo-devenv-report.json

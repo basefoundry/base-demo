@@ -768,10 +768,42 @@ for contract in \
   ubuntu-ci \
   platform-boundary \
   ci-json-check \
-  tooling-testbed-boundary
+  tooling-testbed-boundary \
+  base-generated-environment-reports
 do
   grep -Fq "| \`$contract\` |" docs/contracts.md || {
     printf 'docs/contracts.md does not list contract %s.\n' "$contract" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'basectl devcontainer base-demo --format json' README.md || {
+  printf 'README.md does not document the devcontainer report command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl devenv-report base-demo --format json' README.md || {
+  printf 'README.md does not document the devenv-report command.\n' >&2
+  exit 1
+}
+
+for generated_report_command in \
+  'basectl devcontainer base-demo --workspace .. --format json' \
+  'basectl devenv-report base-demo --workspace .. --format json'
+do
+  grep -Fq "$generated_report_command" .github/workflows/tests.yml || {
+    printf '.github/workflows/tests.yml does not run Base-generated report command: %s.\n' "$generated_report_command" >&2
+    exit 1
+  }
+done
+
+for generated_report_assertion in \
+  '.write == false' \
+  '.supported | index("ide.vscode.extensions")' \
+  '.target == "nix/devenv"'
+do
+  grep -Fq "$generated_report_assertion" .github/workflows/tests.yml || {
+    printf '.github/workflows/tests.yml does not assert Base-generated report field: %s.\n' "$generated_report_assertion" >&2
     exit 1
   }
 done
