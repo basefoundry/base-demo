@@ -1,0 +1,10 @@
+# Reference-only direnv example for base-demo.
+# Copy to .envrc only after reviewing the behavior for your machine.
+
+watch_file base_manifest.yaml
+watch_file .base/activate.sh
+watch_file .mise.toml
+
+export BASE_DEMO_ENV="${BASE_DEMO_ENV:-baseline}"
+
+# Prefer `basectl activate base-demo` for the full Base-managed shell.

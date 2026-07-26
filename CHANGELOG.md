@@ -50,6 +50,8 @@ and versions are tracked in the repo-root `VERSION` file.
   future Base contracts.
 - Added optional `justfile` and `Taskfile.yml` wrappers that delegate common
   check, test, build, demo, and service status tasks to `basectl`.
+- Added reference-only direnv, asdf, chezmoi, and dotbot examples under
+  `examples/tooling/env-dotfiles/`.
 
 ### Changed
 
