@@ -295,6 +295,11 @@ grep -Fq 'basectl check --ci base-demo --manifest ./base_manifest.yaml --format 
   exit 1
 }
 
+grep -Fq 'uv sync --locked' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not materialize the uv project environment.\n' >&2
+  exit 1
+}
+
 grep -Fq "jq -e '.status'" .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not verify the Ubuntu CI JSON status field.\n' >&2
   exit 1
