@@ -1038,6 +1038,11 @@ grep -Fq 'requires-python = ">=3.13,<3.14"' pyproject.toml || {
   exit 1
 }
 
+grep -Fq 'dependencies = ["click", "PyYAML"]' pyproject.toml || {
+  printf 'pyproject.toml does not declare the Base CLI runtime dependencies.\n' >&2
+  exit 1
+}
+
 grep -Fq 'package = false' pyproject.toml || {
   printf 'pyproject.toml must keep base-demo as a non-packaged uv project.\n' >&2
   exit 1
@@ -1045,6 +1050,11 @@ grep -Fq 'package = false' pyproject.toml || {
 
 grep -Fq 'name = "base-demo"' uv.lock || {
   printf 'uv.lock does not contain the base-demo project package record.\n' >&2
+  exit 1
+}
+
+grep -Fq 'name = "click"' uv.lock && grep -Fq 'name = "pyyaml"' uv.lock || {
+  printf 'uv.lock does not contain the Base CLI runtime dependencies.\n' >&2
   exit 1
 }
 

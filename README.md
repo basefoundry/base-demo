@@ -239,8 +239,9 @@ deterministic without needing an interactive activated shell.
   language taxonomy, activation source, command, test command, and Brewfile
   location using current Base contracts.
 - `pyproject.toml` and `uv.lock` declare the dependency-manager-owned Python
-  project environment. The project is intentionally dependency-free; uv owns
-  the environment while Base's Python runtime remains the command wrapper.
+  project environment. Its declared runtime dependencies are Click and PyYAML,
+  which the Base-backed Python CLI requires; uv owns the environment while
+  Base's Python runtime remains the command wrapper.
   If an older Base-managed environment exists at `~/.base.d/base-demo/.venv`,
   Base reports it as stale and ignores it; remove it manually after confirming
   the repo-local `.venv` is healthy.
