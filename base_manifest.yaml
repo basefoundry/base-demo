@@ -22,6 +22,7 @@ health:
       state: free
 
 python:
+  manager: uv
   requires_python: "3.13"
 
 mise: .mise.toml

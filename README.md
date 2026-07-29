@@ -238,10 +238,16 @@ deterministic without needing an interactive activated shell.
 - `base_manifest.yaml` declares the project name, the repository's explicit
   language taxonomy, activation source, command, test command, and Brewfile
   location using current Base contracts.
+- `pyproject.toml` and `uv.lock` declare the dependency-manager-owned Python
+  project environment. The project is intentionally dependency-free; uv owns
+  the environment while Base's Python runtime remains the command wrapper.
+  If an older Base-managed environment exists at `~/.base.d/base-demo/.venv`,
+  Base reports it as stale and ignores it; remove it manually after confirming
+  the repo-local `.venv` is healthy.
 - `Brewfile` is the Homebrew-owned place for ordinary macOS tools. The
   Brewfile currently installs mise, uv, Gradle, and Maven so setup can
-  demonstrate tool-version management, command runners, and representative
-  Java build tools.
+  demonstrate host tool-version management, the uv-managed project
+  environment, command runners, and representative Java build tools.
 - `.base/activate.sh` demonstrates project activation state.
 - `src/hello.sh`, `src/env.sh`, `src/manifest.sh`, and `src/build-info.sh` are
   tiny command and build targets for `basectl run` and `basectl build`;
@@ -251,7 +257,8 @@ deterministic without needing an interactive activated shell.
   the Base-managed project environment.
 - `bin/base-demo-python-info` is the Bash launcher that delegates the Python
   package to `base-wrapper`.
-- `src/uv-info.py` is a tiny Python command routed through `runner: uv`.
+- `src/uv-info.py` is a tiny Python command routed through `runner: uv`; the
+  project environment itself is owned by the manifest's `python.manager: uv`.
 - `services/go-api` is a tiny Go HTTP API with `/healthz`, `/hello`, and
   `/info` endpoints. It is also the representative Dockerized app service.
 - `services/python-api` is a tiny standard-library Python HTTP API with the
@@ -273,7 +280,8 @@ deterministic without needing an interactive activated shell.
 - `environments/dev.json`, `environments/staging.json`, and
   `environments/prod.json` model environment-specific configuration. Only
   `dev` is operational by default.
-- `.mise.toml` declares tool versions (Python 3.13) managed by mise.
+- `.mise.toml` declares the host tool versions (Python 3.13) managed by mise;
+  uv uses that supported Python range for the project virtual environment.
 - `justfile` and `Taskfile.yml` provide optional task-runner wrappers that
   delegate to Base commands without replacing the `basectl` contract.
 - `examples/tooling/env-dotfiles/` contains reference-only direnv, asdf,
@@ -297,14 +305,15 @@ each field maps to a visible Base workflow:
 | `project.name` | `basectl projects list` | Gives Base the stable project name used by setup, check, doctor, run, test, activate, and demo. |
 | `project.languages` | `basectl check base-demo` | Records the normalized Python, Go, Java, C, C++, and JavaScript profile represented by the service fixtures; this is taxonomy only and does not provision toolchains. |
 | `brewfile` | `basectl setup base-demo` | Delegates ordinary Homebrew dependencies to `brew bundle`; currently installs mise, uv, Gradle, and Maven. |
+| `python.manager` | `basectl setup`, `basectl check`, and `basectl doctor` | Delegates the project virtual environment to uv; `pyproject.toml` and `uv.lock` are the dependency source of truth. |
 | `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; green in an activated shell and intentionally reported missing as a pre-activation diagnostic. |
 | `health.required_ports` | `basectl check base-demo` | Declares that the baseline `go-api` port 8010 should be free before services are started. |
 | `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
-| `python.requires_python` | `basectl check base-demo` | Lets Base verify Python 3.13 independently of the mise installer declaration. |
+| `python.requires_python` | `basectl check base-demo` | Lets Base verify Python 3.13 while uv enforces the matching project interpreter range. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
 | `ide.vscode` | `basectl setup base-demo` | Declares VS Code Python extensions and auto-injects the project venv as `python.defaultInterpreterPath` when IDE setup is enabled. |
 | `commands` | `basectl run base-demo --list` | Declares named project commands such as `hello`, `env`, `manifest`, `python-info`, `uv-info`, `services`, and `environments`. |
-| `commands[*].runner` | `basectl run base-demo uv-info` | Routes only the `uv-info` command through `uv run --`, without making uv the project-wide Python manager. |
+| `commands[*].runner` | `basectl run base-demo uv-info` | Keeps command-level `uv run --` selection visible alongside the project-wide uv environment manager. |
 | `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
 | `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the target command needing to change directories itself. |
 | `test.command` | `basectl test base-demo` | Defines the project-owned validation command. |
