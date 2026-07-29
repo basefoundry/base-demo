@@ -24,9 +24,9 @@ inside the WSL filesystem; expect `BASE_PLATFORM=linux-debian` and
 
 Base's `docs/tool-boundaries.md` is the framework-level policy for how Base
 coexists with mise, uv, Docker Compose, AI harnesses, Taskfile, devbox, and
-similar tools. Use that policy when interpreting the local `.mise.toml`,
-command-level `runner: uv`, `infra/compose.yaml`, and `.ai-context/` examples
-in this repository.
+similar tools. Use that policy when interpreting the local `.mise.toml`, the
+uv-managed project environment, command-level `runner: uv`,
+`infra/compose.yaml`, and `.ai-context/` examples in this repository.
 
 Local tooling-testbed policy lives in `docs/tooling-testbed.md`. It keeps
 Brewfile, mise, uv, Docker Compose, and VS Code manifest fields in the active

@@ -26,6 +26,8 @@ required_files=(
   docs/representative-environment.md
   docs/tooling-testbed.md
   base_manifest.yaml
+  pyproject.toml
+  uv.lock
   Brewfile
   justfile
   Taskfile.yml
@@ -290,6 +292,11 @@ fi
 
 grep -Fq 'basectl check --ci base-demo --manifest ./base_manifest.yaml --format json' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not run base-demo read-only CI JSON validation on Ubuntu.\n' >&2
+  exit 1
+}
+
+grep -Fq 'uv sync --locked' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not materialize the uv project environment.\n' >&2
   exit 1
 }
 
@@ -770,6 +777,7 @@ for contract in \
   non-interactive-demo \
   manifest-trust-flow \
   environment-schema \
+  uv-project-manager \
   uv-runner-command \
   activation-owned-env \
   manifest-artifacts \
@@ -1020,6 +1028,36 @@ grep -Fq 'requires_python: "3.13"' base_manifest.yaml || {
   exit 1
 }
 
+grep -Fq '  manager: uv' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare python.manager uv.\n' >&2
+  exit 1
+}
+
+grep -Fq 'requires-python = ">=3.13,<3.14"' pyproject.toml || {
+  printf 'pyproject.toml does not declare the supported Python 3.13 range.\n' >&2
+  exit 1
+}
+
+grep -Fq 'dependencies = ["click", "PyYAML"]' pyproject.toml || {
+  printf 'pyproject.toml does not declare the Base CLI runtime dependencies.\n' >&2
+  exit 1
+}
+
+grep -Fq 'package = false' pyproject.toml || {
+  printf 'pyproject.toml must keep base-demo as a non-packaged uv project.\n' >&2
+  exit 1
+}
+
+grep -Fq 'name = "base-demo"' uv.lock || {
+  printf 'uv.lock does not contain the base-demo project package record.\n' >&2
+  exit 1
+}
+
+grep -Fq 'name = "click"' uv.lock && grep -Fq 'name = "pyyaml"' uv.lock || {
+  printf 'uv.lock does not contain the Base CLI runtime dependencies.\n' >&2
+  exit 1
+}
+
 grep -Fq 'project.languages' README.md || {
   printf 'README.md does not document project.languages.\n' >&2
   exit 1
@@ -1037,6 +1075,16 @@ grep -Fq 'required_ports:' base_manifest.yaml && grep -Fq 'name: go-api' base_ma
 
 grep -Fq 'python.requires_python' README.md || {
   printf 'README.md does not document python.requires_python.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python.manager' README.md || {
+  printf 'README.md does not document python.manager.\n' >&2
+  exit 1
+}
+
+grep -Fq 'python.manager' .ai-context/manifest.md || {
+  printf '.ai-context/manifest.md does not document python.manager.\n' >&2
   exit 1
 }
 
