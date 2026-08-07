@@ -24,7 +24,7 @@ class BaseDemoCliTests(unittest.TestCase):
                 ["info"],
                 home=home,
                 cwd=project,
-                manifest={"project": {"name": "base-demo"}, "artifacts": []},
+                env={"BASE_PROJECT": "base-demo"},
             )
 
         self.assertEqual(result.exit_code, base_cli.ExitCode.SUCCESS, result.output)
@@ -45,7 +45,6 @@ class BaseDemoCliTests(unittest.TestCase):
                 home=home,
                 cwd=project,
                 env={"BASE_PROJECT": "base-demo", "BASE_DEMO_ENV": "baseline"},
-                manifest={"project": {"name": "base-demo"}, "artifacts": []},
             )
 
         self.assertEqual(result.exit_code, base_cli.ExitCode.SUCCESS, result.output)
@@ -63,7 +62,7 @@ class BaseDemoCliTests(unittest.TestCase):
                 ["--debug", "info"],
                 home=home,
                 cwd=project,
-                manifest={"project": {"name": "base-demo"}, "artifacts": []},
+                env={"BASE_PROJECT": "base-demo"},
             )
 
         self.assertEqual(result.exit_code, base_cli.ExitCode.SUCCESS, result.output)
