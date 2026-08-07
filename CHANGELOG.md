@@ -54,6 +54,8 @@ and versions are tracked in the repo-root `VERSION` file.
   `examples/tooling/env-dotfiles/`.
 - Added read-only mani, gita, vcs2l, and west examples under
   `examples/tooling/multi-repo/`.
+- Added `basectl repo init --agent-ready --dry-run` and
+  `basectl repo check --agent-ready` coverage for repo-local agent guidance.
 
 ### Changed
 

@@ -701,6 +701,41 @@ grep -Fq 'basectl docs --show-url' .github/workflows/tests.yml || {
   exit 1
 }
 
+grep -Fq 'basectl repo init base-demo --path . --agent-ready --no-configure --dry-run' README.md || {
+  printf 'README.md does not document the agent-ready repo init dry-run preview.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl repo check . --agent-ready' README.md || {
+  printf 'README.md does not document the agent-ready repo check.\n' >&2
+  exit 1
+}
+
+grep -Fq 'repo init "$BASE_DEMO_PROJECT" --path "$BASE_DEMO_ROOT" --agent-ready --no-configure --dry-run' demo/demo.sh || {
+  printf 'demo/demo.sh does not preview agent-ready repo init in dry-run mode.\n' >&2
+  exit 1
+}
+
+grep -Fq 'repo check . --agent-ready' demo/demo.sh || {
+  printf 'demo/demo.sh does not run the agent-ready repo check.\n' >&2
+  exit 1
+}
+
+grep -Fq 'repo init base-demo --path . --agent-ready --no-configure --dry-run' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not preview agent-ready repo init through Base.\n' >&2
+  exit 1
+}
+
+grep -Fq 'repo check . --agent-ready' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not check agent-ready repo guidance through Base.\n' >&2
+  exit 1
+}
+
+grep -Fq 'agent-ready-repo-guidance' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the agent-ready repo guidance contract.\n' >&2
+  exit 1
+}
+
 grep -Fq 'github.com/basefoundry/base' demo/demo.sh || {
   printf 'demo/demo.sh does not validate the Base docs URL host.\n' >&2
   exit 1

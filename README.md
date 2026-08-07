@@ -79,6 +79,8 @@ basectl check base-demo  # macOS interactive path
 basectl doctor base-demo  # macOS interactive path
 basectl check --ci base-demo --format json  # Ubuntu/Debian read-only project health
 basectl repo check .
+basectl repo init base-demo --path . --agent-ready --no-configure --dry-run
+basectl repo check . --agent-ready
 basectl workspace status --manifest workspace.yaml.example
 basectl devcontainer base-demo --format json
 basectl devenv-report base-demo --format json
@@ -128,6 +130,11 @@ The commands above exercise the complete Base project loop:
   health for read-only CI pipelines, including the Ubuntu/Debian project health
   check that runs after Base setup and the Base dev-profile setup.
 - `basectl repo check .` validates the standard repository baseline files.
+- `basectl repo init base-demo --path . --agent-ready --no-configure --dry-run`
+  previews the Base generator for repo-local agent guidance without changing
+  files or GitHub settings.
+- `basectl repo check . --agent-ready` verifies the standard baseline plus the
+  repo-local `AGENTS.md`, `skills.md`, and AI-context guidance contract.
 - `basectl workspace status --manifest workspace.yaml.example` shows a
   workspace-level view of the expected `base`, `base-demo`, optional
   `base-platform-tools`, and optional `base-bash-libs` peer repositories.
