@@ -39,6 +39,11 @@ as reference-only shell/dotfile examples, and treats
 workspace-manager examples. Future docker-service work remains blocked until
 Base publishes that contract.
 
+GitHub workflow hygiene is documented in `AGENTS.md` and README. Use `basectl
+gh issue readiness` before agentic implementation work and `basectl gh branch
+stale` during branch cleanup when `gh` is authenticated; neither command is part
+of the baseline setup or CI contract.
+
 ## Purpose
 
 - Show what a well-structured `base_manifest.yaml` looks like

@@ -581,6 +581,36 @@ grep -Fq 'history-report-observability' docs/contracts.md || {
   exit 1
 }
 
+grep -Fq 'basectl gh issue readiness <issue-number> --repo basefoundry/base-demo --project-owner basefoundry --project-number 9 --format json' AGENTS.md || {
+  printf 'AGENTS.md does not document the Base issue readiness helper.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl gh branch stale --days 14 --format json' AGENTS.md || {
+  printf 'AGENTS.md does not document the Base stale branch helper.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl gh issue readiness <issue-number> --repo basefoundry/base-demo --project-owner basefoundry --project-number 9 --format json' README.md || {
+  printf 'README.md does not document the Base issue readiness helper.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl gh branch stale --days 14 --format json' README.md || {
+  printf 'README.md does not document the Base stale branch helper.\n' >&2
+  exit 1
+}
+
+grep -Fq 'GitHub workflow hygiene is documented in `AGENTS.md` and README.' .ai-context/overview.md || {
+  printf '.ai-context/overview.md does not summarize GitHub workflow hygiene.\n' >&2
+  exit 1
+}
+
+grep -Fq 'github-workflow-hygiene' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the GitHub workflow hygiene contract.\n' >&2
+  exit 1
+}
+
 grep -Fq 'basectl trust allow base-demo' README.md || {
   printf 'README.md does not document the manifest trust approval command.\n' >&2
   exit 1

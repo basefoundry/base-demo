@@ -119,6 +119,22 @@ task ci-check
 Those wrappers delegate to `basectl`; installing `just` or Task is not required
 for setup, validation, CI, or the baseline demo.
 
+## Contribution Workflow Helpers
+
+base-demo uses an issue-first, worktree-per-PR workflow. Base's GitHub helpers
+make that workflow inspectable when the GitHub CLI is authenticated:
+
+```text
+basectl gh issue readiness <issue-number> --repo basefoundry/base-demo --project-owner basefoundry --project-number 9 --format json
+basectl gh branch stale --days 14 --format json
+```
+
+`basectl gh issue readiness` checks whether an issue has the sections and
+Project metadata expected before agentic implementation work. `basectl gh
+branch stale` reports old local and origin branches from the current checkout so
+cleanup can be reviewed deliberately. These commands are contributor workflow
+helpers, not setup requirements or CI gates.
+
 The commands above exercise the complete Base project loop:
 
 - `basectl projects list` proves the repository is discoverable from the
