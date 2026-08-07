@@ -60,6 +60,8 @@ and versions are tracked in the repo-root `VERSION` file.
   `base`/`base-demo` layout.
 - Added `basectl history --report` coverage for the local activity report
   observability path.
+- Added contributor workflow guidance for `basectl gh issue readiness` and
+  `basectl gh branch stale`.
 
 ### Changed
 
