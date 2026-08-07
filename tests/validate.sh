@@ -206,7 +206,7 @@ base_release_pin_count="$(
   grep -Fc 'git clone --depth 1 --branch v1.7.0 https://github.com/basefoundry/base.git ../base' .github/workflows/tests.yml || true
 )"
 if [[ "$base_release_pin_count" -ne 2 ]]; then
-  printf '.github/workflows/tests.yml must pin both Base checkouts to the v1.7.0 release.\n' >&2
+  printf '.github/workflows/tests.yml must pin both released Base checkouts to the v1.7.0 release.\n' >&2
   exit 1
 fi
 
@@ -218,8 +218,8 @@ fi
 base_bash_libs_pin_count="$(
   grep -Fc 'ref: 2c5ef2c3a9edfbe2cf68d0645be65b920255abff' .github/workflows/tests.yml || true
 )"
-if [[ "$base_bash_libs_pin_count" -ne 2 ]]; then
-  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the v1.4.0 release commit.\n' >&2
+if [[ "$base_bash_libs_pin_count" -ne 3 ]]; then
+  printf '.github/workflows/tests.yml must pin all base-bash-libs checkouts to the v1.4.0 release commit.\n' >&2
   exit 1
 fi
 
@@ -297,6 +297,31 @@ grep -Fq 'basectl check --ci base-demo --manifest ./base_manifest.yaml --format 
 
 grep -Fq 'uv sync --locked' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not materialize the uv project environment.\n' >&2
+  exit 1
+}
+
+grep -Fq 'validate-base-cli-source:' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not define the base-cli source compatibility job.\n' >&2
+  exit 1
+}
+
+grep -Fq 'BASE_CLI_SOURCE_DIR: ${{ github.workspace }}/../base-cli/lib/python' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not configure the base-cli source root for compatibility CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'git clone --depth 1 --branch v0.4.1 https://github.com/basefoundry/base-cli.git ../base-cli' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the source compatibility checkout to base-cli v0.4.1.\n' >&2
+  exit 1
+}
+
+grep -Fq 'git -C ../base fetch --depth 1 origin cf864252760800161f4189c6f28d2517f3a6588e' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the source compatibility job to the Base provider-alignment commit.\n' >&2
+  exit 1
+}
+
+grep -Fq "grep -Fq 'BASE_CLI_SOURCE=explicit'" .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not verify the explicit base-cli source provider.\n' >&2
   exit 1
 }
 
@@ -1156,6 +1181,16 @@ grep -Fq 'requires-python = ">=3.13,<3.14"' pyproject.toml || {
 
 grep -Fq 'dependencies = ["base-cli==0.4.1", "click", "PyYAML"]' pyproject.toml || {
   printf 'pyproject.toml does not declare the Base CLI runtime dependencies.\n' >&2
+  exit 1
+}
+
+grep -Fq '## Python CLI Provider Policy' README.md || {
+  printf 'README.md does not document the base-cli provider policy.\n' >&2
+  exit 1
+}
+
+grep -Fq 'BASE_CLI_SOURCE_DIR="$PWD/../base-cli/lib/python"' README.md || {
+  printf 'README.md does not document the explicit base-cli source checkout command.\n' >&2
   exit 1
 }
 
