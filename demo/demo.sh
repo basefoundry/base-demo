@@ -239,6 +239,18 @@ discovery_step() {
       printf "\nbase-platform-tools is an optional Base companion; when present, Base adds its bin/ directory after Base's own bin/.\n"
     fi
     require_contains "workspace status" "$output" "$BASE_DEMO_PROJECT"
+
+    printf '\nSummarizing first-day workspace onboarding from the example manifest.\n'
+    output="$(capture_command "$BASE_DEMO_BASECTL" workspace onboarding --workspace "$BASE_DEMO_WORKSPACE" --manifest "$BASE_DEMO_ROOT/workspace.yaml.example")"
+    printf '%s\n' "$output"
+    require_contains "workspace onboarding" "$output" "$BASE_DEMO_PROJECT"
+    require_contains "workspace onboarding" "$output" "ready"
+
+    printf '\nShowing agent handoff readiness across the workspace.\n'
+    output="$(capture_command "$BASE_DEMO_BASECTL" workspace agent-brief --workspace "$BASE_DEMO_WORKSPACE" --manifest "$BASE_DEMO_ROOT/workspace.yaml.example")"
+    printf '%s\n' "$output"
+    require_contains "workspace agent-brief" "$output" "$BASE_DEMO_PROJECT"
+    require_contains "workspace agent-brief" "$output" "ready"
   else
     run_observed_command "$BASE_DEMO_BASECTL" workspace status --workspace "$BASE_DEMO_WORKSPACE"
   fi

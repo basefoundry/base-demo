@@ -1183,6 +1183,41 @@ grep -Fq 'basectl export-context base-demo --format markdown --print' README.md 
   exit 1
 }
 
+grep -Fq 'basectl workspace onboarding --manifest workspace.yaml.example' README.md || {
+  printf 'README.md does not document workspace onboarding.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl workspace agent-brief --manifest workspace.yaml.example' README.md || {
+  printf 'README.md does not document workspace agent-brief.\n' >&2
+  exit 1
+}
+
+grep -Fq 'workspace onboarding --workspace "$BASE_DEMO_WORKSPACE" --manifest "$BASE_DEMO_ROOT/workspace.yaml.example"' demo/demo.sh || {
+  printf 'demo/demo.sh does not run workspace onboarding against the example manifest.\n' >&2
+  exit 1
+}
+
+grep -Fq 'workspace agent-brief --workspace "$BASE_DEMO_WORKSPACE" --manifest "$BASE_DEMO_ROOT/workspace.yaml.example"' demo/demo.sh || {
+  printf 'demo/demo.sh does not run workspace agent-brief against the example manifest.\n' >&2
+  exit 1
+}
+
+grep -Fq 'workspace onboarding --workspace .. --manifest ./workspace.yaml.example --format json' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run workspace onboarding in CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'workspace agent-brief --workspace .. --manifest ./workspace.yaml.example --format json' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not run workspace agent-brief in CI.\n' >&2
+  exit 1
+}
+
+grep -Fq 'workspace-onboarding-agent-brief' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the workspace onboarding and agent-brief contract.\n' >&2
+  exit 1
+}
+
 grep -Fq 'build:' base_manifest.yaml || {
   printf 'base_manifest.yaml does not declare build targets.\n' >&2
   exit 1

@@ -82,6 +82,8 @@ basectl repo check .
 basectl repo init base-demo --path . --agent-ready --no-configure --dry-run
 basectl repo check . --agent-ready
 basectl workspace status --manifest workspace.yaml.example
+basectl workspace onboarding --manifest workspace.yaml.example
+basectl workspace agent-brief --manifest workspace.yaml.example
 basectl devcontainer base-demo --format json
 basectl devenv-report base-demo --format json
 basectl trust status base-demo
@@ -138,6 +140,12 @@ The commands above exercise the complete Base project loop:
 - `basectl workspace status --manifest workspace.yaml.example` shows a
   workspace-level view of the expected `base`, `base-demo`, optional
   `base-platform-tools`, and optional `base-bash-libs` peer repositories.
+- `basectl workspace onboarding --manifest workspace.yaml.example` summarizes
+  first-day readiness, setup, validation, test, and clone guidance for the
+  peer-checkout workspace.
+- `basectl workspace agent-brief --manifest workspace.yaml.example` reports
+  agent handoff readiness for expected peer repositories and nearby local Base
+  projects.
 - `basectl devcontainer base-demo --format json` previews the Dev Containers
   metadata Base can derive from the manifest without writing `.devcontainer/`.
 - `basectl devenv-report base-demo --format json` reports how the manifest maps

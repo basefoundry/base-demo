@@ -88,6 +88,13 @@ jobs:
           ../base/bin/basectl devenv-report base-demo --workspace .. --format json | tee /tmp/base-demo-devenv-report.json
           jq -e '.project == "base-demo" and .target == "nix/devenv" and .summary.supported >= 1' /tmp/base-demo-devenv-report.json
 
+      - name: Show workspace onboarding and agent brief
+        run: |
+          ../base/bin/basectl workspace onboarding --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-onboarding.json
+          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .status == "ready")' /tmp/base-demo-workspace-onboarding.json
+          ../base/bin/basectl workspace agent-brief --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-agent-brief.json
+          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .handoff_status == "ready")' /tmp/base-demo-workspace-agent-brief.json
+
       - name: Check repository baseline through Base
         run: ../base/bin/basectl repo check .
 
@@ -187,3 +194,10 @@ jobs:
           jq -e '.project == "base-demo" and .write == false and (.supported | index("ide.vscode.extensions"))' /tmp/base-demo-devcontainer.json
           ../base/bin/basectl devenv-report base-demo --workspace .. --format json | tee /tmp/base-demo-devenv-report.json
           jq -e '.project == "base-demo" and .target == "nix/devenv" and .summary.supported >= 1' /tmp/base-demo-devenv-report.json
+
+      - name: Show workspace onboarding and agent brief
+        run: |
+          ../base/bin/basectl workspace onboarding --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-onboarding.json
+          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .status == "ready")' /tmp/base-demo-workspace-onboarding.json
+          ../base/bin/basectl workspace agent-brief --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-agent-brief.json
+          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .handoff_status == "ready")' /tmp/base-demo-workspace-agent-brief.json
