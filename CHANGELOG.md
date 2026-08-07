@@ -64,6 +64,8 @@ and versions are tracked in the repo-root `VERSION` file.
   `basectl gh branch stale`.
 - Added CI coverage for `basectl onboard base-demo --dry-run` so the
   recommended onboarding preview is executed, not only string-matched.
+- Added the base-cli provider policy documentation and a dedicated source-
+  checkout compatibility CI job while preserving the locked wheel path.
 
 ### Changed
 

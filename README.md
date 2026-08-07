@@ -125,6 +125,37 @@ task ci-check
 Those wrappers delegate to `basectl`; installing `just` or Task is not required
 for setup, validation, CI, or the baseline demo.
 
+## Python CLI Provider Policy
+
+`base-demo` declares `base-cli==0.4.1` in `pyproject.toml` and `uv.lock`. That
+released package is the default provider for the project-owned uv environment,
+local `uv sync --locked`, and the normal wheel-based CI path. Keeping the
+published dependency locked makes the reference project reproducible for new
+users.
+
+Base launchers have a separate provider-resolution contract for commands that
+run through `base-wrapper`:
+
+1. an explicit `BASE_CLI_SOURCE_DIR` source root;
+2. a `base-cli` checkout next to the Base checkout at
+   `$BASE_HOME/../base-cli/lib/python`;
+3. the installed `base-cli` distribution in the selected environment.
+
+The peer checkout is therefore an opt-in development and compatibility path
+for `base-demo`; `base-demo` does not silently replace its locked uv
+dependency when a nearby repository happens to exist. With the recommended
+peer layout (`base`, `base-cli`, and `base-demo` under one workspace), run the
+source-provider check explicitly from the `base-demo` checkout:
+
+```bash
+BASE_CLI_SOURCE_DIR="$PWD/../base-cli/lib/python" \
+  ../base/bin/basectl run base-demo --workspace .. python-info -- env
+```
+
+The output should include `BASE_CLI_SOURCE=explicit`. The compatibility CI job
+performs this check against the released `base-cli` source tag while the main
+validation jobs continue to exercise the locked wheel path.
+
 ## Contribution Workflow Helpers
 
 base-demo uses an issue-first, worktree-per-PR workflow. Base's GitHub helpers
