@@ -62,6 +62,16 @@ jobs:
             printf '  enabled: false\n'
           } >> ~/.base.d/config.yaml
 
+      - name: Preview base-demo onboarding
+        run: |
+          ../base/bin/basectl onboard base-demo --dry-run | tee /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq '[DRY-RUN] Would run basectl check base-demo' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq '[DRY-RUN] Would run basectl setup base-demo --dry-run' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq 'Projects' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq '[DRY-RUN] Would run basectl projects list' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq 'Trust' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq '[DRY-RUN] Would run basectl trust status' /tmp/base-demo-onboard-dry-run.txt
+
       - name: Run base-demo Python CLI tests
         run: >
           PYTHONPATH="../base/lib/python:../base/cli/python:lib/python"
@@ -174,6 +184,16 @@ jobs:
 
       - name: Set up Base on Ubuntu
         run: ../base/bin/basectl setup base --yes --no-notify
+
+      - name: Preview base-demo onboarding
+        run: |
+          ../base/bin/basectl onboard base-demo --dry-run | tee /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq '[DRY-RUN] Would run basectl check base-demo' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq '[DRY-RUN] Would run basectl setup base-demo --dry-run' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq 'Projects' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq '[DRY-RUN] Would run basectl projects list' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq 'Trust' /tmp/base-demo-onboard-dry-run.txt
+          grep -Fq '[DRY-RUN] Would run basectl trust status' /tmp/base-demo-onboard-dry-run.txt
 
       - name: Validate Ubuntu dev profile setup
         run: |

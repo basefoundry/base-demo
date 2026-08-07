@@ -676,6 +676,42 @@ grep -Fq 'doctor --ci base-demo --format json' README.md || {
   exit 1
 }
 
+grep -Fq 'basectl onboard base-demo --dry-run' README.md || {
+  printf 'README.md does not document the onboard dry-run preview command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'base#1887' README.md || {
+  printf 'README.md does not document the current onboard Doctor-stop limitation.\n' >&2
+  exit 1
+}
+
+onboard_preview_count="$(
+  grep -Fc '../base/bin/basectl onboard base-demo --dry-run' .github/workflows/tests.yml || true
+)"
+if [[ "$onboard_preview_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must run onboard dry-run in both validation jobs.\n' >&2
+  exit 1
+fi
+
+for onboard_preview_assertion in \
+  "[DRY-RUN] Would run basectl check base-demo" \
+  "[DRY-RUN] Would run basectl setup base-demo --dry-run" \
+  "Projects" \
+  "[DRY-RUN] Would run basectl projects list" \
+  "Trust" \
+  "[DRY-RUN] Would run basectl trust status"; do
+  grep -Fq "$onboard_preview_assertion" .github/workflows/tests.yml || {
+    printf '.github/workflows/tests.yml does not assert onboard dry-run output: %s.\n' "$onboard_preview_assertion" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'onboard-dry-run-preview' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the onboard dry-run preview contract.\n' >&2
+  exit 1
+}
+
 grep -Fq 'Native Windows support remains out of scope.' README.md || {
   printf 'README.md does not keep native Windows out of the WSL2 support claim.\n' >&2
   exit 1
