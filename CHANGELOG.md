@@ -62,6 +62,8 @@ and versions are tracked in the repo-root `VERSION` file.
   observability path.
 - Added contributor workflow guidance for `basectl gh issue readiness` and
   `basectl gh branch stale`.
+- Added CI coverage for `basectl onboard base-demo --dry-run` so the
+  recommended onboarding preview is executed, not only string-matched.
 
 ### Changed
 

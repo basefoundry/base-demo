@@ -69,6 +69,12 @@ It wraps the setup, profile, doctor, and project-discovery flow for new Base
 users. Run `basectl onboard base-demo --dry-run` to preview the steps without
 changing local state.
 
+CI executes `basectl onboard base-demo --dry-run` and asserts the preview reaches
+the Check, Setup, Projects, and Trust stages. Until
+[`base#1887`](https://github.com/basefoundry/base/issues/1887) is fixed, a real
+non-dry-run onboarding attempt can stop early when `basectl doctor` reports a
+finding; if that happens, continue with the explicit commands below.
+
 From the `base-demo` repository root on a machine where Base is already set up:
 
 ```bash
