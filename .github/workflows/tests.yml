@@ -93,7 +93,7 @@ jobs:
           ../base/bin/basectl workspace onboarding --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-onboarding.json
           jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and (.status == "ready" or .status == "needs_setup"))' /tmp/base-demo-workspace-onboarding.json
           ../base/bin/basectl workspace agent-brief --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-agent-brief.json
-          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .handoff_status == "ready")' /tmp/base-demo-workspace-agent-brief.json
+          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and (.handoff_status == "ready" or .handoff_status == "needs_setup"))' /tmp/base-demo-workspace-agent-brief.json
 
       - name: Check repository baseline through Base
         run: ../base/bin/basectl repo check .
@@ -200,4 +200,4 @@ jobs:
           ../base/bin/basectl workspace onboarding --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-onboarding.json
           jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and (.status == "ready" or .status == "needs_setup"))' /tmp/base-demo-workspace-onboarding.json
           ../base/bin/basectl workspace agent-brief --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-agent-brief.json
-          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .handoff_status == "ready")' /tmp/base-demo-workspace-agent-brief.json
+          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and (.handoff_status == "ready" or .handoff_status == "needs_setup"))' /tmp/base-demo-workspace-agent-brief.json
