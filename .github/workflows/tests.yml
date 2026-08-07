@@ -91,6 +91,12 @@ jobs:
       - name: Check repository baseline through Base
         run: ../base/bin/basectl repo check .
 
+      - name: Preview agent-ready repository guidance through Base
+        run: ../base/bin/basectl repo init base-demo --path . --agent-ready --no-configure --dry-run
+
+      - name: Check agent-ready repository guidance through Base
+        run: ../base/bin/basectl repo check . --agent-ready
+
       - name: Review base-demo manifest commands
         run: |
           ../base/bin/basectl run base-demo --workspace .. --list

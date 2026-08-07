@@ -157,7 +157,7 @@ intro() {
 }
 
 project_shape_step() {
-  local repo_output
+  local agent_ready_output repo_output
 
   step 1 "Project Shape"
   run_command test -f "$BASE_DEMO_ROOT/base_manifest.yaml"
@@ -180,6 +180,14 @@ project_shape_step() {
   repo_output="$(capture_command "$BASE_DEMO_BASECTL" repo check .)"
   printf '%s\n' "$repo_output"
   require_contains "repo check" "$repo_output" "Repository baseline"
+
+  printf '\nPreviewing Base agent-ready repository guidance generation without writing files.\n'
+  run_command "$BASE_DEMO_BASECTL" repo init "$BASE_DEMO_PROJECT" --path "$BASE_DEMO_ROOT" --agent-ready --no-configure --dry-run
+
+  printf '\nChecking repo-local agent guidance with Base.\n'
+  agent_ready_output="$(capture_command "$BASE_DEMO_BASECTL" repo check . --agent-ready)"
+  printf '%s\n' "$agent_ready_output"
+  require_contains "repo check --agent-ready" "$agent_ready_output" "Agent readiness"
   pause
 }
 

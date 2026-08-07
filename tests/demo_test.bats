@@ -31,6 +31,14 @@ case "$*" in
   repo\ check\ .)
     printf 'Repository baseline: all 12 required files present.\n'
     ;;
+  repo\ init\ base-demo\ --path\ *\ --agent-ready\ --no-configure\ --dry-run)
+    printf 'AGENTS.md unchanged\n'
+    printf 'skills.md unchanged\n'
+    ;;
+  repo\ check\ .\ --agent-ready)
+    printf 'Repository baseline: all 13 required files present.\n'
+    printf 'Agent readiness: all 3 files present.\n'
+    ;;
   projects\ list\ --workspace\ *)
     printf 'PROJECT     PATH\n'
     printf 'other-demo  /tmp/other-demo\n'
@@ -65,6 +73,14 @@ printf 'basectl %s\n' "$*" >> "${BASE_DEMO_TEST_STATE:?}"
 case "$*" in
   repo\ check\ .)
     printf 'Repository baseline: all 12 required files present.\n'
+    ;;
+  repo\ init\ base-demo\ --path\ *\ --agent-ready\ --no-configure\ --dry-run)
+    printf 'AGENTS.md unchanged\n'
+    printf 'skills.md unchanged\n'
+    ;;
+  repo\ check\ .\ --agent-ready)
+    printf 'Repository baseline: all 13 required files present.\n'
+    printf 'Agent readiness: all 3 files present.\n'
     ;;
   projects\ list\ --workspace\ *)
     printf 'PROJECT     PATH\n'
@@ -246,6 +262,7 @@ EOF
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"base-demo Walkthrough"* ]]
+  [[ "$output" == *"Agent readiness: all 3 files present."* ]]
   [[ "$output" == *"Workspace Discovery"* ]]
   [[ "$output" == *"base-demo-reference"* ]]
   [[ "$output" == *"base-platform-tools is an optional Base companion"* ]]
@@ -335,6 +352,8 @@ EOF
   [[ "$output" == *"banyanlabs"* ]]
   [[ "$output" == *"base-demo walkthrough complete."* ]]
   grep -Eq "^basectl repo check \\.$" "$state_file"
+  grep -Eq "^basectl repo init base-demo --path .+ --agent-ready --no-configure --dry-run$" "$state_file"
+  grep -Eq "^basectl repo check \\. --agent-ready$" "$state_file"
   grep -Fq "basectl projects list --workspace " "$state_file"
   grep -Eq "^basectl workspace status --workspace .+ --manifest .+/workspace.yaml.example$" "$state_file"
   grep -Eq "^basectl setup base-demo --manifest .+/base_manifest.yaml --dry-run --no-notify$" "$state_file"
