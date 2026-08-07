@@ -228,6 +228,10 @@ case "$*" in
   history\ --project\ base-demo\ --limit\ 5)
     printf 'base-demo ok run hello\n'
     ;;
+  history\ --project\ base-demo\ --limit\ 5\ --report)
+    printf '# Base Local Activity Report\n'
+    printf 'base-demo ok run hello\n'
+    ;;
   build\ base-demo\ --workspace\ *\ --list)
     printf 'info   Print project build info.\n'
     printf 'go-api Build the Go API service.\n'
@@ -353,6 +357,7 @@ EOF
   [[ "$output" == *"Repository baseline is present."* ]]
   [[ "$output" == *"Observability"* ]]
   [[ "$output" == *"base-demo.log"* ]]
+  [[ "$output" == *"Base Local Activity Report"* ]]
   [[ "$output" == *"Build Targets"* ]]
   [[ "$output" == *"project=base-demo"* ]]
   [[ "$output" == *"python-api build target validated"* ]]
@@ -394,6 +399,7 @@ EOF
   grep -Eq "^basectl test base-demo --workspace .+$" "$state_file"
   grep -Eq "^basectl logs --limit 3$" "$state_file"
   grep -Eq "^basectl history --project base-demo --limit 5$" "$state_file"
+  grep -Eq "^basectl history --project base-demo --limit 5 --report$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl build base-demo --workspace .+$" "$state_file"
   grep -Eq "^basectl build base-demo python-api --workspace .+$" "$state_file"
