@@ -93,6 +93,17 @@ case "$*" in
     printf 'base-platform-tools optional missing\n'
     printf 'base-bash-libs optional missing\n'
     ;;
+  workspace\ onboarding\ --workspace\ *\ --manifest\ *)
+    printf 'base true ready /workspace/base ready\n'
+    printf 'base-demo true ready /workspace/base-demo ready\n'
+    printf 'base-platform-tools false missing - clone\n'
+    printf 'base-bash-libs false missing - clone\n'
+    ;;
+  workspace\ agent-brief\ --workspace\ *\ --manifest\ *)
+    printf 'base base /workspace/base required ready present_unverified\n'
+    printf 'base-demo base-demo /workspace/base-demo required ready present_unverified\n'
+    printf 'base-bash-libs base-bash-libs /workspace/base-bash-libs optional needs_agent_guidance not_applicable\n'
+    ;;
   setup\ base-demo\ --manifest\ *\ --dry-run\ --no-notify)
     printf '[DRY-RUN] Would reconcile base_manifest.yaml, Brewfile, mise, project virtualenv, and bats-core artifact.\n'
     ;;
@@ -266,6 +277,8 @@ EOF
   [[ "$output" == *"Workspace Discovery"* ]]
   [[ "$output" == *"base-demo-reference"* ]]
   [[ "$output" == *"base-platform-tools is an optional Base companion"* ]]
+  [[ "$output" == *"Summarizing first-day workspace onboarding"* ]]
+  [[ "$output" == *"Showing agent handoff readiness"* ]]
   [[ "$output" == *"Setup Contract"* ]]
   [[ "$output" == *"bats-core"* ]]
   [[ "$output" == *"languages:"* ]]
@@ -356,6 +369,8 @@ EOF
   grep -Eq "^basectl repo check \\. --agent-ready$" "$state_file"
   grep -Fq "basectl projects list --workspace " "$state_file"
   grep -Eq "^basectl workspace status --workspace .+ --manifest .+/workspace.yaml.example$" "$state_file"
+  grep -Eq "^basectl workspace onboarding --workspace .+ --manifest .+/workspace.yaml.example$" "$state_file"
+  grep -Eq "^basectl workspace agent-brief --workspace .+ --manifest .+/workspace.yaml.example$" "$state_file"
   grep -Eq "^basectl setup base-demo --manifest .+/base_manifest.yaml --dry-run --no-notify$" "$state_file"
   grep -Eq "^basectl check base-demo --manifest .+/base_manifest.yaml$" "$state_file"
   grep -Eq "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file"

@@ -56,6 +56,8 @@ and versions are tracked in the repo-root `VERSION` file.
   `examples/tooling/multi-repo/`.
 - Added `basectl repo init --agent-ready --dry-run` and
   `basectl repo check --agent-ready` coverage for repo-local agent guidance.
+- Added workspace onboarding and agent-brief coverage for the peer
+  `base`/`base-demo` layout.
 
 ### Changed
 
