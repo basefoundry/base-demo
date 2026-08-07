@@ -74,6 +74,7 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### CI
 
+- Updated the pinned base-bash-libs checkout to the v1.4.0 release commit.
 - Updated Base-backed CI to exercise the explicit `project.languages` manifest
   contract from the Base v1.7.0 release with a compatible base-bash-libs pin.
 - Added read-only `basectl devcontainer` and `basectl devenv-report` JSON
