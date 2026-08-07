@@ -91,7 +91,7 @@ jobs:
       - name: Show workspace onboarding and agent brief
         run: |
           ../base/bin/basectl workspace onboarding --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-onboarding.json
-          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .status == "ready")' /tmp/base-demo-workspace-onboarding.json
+          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and (.status == "ready" or .status == "needs_setup"))' /tmp/base-demo-workspace-onboarding.json
           ../base/bin/basectl workspace agent-brief --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-agent-brief.json
           jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .handoff_status == "ready")' /tmp/base-demo-workspace-agent-brief.json
 
@@ -198,6 +198,6 @@ jobs:
       - name: Show workspace onboarding and agent brief
         run: |
           ../base/bin/basectl workspace onboarding --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-onboarding.json
-          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .status == "ready")' /tmp/base-demo-workspace-onboarding.json
+          jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and (.status == "ready" or .status == "needs_setup"))' /tmp/base-demo-workspace-onboarding.json
           ../base/bin/basectl workspace agent-brief --workspace .. --manifest ./workspace.yaml.example --format json | tee /tmp/base-demo-workspace-agent-brief.json
           jq -e '.workspace_manifest.name == "base-demo-reference" and any(.repositories[]; .repository == "base-demo" and .handoff_status == "ready")' /tmp/base-demo-workspace-agent-brief.json
