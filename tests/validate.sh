@@ -216,10 +216,10 @@ if grep -Fq '591e34a8fed6ce9cbe27f483f852bec81153f3eb' .github/workflows/tests.y
 fi
 
 base_bash_libs_pin_count="$(
-  grep -Fc 'ref: 5e52e79a8d6f61f82e5e95a07c75da256642f92e' .github/workflows/tests.yml || true
+  grep -Fc 'ref: 2c5ef2c3a9edfbe2cf68d0645be65b920255abff' .github/workflows/tests.yml || true
 )"
 if [[ "$base_bash_libs_pin_count" -ne 2 ]]; then
-  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the Base v1.7.0-compatible SHA.\n' >&2
+  printf '.github/workflows/tests.yml must pin both base-bash-libs checkouts to the v1.4.0 release commit.\n' >&2
   exit 1
 fi
 
