@@ -1154,7 +1154,7 @@ grep -Fq 'requires-python = ">=3.13,<3.14"' pyproject.toml || {
   exit 1
 }
 
-grep -Fq 'dependencies = ["click", "PyYAML"]' pyproject.toml || {
+grep -Fq 'dependencies = ["base-cli==0.4.1", "click", "PyYAML"]' pyproject.toml || {
   printf 'pyproject.toml does not declare the Base CLI runtime dependencies.\n' >&2
   exit 1
 }
@@ -1169,7 +1169,7 @@ grep -Fq 'name = "base-demo"' uv.lock || {
   exit 1
 }
 
-grep -Fq 'name = "click"' uv.lock && grep -Fq 'name = "pyyaml"' uv.lock || {
+grep -Fq 'name = "base-cli"' uv.lock && grep -Fq 'name = "click"' uv.lock && grep -Fq 'name = "pyyaml"' uv.lock || {
   printf 'uv.lock does not contain the Base CLI runtime dependencies.\n' >&2
   exit 1
 }

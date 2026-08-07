@@ -67,6 +67,8 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Declared `base-cli==0.4.1` explicitly in the uv-managed Python project
+  environment so the reference CLI has a reproducible framework dependency.
 - Aligned Brewfile documentation with the current `mise`, Gradle, and Maven
   dependency set.
 - Clarified the `BASE_DEMO_ENV` health-check story across README, demo text,
