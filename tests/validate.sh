@@ -566,6 +566,21 @@ grep -Fq 'basectl test base-demo --dry-run' README.md || {
   exit 1
 }
 
+grep -Fq 'basectl history --project base-demo --limit 5 --report' README.md || {
+  printf 'README.md does not document the history report command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'history --project "$BASE_DEMO_PROJECT" --limit 5 --report' demo/demo.sh || {
+  printf 'demo/demo.sh does not exercise the history report command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'history-report-observability' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the history report observability contract.\n' >&2
+  exit 1
+}
+
 grep -Fq 'basectl trust allow base-demo' README.md || {
   printf 'README.md does not document the manifest trust approval command.\n' >&2
   exit 1

@@ -58,6 +58,8 @@ and versions are tracked in the repo-root `VERSION` file.
   `basectl repo check --agent-ready` coverage for repo-local agent guidance.
 - Added workspace onboarding and agent-brief coverage for the peer
   `base`/`base-demo` layout.
+- Added `basectl history --report` coverage for the local activity report
+  observability path.
 
 ### Changed
 

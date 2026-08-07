@@ -100,6 +100,7 @@ basectl run base-demo environments -- list
 basectl test base-demo
 basectl logs --limit 3
 basectl history --project base-demo --limit 5
+basectl history --project base-demo --limit 5 --report
 basectl build base-demo
 basectl demo base-demo  # macOS only
 basectl docs --show-url
@@ -172,8 +173,9 @@ The commands above exercise the complete Base project loop:
 - `basectl run base-demo environments -- list` shows the modeled
   `dev`/`staging`/`prod` configuration set.
 - `basectl test base-demo` runs the manifest-declared test command.
-- `basectl logs --limit 3` and `basectl history --project base-demo --limit 5`
-  show the local audit trail for recent Base activity.
+- `basectl logs --limit 3`, `basectl history --project base-demo --limit 5`,
+  and `basectl history --project base-demo --limit 5 --report` show the local
+  audit trail and privacy-conscious activity report for recent Base activity.
 - `basectl build base-demo` runs the default build target (`info`) declared in the manifest.
 - `basectl demo base-demo` runs the macOS project-owned walkthrough.
 - `basectl docs --show-url` prints the Base documentation home page URL without opening a browser.

@@ -439,7 +439,7 @@ test_step() {
 }
 
 observability_step() {
-  local history_output logs_output
+  local history_output logs_output report_output
 
   step 12 "Observability"
   printf 'Showing the recent Base command log index.\n'
@@ -451,6 +451,11 @@ observability_step() {
   history_output="$(capture_command "$BASE_DEMO_BASECTL" history --project "$BASE_DEMO_PROJECT" --limit 5)"
   printf '%s\n' "$history_output"
   require_contains "history command" "$history_output" "$BASE_DEMO_PROJECT"
+
+  printf '\nGenerating a privacy-conscious activity report for this project.\n'
+  report_output="$(capture_command "$BASE_DEMO_BASECTL" history --project "$BASE_DEMO_PROJECT" --limit 5 --report)"
+  printf '%s\n' "$report_output"
+  require_contains "history report" "$report_output" "Base Local Activity Report"
   pause
 }
 
