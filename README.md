@@ -127,7 +127,7 @@ for setup, validation, CI, or the baseline demo.
 
 ## Python CLI Provider Policy
 
-`base-demo` declares `base-cli==0.4.1` in `pyproject.toml` and `uv.lock`. That
+`base-demo` declares `base-cli==0.4.2` in `pyproject.toml` and `uv.lock`. That
 released package is the default provider for the project-owned uv environment,
 local `uv sync --locked`, and the normal wheel-based CI path. Keeping the
 published dependency locked makes the reference project reproducible for new
@@ -309,7 +309,7 @@ deterministic without needing an interactive activated shell.
   language taxonomy, activation source, command, test command, and Brewfile
   location using current Base contracts.
 - `pyproject.toml` and `uv.lock` declare the dependency-manager-owned Python
-  project environment. Its declared runtime dependencies are `base-cli==0.4.1`,
+  project environment. Its declared runtime dependencies are `base-cli==0.4.2`,
   Click, and PyYAML, which the Base-backed Python CLI requires; uv owns the
   environment while Base's Python runtime remains the command wrapper.
   If an older Base-managed environment exists at `~/.base.d/base-demo/.venv`,

@@ -69,6 +69,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Align the declared and CI base-cli provider with the released `0.4.2`
+  framework version.
+
 - Declared `base-cli==0.4.1` explicitly in the uv-managed Python project
   environment so the reference CLI has a reproducible framework dependency.
 - Aligned Brewfile documentation with the current `mise`, Gradle, and Maven

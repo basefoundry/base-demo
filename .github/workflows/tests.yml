@@ -184,7 +184,7 @@ jobs:
 
       - name: Check out base-cli source
         run: |
-          git clone --depth 1 --branch v0.4.1 https://github.com/basefoundry/base-cli.git ../base-cli
+          git clone --depth 1 --branch v0.4.2 https://github.com/basefoundry/base-cli.git ../base-cli
           test -f "$BASE_CLI_SOURCE_DIR/base_cli/__init__.py"
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
