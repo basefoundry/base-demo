@@ -455,7 +455,11 @@ observability_step() {
   printf '\nGenerating a privacy-conscious activity report for this project.\n'
   report_output="$(capture_command "$BASE_DEMO_BASECTL" history --project "$BASE_DEMO_PROJECT" --limit 5 --report)"
   printf '%s\n' "$report_output"
-  require_contains "history report" "$report_output" "Base Local Activity Report"
+  if [[ "$report_output" != *"Base Local Activity Report"* &&
+    "$report_output" != *"$BASE_DEMO_PROJECT"* ]]; then
+    printf 'ERROR: Expected history report output to identify the selected project.\n' >&2
+    return 1
+  fi
   pause
 }
 

@@ -84,6 +84,8 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Fixed
 
+- Kept the non-interactive observability walkthrough compatible with Base's
+  terminal Markdown and machine-readable history-report renderings.
 - Fixed `src/manifest.sh` grep pattern to include `project:` and `  name:` so
   the project name section appears in `basectl run base-demo manifest` output.
 - Fixed `demo/demo.sh` function definition order so `discovery_step` and
