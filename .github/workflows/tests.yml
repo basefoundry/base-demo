@@ -40,15 +40,20 @@ jobs:
           tests/native_services_test.bats
           tests/demo_console_test.bats
 
-      # Pin the released Base version that includes language-profile support.
+      # Pin the immutable Base v2 migration revision used by the prerelease
+      # cutover rehearsal. The v2 GA tag is intentionally still gated by
+      # base-bash-libs#215/#240.
       - name: Check out Base
         run: |
-          git clone --depth 1 --branch v1.7.0 https://github.com/basefoundry/base.git ../base
+          git init ../base
+          git -C ../base remote add origin https://github.com/basefoundry/base.git
+          git -C ../base fetch --depth 1 origin f109dbae3e911641b97aaf68eeeedf6ee27d8c18
+          git -C ../base checkout --detach FETCH_HEAD
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 2c5ef2c3a9edfbe2cf68d0645be65b920255abff
+          ref: 7b2db7b644a9e94852cc4bd006e799b516075a38
           path: .dependencies/base-bash-libs
 
       - name: Set up Base
@@ -190,7 +195,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: bf4deaf077c7de1abf99be6732a36d0e4e12f8ff
+          ref: 7b2db7b644a9e94852cc4bd006e799b516075a38
           path: .dependencies/base-bash-libs
 
       - name: Set up Base with the source provider
@@ -234,12 +239,15 @@ jobs:
 
       - name: Check out Base
         run: |
-          git clone --depth 1 --branch v1.7.0 https://github.com/basefoundry/base.git ../base
+          git init ../base
+          git -C ../base remote add origin https://github.com/basefoundry/base.git
+          git -C ../base fetch --depth 1 origin f109dbae3e911641b97aaf68eeeedf6ee27d8c18
+          git -C ../base checkout --detach FETCH_HEAD
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 2c5ef2c3a9edfbe2cf68d0645be65b920255abff
+          ref: 7b2db7b644a9e94852cc4bd006e799b516075a38
           path: .dependencies/base-bash-libs
 
       - name: Set up Base on Ubuntu

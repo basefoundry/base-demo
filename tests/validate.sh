@@ -203,10 +203,10 @@ grep -Fq 'POLICY_CONTEXT: base/issue-branch-policy' .github/workflows/issue-bran
 }
 
 base_release_pin_count="$(
-  grep -Fc 'git clone --depth 1 --branch v1.7.0 https://github.com/basefoundry/base.git ../base' .github/workflows/tests.yml || true
+  grep -Fc 'git -C ../base fetch --depth 1 origin f109dbae3e911641b97aaf68eeeedf6ee27d8c18' .github/workflows/tests.yml || true
 )"
 if [[ "$base_release_pin_count" -ne 2 ]]; then
-  printf '.github/workflows/tests.yml must pin both released Base checkouts to the v1.7.0 release.\n' >&2
+  printf '.github/workflows/tests.yml must pin both main Base checkouts to the immutable v2 migration commit.\n' >&2
   exit 1
 fi
 
@@ -216,10 +216,10 @@ if grep -Fq '591e34a8fed6ce9cbe27f483f852bec81153f3eb' .github/workflows/tests.y
 fi
 
 base_bash_libs_pin_count="$(
-  grep -Fc 'ref: 2c5ef2c3a9edfbe2cf68d0645be65b920255abff' .github/workflows/tests.yml || true
+  grep -Fc 'ref: 7b2db7b644a9e94852cc4bd006e799b516075a38' .github/workflows/tests.yml || true
 )"
-if [[ "$base_bash_libs_pin_count" -ne 2 ]]; then
-  printf '.github/workflows/tests.yml must pin both released base-bash-libs checkouts to the v1.4.0 release commit.\n' >&2
+if [[ "$base_bash_libs_pin_count" -ne 3 ]]; then
+  printf '.github/workflows/tests.yml must pin every base-bash-libs checkout to the immutable v2 migration commit.\n' >&2
   exit 1
 fi
 
@@ -320,7 +320,7 @@ grep -Fq 'git -C ../base fetch --depth 1 origin cf864252760800161f4189c6f28d2517
   exit 1
 }
 
-grep -Fq 'ref: bf4deaf077c7de1abf99be6732a36d0e4e12f8ff' .github/workflows/tests.yml || {
+grep -Fq 'ref: 7b2db7b644a9e94852cc4bd006e799b516075a38' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not use the v2 base-bash-libs source required by the provider-alignment commit.\n' >&2
   exit 1
 }
