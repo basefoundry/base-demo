@@ -93,10 +93,8 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### CI
 
-- Updated the Base-backed validation jobs to pin the merged Base v2 migration
-  revision and current base-bash-libs v2 contract by full commit, preserving a
-  reproducible prerelease cutover rehearsal without claiming v2 GA.
-- Updated the pinned base-bash-libs checkout to the v1.4.0 release commit.
+- Promoted the Base-backed validation jobs to the merged Base v2.0.0 GA
+  revision and the immutable base-bash-libs v2.0.0 release commit.
 - Updated Base-backed CI to exercise the explicit `project.languages` manifest
   contract from the Base v1.7.0 release with a compatible base-bash-libs pin.
 - Added read-only `basectl devcontainer` and `basectl devenv-report` JSON
