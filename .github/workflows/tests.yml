@@ -40,13 +40,13 @@ jobs:
           tests/native_services_test.bats
           tests/demo_console_test.bats
 
-      # Pin the immutable Base v2 GA revision used by the coordinated
+      # Pin the published Base v1.8.0 release used by the coordinated
       # base-bash-libs v2.0.0 cutover.
       - name: Check out Base
         run: |
           git init ../base
           git -C ../base remote add origin https://github.com/basefoundry/base.git
-          git -C ../base fetch --depth 1 origin fadbc0ef3665e336791ef5207b96a494b7e469a9
+          git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3ae9bc920
           git -C ../base checkout --detach FETCH_HEAD
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -177,13 +177,13 @@ jobs:
       - name: Install Bash and BATS
         run: brew install bash bats-core
 
-      # Base v1.7.0 predates the extracted provider contract. Pin the merged
-      # Base alignment commit that introduced BASE_CLI_SOURCE_DIR support.
+      # Pin the published Base v1.8.0 release, which includes the extracted
+      # provider contract used by this source-compatibility job.
       - name: Check out Base source-provider compatibility revision
         run: |
           git init ../base
           git -C ../base remote add origin https://github.com/basefoundry/base.git
-          git -C ../base fetch --depth 1 origin fadbc0ef3665e336791ef5207b96a494b7e469a9
+          git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3ae9bc920
           git -C ../base checkout --detach FETCH_HEAD
 
       - name: Check out base-cli source
@@ -240,7 +240,7 @@ jobs:
         run: |
           git init ../base
           git -C ../base remote add origin https://github.com/basefoundry/base.git
-          git -C ../base fetch --depth 1 origin fadbc0ef3665e336791ef5207b96a494b7e469a9
+          git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3ae9bc920
           git -C ../base checkout --detach FETCH_HEAD
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4

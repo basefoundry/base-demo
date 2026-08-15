@@ -96,11 +96,12 @@ and versions are tracked in the repo-root `VERSION` file.
 - Promoted the Base-backed validation jobs to the merged Base v2.0.0 GA
   revision and the immutable base-bash-libs v2.0.0 release commit.
 - Updated Base-backed CI to exercise the explicit `project.languages` manifest
-  contract from the Base v1.7.0 release with a compatible base-bash-libs pin.
+  contract from the Base v1.8.0 release with the compatible base-bash-libs
+  v2.0.0 pin.
 - Added read-only `basectl devcontainer` and `basectl devenv-report` JSON
   checks so Base-generated environment compatibility stays visible on macOS and
   Ubuntu CI.
-- Added the Base issue-branch policy workflow required by the Base v1.7.0 repo
+- Added the Base issue-branch policy workflow required by the Base v1.8.0 repo
   baseline.
 - Switched the documented CI-safe project health command from the compatibility
   `basectl ci check` alias to `basectl check --ci`.
