@@ -40,20 +40,19 @@ jobs:
           tests/native_services_test.bats
           tests/demo_console_test.bats
 
-      # Pin the immutable Base v2 migration revision used by the prerelease
-      # cutover rehearsal. The v2 GA tag is intentionally still gated by
-      # base-bash-libs#215/#240.
+      # Pin the immutable Base v2 GA revision used by the coordinated
+      # base-bash-libs v2.0.0 cutover.
       - name: Check out Base
         run: |
           git init ../base
           git -C ../base remote add origin https://github.com/basefoundry/base.git
-          git -C ../base fetch --depth 1 origin f109dbae3e911641b97aaf68eeeedf6ee27d8c18
+          git -C ../base fetch --depth 1 origin fadbc0ef3665e336791ef5207b96a494b7e469a9
           git -C ../base checkout --detach FETCH_HEAD
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: c134fb8a3397e2cfee1d90845cec44f56dacae7b
+          ref: b4243765726c133499feeabdc50154f99c0fec12
           path: .dependencies/base-bash-libs
 
       - name: Set up Base
@@ -184,7 +183,7 @@ jobs:
         run: |
           git init ../base
           git -C ../base remote add origin https://github.com/basefoundry/base.git
-          git -C ../base fetch --depth 1 origin cf864252760800161f4189c6f28d2517f3a6588e
+          git -C ../base fetch --depth 1 origin fadbc0ef3665e336791ef5207b96a494b7e469a9
           git -C ../base checkout --detach FETCH_HEAD
 
       - name: Check out base-cli source
@@ -195,7 +194,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: c134fb8a3397e2cfee1d90845cec44f56dacae7b
+          ref: b4243765726c133499feeabdc50154f99c0fec12
           path: .dependencies/base-bash-libs
 
       - name: Set up Base with the source provider
@@ -241,13 +240,13 @@ jobs:
         run: |
           git init ../base
           git -C ../base remote add origin https://github.com/basefoundry/base.git
-          git -C ../base fetch --depth 1 origin f109dbae3e911641b97aaf68eeeedf6ee27d8c18
+          git -C ../base fetch --depth 1 origin fadbc0ef3665e336791ef5207b96a494b7e469a9
           git -C ../base checkout --detach FETCH_HEAD
 
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: c134fb8a3397e2cfee1d90845cec44f56dacae7b
+          ref: b4243765726c133499feeabdc50154f99c0fec12
           path: .dependencies/base-bash-libs
 
       - name: Set up Base on Ubuntu
