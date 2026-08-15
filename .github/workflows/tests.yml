@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 7b2db7b644a9e94852cc4bd006e799b516075a38
+          ref: c134fb8a3397e2cfee1d90845cec44f56dacae7b
           path: .dependencies/base-bash-libs
 
       - name: Set up Base
@@ -195,7 +195,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 7b2db7b644a9e94852cc4bd006e799b516075a38
+          ref: c134fb8a3397e2cfee1d90845cec44f56dacae7b
           path: .dependencies/base-bash-libs
 
       - name: Set up Base with the source provider
@@ -247,7 +247,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: 7b2db7b644a9e94852cc4bd006e799b516075a38
+          ref: c134fb8a3397e2cfee1d90845cec44f56dacae7b
           path: .dependencies/base-bash-libs
 
       - name: Set up Base on Ubuntu
