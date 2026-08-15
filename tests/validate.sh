@@ -203,10 +203,10 @@ grep -Fq 'POLICY_CONTEXT: base/issue-branch-policy' .github/workflows/issue-bran
 }
 
 base_release_pin_count="$(
-  grep -Fc 'git -C ../base fetch --depth 1 origin fadbc0ef3665e336791ef5207b96a494b7e469a9' .github/workflows/tests.yml || true
+  grep -Fc 'git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3ae9bc920' .github/workflows/tests.yml || true
 )"
 if [[ "$base_release_pin_count" -ne 3 ]]; then
-  printf '.github/workflows/tests.yml must pin every Base checkout to the immutable v2.0.0 GA commit.\n' >&2
+  printf '.github/workflows/tests.yml must pin every Base checkout to the immutable v1.8.0 release commit.\n' >&2
   exit 1
 fi
 
@@ -315,13 +315,13 @@ grep -Fq 'git clone --depth 1 --branch v0.4.2 https://github.com/basefoundry/bas
   exit 1
 }
 
-grep -Fq 'git -C ../base fetch --depth 1 origin fadbc0ef3665e336791ef5207b96a494b7e469a9' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not pin the source compatibility job to the Base GA commit.\n' >&2
+grep -Fq 'git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3ae9bc920' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the source compatibility job to the Base v1.8.0 release commit.\n' >&2
   exit 1
 }
 
 grep -Fq 'ref: b4243765726c133499feeabdc50154f99c0fec12' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not use the v2.0.0 GA base-bash-libs source required by the Base GA commit.\n' >&2
+  printf '.github/workflows/tests.yml does not use the v2.0.0 GA base-bash-libs source required by the Base v1.8.0 release.\n' >&2
   exit 1
 }
 
