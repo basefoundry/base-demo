@@ -216,10 +216,10 @@ if grep -Fq '591e34a8fed6ce9cbe27f483f852bec81153f3eb' .github/workflows/tests.y
 fi
 
 base_bash_libs_pin_count="$(
-  grep -Fc 'ref: 7b2db7b644a9e94852cc4bd006e799b516075a38' .github/workflows/tests.yml || true
+  grep -Fc 'ref: c134fb8a3397e2cfee1d90845cec44f56dacae7b' .github/workflows/tests.yml || true
 )"
 if [[ "$base_bash_libs_pin_count" -ne 3 ]]; then
-  printf '.github/workflows/tests.yml must pin every base-bash-libs checkout to the immutable v2 migration commit.\n' >&2
+  printf '.github/workflows/tests.yml must pin every base-bash-libs checkout to the immutable v2.0.0-rc.1 commit.\n' >&2
   exit 1
 fi
 
@@ -320,8 +320,8 @@ grep -Fq 'git -C ../base fetch --depth 1 origin cf864252760800161f4189c6f28d2517
   exit 1
 }
 
-grep -Fq 'ref: 7b2db7b644a9e94852cc4bd006e799b516075a38' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not use the v2 base-bash-libs source required by the provider-alignment commit.\n' >&2
+grep -Fq 'ref: c134fb8a3397e2cfee1d90845cec44f56dacae7b' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not use the v2.0.0-rc.1 base-bash-libs source required by the provider-alignment commit.\n' >&2
   exit 1
 }
 
