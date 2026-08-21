@@ -45,6 +45,7 @@ class BaseDemoCliTests(unittest.TestCase):
                 home=home,
                 cwd=project,
                 env={
+                    "BASE_CLI_SOURCE": "explicit",
                     "BASE_PROJECT": "base-demo",
                     "BASE_DEMO_ENV": "baseline",
                     "BASE_OS": "macos",
@@ -55,6 +56,7 @@ class BaseDemoCliTests(unittest.TestCase):
         self.assertEqual(result.exit_code, base_cli.ExitCode.SUCCESS, result.output)
         self.assertIn("BASE_PROJECT=base-demo", result.output)
         self.assertIn("BASE_DEMO_ENV=baseline", result.output)
+        self.assertIn("BASE_CLI_SOURCE=explicit", result.output)
         self.assertIn("BASE_OS=macos", result.output)
         self.assertNotIn("BASE_INTERNAL_DIAGNOSTIC", result.output)
         self.assertNotIn("not-public", result.output)

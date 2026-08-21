@@ -11,6 +11,7 @@ app = base_cli.App(name="base_demo_cli")
 
 _PUBLIC_BASE_ENVIRONMENT_NAMES = frozenset(
     {
+        "BASE_CLI_SOURCE",
         "BASE_DEMO_ACTIVATED",
         "BASE_DEMO_ENV",
         "BASE_DEMO_PROJECT_KIND",
