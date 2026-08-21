@@ -44,12 +44,49 @@ class BaseDemoCliTests(unittest.TestCase):
                 ["env"],
                 home=home,
                 cwd=project,
-                env={"BASE_PROJECT": "base-demo", "BASE_DEMO_ENV": "baseline"},
+                env={
+                    "BASE_PROJECT": "base-demo",
+                    "BASE_DEMO_ENV": "baseline",
+                    "BASE_OS": "macos",
+                    "BASE_INTERNAL_DIAGNOSTIC": "not-public",
+                },
             )
 
         self.assertEqual(result.exit_code, base_cli.ExitCode.SUCCESS, result.output)
         self.assertIn("BASE_PROJECT=base-demo", result.output)
         self.assertIn("BASE_DEMO_ENV=baseline", result.output)
+        self.assertIn("BASE_OS=macos", result.output)
+        self.assertNotIn("BASE_INTERNAL_DIAGNOSTIC", result.output)
+        self.assertNotIn("not-public", result.output)
+
+    def test_env_redacts_secret_bearing_base_environment(self) -> None:
+        secrets = {
+            "BASE_PROJECT_TOKEN": "review-only-secret",
+            "BASE_API_KEY": "fake-api-key",
+            "BASE_PASSWORD": "fake-password",
+            "BASE_CLIENT_SECRET": "fake-client-secret",
+            "BASE_DEPLOY_CREDENTIAL": "fake-credential",
+            "BASE_AUTHORIZATION": "Bearer fake-authorization",
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home = Path(tmpdir) / "home"
+            project = Path(tmpdir) / "workspace" / "base-demo"
+            project.mkdir(parents=True)
+
+            result = invoke(
+                app,
+                ["env"],
+                home=home,
+                cwd=project,
+                env={"BASE_PROJECT": "base-demo", **secrets},
+            )
+
+        self.assertEqual(result.exit_code, base_cli.ExitCode.SUCCESS, result.output)
+        self.assertIn("BASE_PROJECT=base-demo", result.output)
+        for name, value in secrets.items():
+            with self.subTest(name=name):
+                self.assertIn(f"{name}=[REDACTED]", result.output)
+                self.assertNotIn(value, result.output)
 
     def test_debug_logs_from_info(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -136,6 +136,11 @@ case "$*" in
     printf 'BASE_PROJECT=base-demo\n'
     printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
     ;;
+  run\ base-demo\ --workspace\ *\ python-info\ --\ env)
+    printf 'BASE_PROJECT=base-demo\n'
+    printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
+    printf 'BASE_PROJECT_TOKEN=%s\n' "${BASE_PROJECT_TOKEN:?}"
+    ;;
   run\ base-demo\ --workspace\ *\ env)
     printf 'BASE_PROJECT=base-demo\n'
     printf 'BASE_OS=macos\n'
@@ -157,10 +162,6 @@ case "$*" in
     printf 'project_name=base-demo\n'
     printf 'project_root=%s\n' "${BASE_PROJECT_ROOT:?}"
     printf 'workspace_root=%s\n' "$(dirname "${BASE_PROJECT_ROOT:?}")"
-    ;;
-  run\ base-demo\ --workspace\ *\ python-info\ --\ env)
-    printf 'BASE_PROJECT=base-demo\n'
-    printf 'BASE_DEMO_ENV=%s\n' "${BASE_DEMO_ENV:-unset}"
     ;;
   run\ base-demo\ --workspace\ *\ python-info\ --\ --debug\ info)
     printf 'DEBUG base_demo_cli info command\n' >&2
@@ -271,6 +272,7 @@ EOF
   run env \
     BASE_PROJECT=base-demo \
     BASE_PROJECT_ROOT="$TEST_ROOT" \
+    BASE_PROJECT_TOKEN=review-only-secret \
     BASE_DEMO_BASECTL="$fake_bin/basectl" \
     BASE_DEMO_TEST_STATE="$state_file" \
     "$TEST_ROOT/demo/demo.sh" --non-interactive
@@ -322,6 +324,8 @@ EOF
   [[ "$output" == *"dev ok"* ]]
   [[ "$output" == *"prod ok"* ]]
   [[ "$output" == *"BASE_DEMO_ENV=baseline"* ]]
+  [[ "$output" == *"BASE_PROJECT_TOKEN=[REDACTED]"* ]]
+  [[ "$output" != *"review-only-secret"* ]]
   [[ "$output" == *"BASE_OS=macos"* ]]
   [[ "$output" == *"BASE_PLATFORM=macos"* ]]
   [[ "$output" == *"BASE_HOST_ENV=native"* ]]

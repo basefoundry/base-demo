@@ -3,10 +3,32 @@
 from __future__ import annotations
 
 import os
+import re
 
 import base_cli
 
 app = base_cli.App(name="base_demo_cli")
+
+_PUBLIC_BASE_ENVIRONMENT_NAMES = frozenset(
+    {
+        "BASE_DEMO_ACTIVATED",
+        "BASE_DEMO_ENV",
+        "BASE_DEMO_PROJECT_KIND",
+        "BASE_HOST",
+        "BASE_HOST_ENV",
+        "BASE_OS",
+        "BASE_PLATFORM",
+        "BASE_PROJECT",
+        "BASE_PROJECT_MANIFEST",
+        "BASE_PROJECT_ROOT",
+        "BASE_PROJECT_VENV_DIR",
+    }
+)
+_SENSITIVE_BASE_ENVIRONMENT_NAME = re.compile(
+    r"(?:^|_)(?:TOKEN|KEY|APIKEY|PASSWORD|SECRET|CREDENTIALS?|AUTHORIZATION)(?:_|$)",
+    re.IGNORECASE,
+)
+_REDACTED = "[REDACTED]"
 
 
 def _project_name(ctx: base_cli.Context) -> str:
@@ -30,10 +52,13 @@ def info(ctx: base_cli.Context) -> int:
 
 @app.subcommand()
 def env(ctx: base_cli.Context) -> int:
-    """Show BASE_* environment variables visible to the project command."""
+    """Show the public Base environment visible to the project command."""
     ctx.log.debug("base_demo_cli env command")
     for key in sorted(name for name in os.environ if name.startswith("BASE_")):
-        print(f"{key}={os.environ[key]}")
+        if _SENSITIVE_BASE_ENVIRONMENT_NAME.search(key):
+            print(f"{key}={_REDACTED}")
+        elif key in _PUBLIC_BASE_ENVIRONMENT_NAMES:
+            print(f"{key}={os.environ[key]}")
     return base_cli.ExitCode.SUCCESS
 
 
