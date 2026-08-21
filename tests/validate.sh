@@ -928,6 +928,7 @@ for contract in \
   activation-owned-env \
   manifest-artifacts \
   runtime-platform-env \
+  python-env-privacy \
   installer-checksum \
   service-log-permissions \
   ci-pinned-dependencies \

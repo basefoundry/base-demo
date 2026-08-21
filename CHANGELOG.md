@@ -84,6 +84,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Fixed
 
+- Redacted secret-bearing `BASE_*` values from the Python environment
+  inspection command and the walkthrough while limiting raw output to the
+  documented public diagnostics.
 - Kept the non-interactive observability walkthrough compatible with Base's
   terminal Markdown and machine-readable history-report renderings.
 - Fixed `src/manifest.sh` grep pattern to include `project:` and `  name:` so

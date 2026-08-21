@@ -219,8 +219,10 @@ The commands above exercise the complete Base project loop:
   activation values.
 - `basectl run base-demo python-info -- info` shows Base context values from
   `base_cli.Context`.
-- `basectl run base-demo python-info -- env` shows the `BASE_*` environment
-  visible to the Python command.
+- `basectl run base-demo python-info -- env` shows the documented public
+  `BASE_*` diagnostics visible to the Python command. Secret-looking names are
+  retained with a `[REDACTED]` value, and other undeclared `BASE_*` variables
+  are omitted rather than turning the command into a general environment dump.
 - `basectl run base-demo services -- status` shows the representative service
   catalog and current health state.
 - `basectl run base-demo environments -- list` shows the modeled
@@ -287,6 +289,12 @@ BASE_DEMO_ENV=baseline
 $ basectl test base-demo
 Repository baseline is present.
 ```
+
+The Python `env` subcommand exposes the same project and runtime diagnostics as
+the shell `env` command. If a secret-bearing name such as
+`BASE_PROJECT_TOKEN` is present, its value is printed as `[REDACTED]`; arbitrary
+non-public `BASE_*` values are not printed. The walkthrough applies the same
+redaction before displaying captured environment output.
 
 ## BASE_DEMO_ENV Health Check
 

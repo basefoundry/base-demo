@@ -120,6 +120,42 @@ capture_command() {
   printf '%s\n' "$output"
 }
 
+redact_secret_environment_output() {
+  local line name normalized_name
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" == BASE_*=* ]]; then
+      name="${line%%=*}"
+      normalized_name="${name^^}"
+      if [[ "$normalized_name" =~ (^|_)(TOKEN|KEY|APIKEY|PASSWORD|SECRET|CREDENTIALS?|AUTHORIZATION)($|_) ]]; then
+        printf '%s=[REDACTED]\n' "$name"
+        continue
+      fi
+    fi
+    printf '%s\n' "$line"
+  done
+}
+
+capture_redacted_environment_command() {
+  local output status=0
+
+  printf '  $'
+  printf ' %q' "$@"
+  printf '\n\n'
+
+  if output="$("$@" 2>&1)"; then
+    :
+  else
+    status=$?
+  fi
+  printf '%s\n' "$output" | redact_secret_environment_output
+
+  if ((status != 0)); then
+    printf '\nDemo step failed while running the command above.\n' >&2
+    return 1
+  fi
+}
+
 capture_observed_command() {
   local output status
 
@@ -372,7 +408,7 @@ inspection_step() {
   require_contains "python command" "$python_output" "project_name=base-demo"
 
   printf '\nConfirming the Python env subcommand sees Base activation state.\n'
-  python_env_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" python-info -- env)"
+  python_env_output="$(capture_redacted_environment_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" python-info -- env)"
   printf '%s\n' "$python_env_output"
   require_contains "python env command" "$python_env_output" "BASE_PROJECT=base-demo"
 
