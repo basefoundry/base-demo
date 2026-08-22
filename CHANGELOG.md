@@ -69,6 +69,11 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Bound Compose ports to loopback, removed fixed container names, and scoped
+  Compose project identities to the checkout and active environment, with an
+  explicit automation override and documented disposable-image/credential
+  boundaries.
+
 - Align the declared and CI base-cli provider with the released `0.4.2`
   framework version.
 

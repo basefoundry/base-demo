@@ -119,6 +119,23 @@ These dependencies are optional for `services check` until they are started.
 That keeps the default validation path stable on machines without Docker while
 still giving the main demo a real Compose-backed infrastructure surface.
 
+Every published Compose port binds explicitly to `127.0.0.1`. The checked-in
+database passwords and unauthenticated Redis instance are disposable local-demo
+settings; they are not a secret-management example and must not be reused for a
+shared or remotely reachable environment. Compose owns container names, while
+`bin/base-demo-services` derives its project name from the resolved checkout
+path and active environment. This lets worktrees address distinct projects and
+keeps lifecycle and log commands scoped to the invoking checkout. Automation
+can provide a valid lowercase project name through `BASE_DEMO_COMPOSE_PROJECT`.
+Fixed host ports still mean only one checkout can bind each port concurrently.
+
+The upstream database and cache images use narrow mutable development tags so
+the same file remains portable across supported architectures. Dependency
+maintenance should explicitly pull, review release notes, render `docker
+compose -f infra/compose.yaml config`, and run the full suite. Immutable digests
+and image provenance belong to a production deployment contract, outside this
+demo's scope.
+
 The first Dockerized application fixture is `services/go-api`. It exposes
 `/healthz`, `/hello`, and `/info` on port 8010 and is registered in both
 `services/catalog.json` and `infra/compose.yaml`.

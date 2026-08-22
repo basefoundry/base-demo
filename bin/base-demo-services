@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import re
 import signal
 import shlex
 import shutil
@@ -68,6 +70,23 @@ def load_catalog(path: Path) -> list[dict[str, Any]]:
 
 def compose_file(root: Path) -> Path:
     return root / "infra" / "compose.yaml"
+
+
+def compose_project_name(root: Path, environment_name: str) -> str:
+    override = os.environ.get("BASE_DEMO_COMPOSE_PROJECT")
+    if override is not None:
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", override):
+            raise ValueError(
+                "BASE_DEMO_COMPOSE_PROJECT must start with a lowercase letter or digit "
+                "and contain only lowercase letters, digits, hyphens, or underscores"
+            )
+        return override
+
+    environment_slug = re.sub(r"[^a-z0-9]+", "-", environment_name.lower()).strip("-")
+    if not environment_slug:
+        raise ValueError("environment name cannot derive an empty Compose project segment")
+    checkout_digest = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:10]
+    return f"base-demo-{environment_slug}-{checkout_digest}"
 
 
 def compose_service_names(services: list[dict[str, Any]]) -> list[str]:
@@ -305,38 +324,45 @@ def compose_state_service_name(service: dict[str, Any]) -> str | None:
     return None
 
 
-def compose_service_has_state(service: dict[str, Any], root: Path) -> bool:
+def compose_service_has_state(
+    service: dict[str, Any], root: Path, compose_project: str
+) -> bool:
     service_name = compose_state_service_name(service)
     if service_name is None or shutil.which("docker") is None:
         return False
-    command = compose_command(root, ["ps", "--services", "--all"])
+    command = compose_command(root, compose_project, ["ps", "--services", "--all"])
     result = subprocess.run(command, check=False, capture_output=True, text=True)
     if result.returncode != 0:
         return False
     return service_name in set(result.stdout.splitlines())
 
 
-def service_has_start_state(service: dict[str, Any], root: Path, process_state: dict[str, Any] | None) -> bool:
+def service_has_start_state(
+    service: dict[str, Any],
+    root: Path,
+    compose_project: str,
+    process_state: dict[str, Any] | None,
+) -> bool:
     lifecycle = service.get("lifecycle") or {}
     if lifecycle.get("type") == "process":
         return inspect_process_state(service, process_state).kind == "running"
-    return compose_service_has_state(service, root)
+    return compose_service_has_state(service, root, compose_project)
 
 
-def compose_command(root: Path, args: list[str]) -> list[str]:
+def compose_command(root: Path, compose_project: str, args: list[str]) -> list[str]:
     return [
         "docker",
         "compose",
         "-f",
         str(compose_file(root)),
         "-p",
-        "base-demo",
+        compose_project,
         *args,
     ]
 
 
-def run_compose(root: Path, args: list[str]) -> int:
-    command = compose_command(root, args)
+def run_compose(root: Path, compose_project: str, args: list[str]) -> int:
+    command = compose_command(root, compose_project, args)
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN {shlex.join(command)}")
         return SUCCESS
@@ -346,7 +372,7 @@ def run_compose(root: Path, args: list[str]) -> int:
     return subprocess.run(command, check=False).returncode
 
 
-def start_process(service: dict[str, Any], root: Path) -> int:
+def start_process(service: dict[str, Any], root: Path, compose_project: str) -> int:
     name = str(service.get("name", "-"))
     try:
         command = process_command(service)
@@ -420,7 +446,7 @@ def start_process(service: dict[str, Any], root: Path) -> int:
             remove_process_state(state_path)
             print(f"ERROR: {name} exited during startup with status {return_code}.", file=sys.stderr)
             return FAILURE
-        last_result = check_service(service, root)
+        last_result = check_service(service, root, compose_project)
         if last_result.ok and time.monotonic() >= survival_deadline:
             print(f"{name} started pid={process.pid}")
             return SUCCESS
@@ -465,7 +491,9 @@ def stop_process(service: dict[str, Any], root: Path) -> int:
     return SUCCESS
 
 
-def check_service(service: dict[str, Any], root: Path) -> CheckResult:
+def check_service(
+    service: dict[str, Any], root: Path, compose_project: str
+) -> CheckResult:
     check = service.get("check") or {"type": "none"}
     check_type = check.get("type")
 
@@ -510,7 +538,9 @@ def check_service(service: dict[str, Any], root: Path) -> CheckResult:
         label = f"compose:{service_name}"
         if shutil.which("docker") is None:
             return CheckResult(False, label, f"{label} unavailable")
-        command = compose_command(root, ["ps", "--services", "--status", "running"])
+        command = compose_command(
+            root, compose_project, ["ps", "--services", "--status", "running"]
+        )
         result = subprocess.run(command, check=False, capture_output=True, text=True)
         running = set(result.stdout.splitlines())
         return CheckResult(service_name in running, label, label)
@@ -530,11 +560,13 @@ def check_service(service: dict[str, Any], root: Path) -> CheckResult:
     return CheckResult(False, detail, detail)
 
 
-def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, str]]:
+def service_rows(
+    services: list[dict[str, Any]], root: Path, compose_project: str
+) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for service in services:
         process_state = read_process_state(root, service)
-        check_result = check_service(service, root)
+        check_result = check_service(service, root, compose_project)
         if check_result.ok:
             state = "healthy"
         elif service.get("required", False):
@@ -543,7 +575,7 @@ def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, s
             service, process_state
         ).kind == "mismatch":
             state = "error"
-        elif service_has_start_state(service, root, process_state):
+        elif service_has_start_state(service, root, compose_project, process_state):
             state = "error"
         else:
             state = "stopped"
@@ -581,12 +613,18 @@ def print_table(rows: list[dict[str, str]]) -> None:
         print("  ".join(row[key].ljust(widths[key]) for key in keys))
 
 
-def cmd_status(services: list[dict[str, Any]], root: Path, environment: dict[str, Any]) -> int:
+def cmd_status(
+    services: list[dict[str, Any]],
+    root: Path,
+    environment: dict[str, Any],
+    compose_project: str,
+) -> int:
     env_name = str(environment.get("name", "dev"))
     print(f"environment={env_name}")
     print(f"mode={environment.get('mode', 'operational')}")
     print(f"operational={str(environment.get('operational', False)).lower()}")
-    rows = service_rows(services, root)
+    print(f"compose_project={compose_project}")
+    rows = service_rows(services, root, compose_project)
     if not rows:
         print("No services configured.")
         return SUCCESS
@@ -594,9 +632,9 @@ def cmd_status(services: list[dict[str, Any]], root: Path, environment: dict[str
     return SUCCESS
 
 
-def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
+def cmd_check(services: list[dict[str, Any]], root: Path, compose_project: str) -> int:
     failed = False
-    for row in service_rows(services, root):
+    for row in service_rows(services, root, compose_project):
         if row["state"] == "healthy":
             print(f"{row['name']} ok")
             continue
@@ -612,23 +650,25 @@ def cmd_check(services: list[dict[str, Any]], root: Path) -> int:
     return FAILURE if failed else SUCCESS
 
 
-def cmd_lifecycle(services: list[dict[str, Any]], root: Path, action: str) -> int:
+def cmd_lifecycle(
+    services: list[dict[str, Any]], root: Path, compose_project: str, action: str
+) -> int:
     if action == "restart":
-        stop_result = cmd_lifecycle(services, root, "stop")
-        start_result = cmd_lifecycle(services, root, "start")
+        stop_result = cmd_lifecycle(services, root, compose_project, "stop")
+        start_result = cmd_lifecycle(services, root, compose_project, "start")
         return stop_result or start_result
 
     result = 0
     compose_names = compose_service_names(services)
     if compose_names:
         if action == "start":
-            result = run_compose(root, ["up", "-d", *compose_names])
+            result = run_compose(root, compose_project, ["up", "-d", *compose_names])
         if action == "stop":
-            result = run_compose(root, ["stop", *compose_names])
+            result = run_compose(root, compose_project, ["stop", *compose_names])
 
     for service in process_services(services):
         if action == "start":
-            process_result = start_process(service, root)
+            process_result = start_process(service, root, compose_project)
             result = result or process_result
         if action == "stop":
             process_result = stop_process(service, root)
@@ -636,11 +676,13 @@ def cmd_lifecycle(services: list[dict[str, Any]], root: Path, action: str) -> in
     return result
 
 
-def cmd_logs(services: list[dict[str, Any]], root: Path) -> int:
+def cmd_logs(services: list[dict[str, Any]], root: Path, compose_project: str) -> int:
     result = 0
     compose_names = compose_service_names(services)
     if compose_names:
-        result = run_compose(root, ["logs", "--tail", "50", *compose_names])
+        result = run_compose(
+            root, compose_project, ["logs", "--tail", "50", *compose_names]
+        )
     for service in process_services(services):
         name = service.get("name", "-")
         log_path = process_log_path(root, service)
@@ -675,6 +717,11 @@ def main(argv: list[str] | None = None) -> int:
     rejected = reject_modeled_lifecycle(environment, args.command)
     if rejected is not None:
         return rejected
+    try:
+        compose_project = compose_project_name(root, str(environment["name"]))
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return USAGE_ERROR
 
     catalog_path = Path(args.catalog).resolve()
     services = select_environment_services(
@@ -684,13 +731,13 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     if args.command == "status":
-        return cmd_status(services, root, environment)
+        return cmd_status(services, root, environment, compose_project)
     if args.command == "check":
-        return cmd_check(services, root)
+        return cmd_check(services, root, compose_project)
     if args.command in {"start", "stop", "restart"}:
-        return cmd_lifecycle(services, root, args.command)
+        return cmd_lifecycle(services, root, compose_project, args.command)
     if args.command == "logs":
-        return cmd_logs(services, root)
+        return cmd_logs(services, root, compose_project)
 
     raise AssertionError(f"unhandled command: {args.command}")
 

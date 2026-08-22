@@ -436,6 +436,26 @@ Postgres, MySQL, Redis, and the Dockerized Go API are declared through
 console services. They are representative dependencies and services, and they
 are optional in `services check` until started.
 
+Compose publishes every development port on `127.0.0.1`; it does not expose
+these fixtures to the LAN. The checked-in Postgres and MySQL passwords and the
+unauthenticated Redis service are deliberately disposable local examples, not
+credentials or configurations for shared, remote, staging, or production use.
+Destroy and recreate the containers instead of preserving data that matters.
+
+The `services` command derives a stable Compose project name from the resolved
+checkout path and active environment. Separate worktrees therefore get separate
+container identities, while `stop` and `logs` stay scoped to the worktree that
+invoked them. Automation may set `BASE_DEMO_COMPOSE_PROJECT` to a valid explicit
+lowercase Compose project name. The published host ports remain fixed, so only
+one checkout can bind a given port at a time.
+
+The public infrastructure images intentionally track narrow development tags
+(`postgres:16-alpine`, `mysql:8.4`, and `redis:7-alpine`) instead of checked-in
+platform-specific digests. Refresh them by pulling during normal dependency
+maintenance and validate `docker compose -f infra/compose.yaml config` plus the
+full repository suite before accepting an image update. Production consumers
+must define their own immutable image and provenance policy.
+
 Both Gradle and Maven are present intentionally. They are common enough in real
 enterprise Java estates that a medium-shaped demo should exercise both build
 tool contracts, even when the service behavior stays hello-world small.
