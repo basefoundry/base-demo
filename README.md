@@ -348,7 +348,11 @@ deterministic without needing an interactive activated shell.
   process fixtures with Makefile-backed builds. They intentionally claim no
   network port; lifecycle health requires a matching live process-state record.
 - `services/demo-console` is a small React/Vite operational console that reads
-  the service catalog and shows the representative stack.
+  the service catalog and shows the representative stack. Its build is a real
+  production compilation gate: use Node 22.22.0 with npm 10.9.4, run `npm ci`
+  in `services/demo-console`, and then run `npm run build` plus `npm run audit`.
+  The audit gate fails at moderate severity or higher, and a successful build
+  must create `dist/index.html` plus a JavaScript asset.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the
   `services` lifecycle command for the representative environment.
 - `bin/base-demo-environments` lists, shows, and validates environment

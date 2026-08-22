@@ -16,6 +16,24 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.22.0
+          cache: npm
+          cache-dependency-path: services/demo-console/package-lock.json
+
+      - name: Install demo console dependencies
+        working-directory: services/demo-console
+        run: npm ci
+
+      - name: Build and audit demo console
+        working-directory: services/demo-console
+        run: |
+          npm run build
+          npm run audit
+          test -f dist/index.html
+          find dist/assets -type f -name '*.js' -print -quit | grep -q .
+
       - name: Install Bash and BATS
         run: brew install bash bats-core
 
@@ -232,6 +250,24 @@ jobs:
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.22.0
+          cache: npm
+          cache-dependency-path: services/demo-console/package-lock.json
+
+      - name: Install demo console dependencies
+        working-directory: services/demo-console
+        run: npm ci
+
+      - name: Build and audit demo console
+        working-directory: services/demo-console
+        run: |
+          npm run build
+          npm run audit
+          test -f dist/index.html
+          find dist/assets -type f -name '*.js' -print -quit | grep -q .
 
       - name: Install Ubuntu prerequisites
         run: sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip jq

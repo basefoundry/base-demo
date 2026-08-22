@@ -562,10 +562,44 @@ grep -Fq '"runtime": "react-vite"' services/catalog.json || {
   exit 1
 }
 
-if command -v node >/dev/null 2>&1; then
-  services/demo-console/build.sh || exit 1
-else
-  printf 'Skipping demo-console validation because node is not available.\n'
+if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+  printf 'Node and npm are required to validate the demo console build.\n' >&2
+  exit 1
+fi
+
+services/demo-console/build.sh || exit 1
+
+[[ -f services/demo-console/dist/index.html ]] || {
+  printf 'demo-console validation did not create dist/index.html.\n' >&2
+  exit 1
+}
+
+find services/demo-console/dist/assets -type f -name '*.js' -print -quit | grep -q . || {
+  printf 'demo-console validation did not create a JavaScript entry artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq '"lockfileVersion": 3' services/demo-console/package-lock.json || {
+  printf 'demo-console package-lock.json must use the npm 10 lockfile format.\n' >&2
+  exit 1
+}
+
+for frontend_ci_contract in \
+  'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020' \
+  'node-version: 22.22.0' \
+  'run: npm ci' \
+  'npm run build' \
+  'npm run audit'; do
+  frontend_ci_count="$(grep -Fc "$frontend_ci_contract" .github/workflows/tests.yml || true)"
+  if [[ "$frontend_ci_count" -lt 2 ]]; then
+    printf '.github/workflows/tests.yml must enforce frontend contract in macOS and Ubuntu CI: %s.\n' "$frontend_ci_contract" >&2
+    exit 1
+  fi
+done
+
+if grep -Fq 'Skipping demo-console Vite build' services/demo-console/build.sh; then
+  printf 'demo-console build must not skip Vite compilation.\n' >&2
+  exit 1
 fi
 
 for environment in dev staging prod; do

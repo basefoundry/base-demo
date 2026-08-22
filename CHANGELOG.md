@@ -69,6 +69,10 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Made the React/Vite console a required compiled CI artifact on macOS and
+  Ubuntu, added a moderate-severity npm audit gate, and refreshed the lockfile
+  to remove known `nanoid` and `postcss` advisories.
+
 - Bound Compose ports to loopback, removed fixed container names, and scoped
   Compose project identities to the checkout and active environment, with an
   explicit automation override and documented disposable-image/credential

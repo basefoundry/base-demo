@@ -6,4 +6,4 @@ service_dir() {
 }
 
 cd "$(service_dir)"
-./build.sh
+npm run validate

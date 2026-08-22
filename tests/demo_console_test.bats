@@ -23,11 +23,32 @@ setup() {
   grep -Fq '"vite"' "$TEST_ROOT/services/demo-console/package.json"
 }
 
-@test "demo console build validation passes" {
+@test "demo console lightweight source validation remains separate" {
+  run "$TEST_ROOT/services/demo-console/test.sh"
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"demo-console catalog contains"* ]]
+}
+
+@test "demo console build compiles production entry artifacts" {
   run "$TEST_ROOT/services/demo-console/build.sh"
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"demo-console catalog contains"* ]]
+  [ -f "$TEST_ROOT/services/demo-console/dist/index.html" ]
+  find "$TEST_ROOT/services/demo-console/dist/assets" -type f -name '*.js' -print -quit | grep -q .
+}
+
+@test "demo console build fails when installed Vite is unavailable" {
+  local fixture="$BATS_TEST_TMPDIR/demo-console"
+  mkdir -p "$fixture"
+  cp "$TEST_ROOT/services/demo-console/build.sh" "$fixture/build.sh"
+
+  run "$fixture/build.sh"
+
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"dependencies are missing; run npm ci"* ]]
+  [[ "$output" != *"Skipping"* ]]
 }
 
 @test "services status shows demo console UI" {
