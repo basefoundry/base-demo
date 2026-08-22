@@ -153,6 +153,13 @@ Only `dev` is operational by default. `staging` and `prod` are checked-in
 configuration examples that demonstrate separation of ports, URLs, image tags,
 database/cache names, and logging mode.
 
+The `services` command loads these files through the same validator as the
+`environments` command. It filters the catalog using the selected environment,
+applies requiredness and enabled-infrastructure overrides consistently, and
+refuses `start`, `stop`, or `restart` when `operational` is false. Modeled
+environments remain available to `status`, `check`, and `logs` for inspection,
+but they are never treated as deployable targets.
+
 The files use JSON so the demo can validate them with Python's standard
 library instead of adding a YAML dependency solely for configuration parsing.
 

@@ -414,7 +414,11 @@ basectl run base-demo environments -- validate --all
 ```
 
 `dev` is the runnable local environment. `staging` and `prod` are modeled
-configuration examples that are validated structurally but not deployed.
+configuration examples that are validated structurally but not deployed. The
+`services` command applies each environment's service, requiredness, and
+infrastructure selection to status, checks, lifecycle actions, and logs. It
+rejects `start`, `stop`, and `restart` for non-operational environments before
+running Docker Compose or a local process.
 
 The first representative-environment command is:
 

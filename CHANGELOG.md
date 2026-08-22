@@ -84,6 +84,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Fixed
 
+- Applied validated environment service and infrastructure selection to every
+  services operation and blocked lifecycle mutations for modeled staging and
+  production examples.
 - Redacted secret-bearing `BASE_*` values from the Python environment
   inspection command and the walkthrough while limiting raw output to the
   documented public diagnostics.
