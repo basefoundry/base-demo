@@ -33,6 +33,17 @@ class CheckResult(NamedTuple):
     detail: str
 
 
+class ProcessIdentity(NamedTuple):
+    process_group_id: int
+    start_time: str
+
+
+class ProcessStateStatus(NamedTuple):
+    kind: str
+    pid: int | None
+    process_group_id: int | None
+
+
 def project_root() -> Path:
     root = os.environ.get("BASE_PROJECT_ROOT")
     if root:
@@ -181,6 +192,108 @@ def process_is_running(pid: int | None) -> bool:
     return True
 
 
+def process_identity(pid: int) -> ProcessIdentity | None:
+    try:
+        process_group_id = os.getpgid(pid)
+    except (OSError, ProcessLookupError):
+        return None
+    ps_path = next((path for path in (Path("/bin/ps"), Path("/usr/bin/ps")) if path.is_file()), None)
+    if ps_path is None:
+        return None
+    try:
+        result = subprocess.run(
+            [str(ps_path), "-p", str(pid), "-o", "lstart="],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+    start_time = result.stdout.strip()
+    if result.returncode != 0 or not start_time:
+        return None
+    return ProcessIdentity(process_group_id, start_time)
+
+
+def inspect_process_state(
+    service: dict[str, Any], state: dict[str, Any] | None
+) -> ProcessStateStatus:
+    if state is None:
+        return ProcessStateStatus("missing", None, None)
+    pid = state.get("pid")
+    if not isinstance(pid, int) or pid <= 0:
+        return ProcessStateStatus("mismatch", None, None)
+    identity = process_identity(pid)
+    if identity is None:
+        return ProcessStateStatus("stopped", pid, None)
+    saved_group_id = state.get("process_group_id")
+    saved_start_time = state.get("process_start_time")
+    try:
+        expected_command = process_command(service)
+    except ValueError:
+        return ProcessStateStatus("mismatch", pid, identity.process_group_id)
+    if (
+        not isinstance(saved_group_id, int)
+        or saved_group_id <= 1
+        or saved_group_id != pid
+        or saved_group_id != identity.process_group_id
+        or not isinstance(saved_start_time, str)
+        or saved_start_time != identity.start_time
+        or state.get("command") != expected_command
+    ):
+        return ProcessStateStatus("mismatch", pid, identity.process_group_id)
+    return ProcessStateStatus("running", pid, identity.process_group_id)
+
+
+def remove_process_state(path: Path) -> None:
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        pass
+
+
+def terminate_process_group(
+    pid: int,
+    process_group_id: int,
+    process: subprocess.Popen[Any] | None = None,
+) -> bool:
+    def stopped() -> bool:
+        if process is not None:
+            return process.poll() is not None
+        return not process_is_running(pid)
+
+    try:
+        os.killpg(process_group_id, signal.SIGTERM)
+    except ProcessLookupError:
+        return True
+    for _ in range(20):
+        if stopped():
+            return True
+        time.sleep(0.1)
+    try:
+        os.killpg(process_group_id, signal.SIGKILL)
+    except ProcessLookupError:
+        return True
+    except PermissionError:
+        return stopped()
+    for _ in range(20):
+        if stopped():
+            return True
+        time.sleep(0.1)
+    return stopped()
+
+
+def readiness_timeout(service: dict[str, Any]) -> float:
+    lifecycle = service.get("lifecycle") or {}
+    configured = os.environ.get("BASE_DEMO_SERVICES_START_TIMEOUT")
+    value = configured if configured is not None else lifecycle.get("readiness_timeout_seconds", 10.0)
+    try:
+        timeout = float(value)
+    except (TypeError, ValueError):
+        return 10.0
+    return min(max(timeout, 0.1), 120.0)
+
+
 def compose_state_service_name(service: dict[str, Any]) -> str | None:
     service_name = service.get("compose_service")
     if isinstance(service_name, str) and service_name:
@@ -206,7 +319,7 @@ def compose_service_has_state(service: dict[str, Any], root: Path) -> bool:
 def service_has_start_state(service: dict[str, Any], root: Path, process_state: dict[str, Any] | None) -> bool:
     lifecycle = service.get("lifecycle") or {}
     if lifecycle.get("type") == "process":
-        return process_state is not None
+        return inspect_process_state(service, process_state).kind == "running"
     return compose_service_has_state(service, root)
 
 
@@ -244,11 +357,17 @@ def start_process(service: dict[str, Any], root: Path) -> int:
         print(f"DRY-RUN start {name}: {shlex.join(command)}")
         return SUCCESS
 
-    state = read_process_state(root, service)
-    pid = state.get("pid") if state else None
-    if isinstance(pid, int) and process_is_running(pid):
-        print(f"{name} already running pid={pid}")
+    state_path = process_state_path(root, service)
+    state_status = inspect_process_state(service, read_process_state(root, service))
+    if state_status.kind == "running":
+        print(f"{name} already running pid={state_status.pid}")
         return SUCCESS
+    if state_status.kind == "mismatch":
+        print(
+            f"WARN: removing stale {name} state without signaling pid={state_status.pid or '-'}.",
+            file=sys.stderr,
+        )
+    remove_process_state(state_path)
 
     directory = state_dir(root)
     directory.mkdir(parents=True, exist_ok=True)
@@ -269,17 +388,52 @@ def start_process(service: dict[str, Any], root: Path) -> int:
             stderr=subprocess.STDOUT,
             start_new_session=True,
         )
+    identity = process_identity(process.pid)
+    if identity is None:
+        process.terminate()
+        try:
+            process.wait(timeout=2.0)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=2.0)
+        remove_process_state(state_path)
+        print(f"ERROR: {name} exited before process identity could be recorded.", file=sys.stderr)
+        return FAILURE
     state_payload = {
         "pid": process.pid,
+        "process_group_id": identity.process_group_id,
+        "process_start_time": identity.start_time,
         "started_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "command": command,
         "log": str(log_path),
     }
-    with process_state_path(root, service).open("w", encoding="utf-8") as handle:
+    with state_path.open("w", encoding="utf-8") as handle:
         json.dump(state_payload, handle, indent=2)
         handle.write("\n")
-    print(f"{name} started pid={process.pid}")
-    return SUCCESS
+
+    deadline = time.monotonic() + readiness_timeout(service)
+    survival_deadline = time.monotonic() + 0.2
+    last_result = CheckResult(False, "process", "process:not ready")
+    while time.monotonic() < deadline:
+        return_code = process.poll()
+        if return_code is not None:
+            remove_process_state(state_path)
+            print(f"ERROR: {name} exited during startup with status {return_code}.", file=sys.stderr)
+            return FAILURE
+        last_result = check_service(service, root)
+        if last_result.ok and time.monotonic() >= survival_deadline:
+            print(f"{name} started pid={process.pid}")
+            return SUCCESS
+        time.sleep(0.1)
+
+    terminate_process_group(process.pid, identity.process_group_id, process)
+    try:
+        process.wait(timeout=2.0)
+    except subprocess.TimeoutExpired:
+        pass
+    remove_process_state(state_path)
+    print(f"ERROR: {name} failed readiness: {last_result.detail}.", file=sys.stderr)
+    return FAILURE
 
 
 def stop_process(service: dict[str, Any], root: Path) -> int:
@@ -289,22 +443,24 @@ def stop_process(service: dict[str, Any], root: Path) -> int:
         return SUCCESS
     state_path = process_state_path(root, service)
     state = read_process_state(root, service)
-    pid = state.get("pid") if state else None
-    if not isinstance(pid, int) or not process_is_running(pid):
-        if state_path.exists():
-            state_path.unlink()
+    state_status = inspect_process_state(service, state)
+    if state_status.kind in {"missing", "stopped"}:
+        remove_process_state(state_path)
         print(f"{name} stopped")
         return SUCCESS
+    if state_status.kind != "running" or state_status.pid is None or state_status.process_group_id is None:
+        remove_process_state(state_path)
+        print(
+            f"ERROR: {name} state does not match live pid={state_status.pid or '-'}; "
+            "refusing to signal it.",
+            file=sys.stderr,
+        )
+        return FAILURE
 
-    os.kill(pid, signal.SIGTERM)
-    for _ in range(20):
-        if not process_is_running(pid):
-            break
-        time.sleep(0.1)
-    if process_is_running(pid):
-        os.kill(pid, signal.SIGKILL)
-    if state_path.exists():
-        state_path.unlink()
+    if not terminate_process_group(state_status.pid, state_status.process_group_id):
+        print(f"ERROR: {name} did not stop after SIGTERM and SIGKILL.", file=sys.stderr)
+        return FAILURE
+    remove_process_state(state_path)
     print(f"{name} stopped")
     return SUCCESS
 
@@ -312,6 +468,16 @@ def stop_process(service: dict[str, Any], root: Path) -> int:
 def check_service(service: dict[str, Any], root: Path) -> CheckResult:
     check = service.get("check") or {"type": "none"}
     check_type = check.get("type")
+
+    lifecycle = service.get("lifecycle") or {}
+    if lifecycle.get("type") == "process":
+        state_status = inspect_process_state(service, read_process_state(root, service))
+        if state_status.kind != "running":
+            label = "process" if check_type in {"none", "process"} else str(service.get("health_url") or check_type)
+            return CheckResult(False, label, f"process:{state_status.kind}")
+
+    if check_type == "process":
+        return CheckResult(True, "process", "process:running")
 
     if check_type == "none":
         return CheckResult(True, "none", "none")
@@ -373,12 +539,16 @@ def service_rows(services: list[dict[str, Any]], root: Path) -> list[dict[str, s
             state = "healthy"
         elif service.get("required", False):
             state = "unhealthy"
+        elif (service.get("lifecycle") or {}).get("type") == "process" and inspect_process_state(
+            service, process_state
+        ).kind == "mismatch":
+            state = "error"
         elif service_has_start_state(service, root, process_state):
             state = "error"
         else:
             state = "stopped"
         since = "-"
-        if process_state:
+        if process_state and inspect_process_state(service, process_state).kind in {"running", "mismatch"}:
             started_at = process_state.get("started_at")
             if isinstance(started_at, str) and started_at:
                 since = started_at

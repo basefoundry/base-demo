@@ -345,7 +345,8 @@ deterministic without needing an interactive activated shell.
 - `services/java-gradle-api` and `services/java-maven-api` are tiny Java HTTP
   APIs that keep Gradle and Maven visible as representative build tools.
 - `services/c-service` and `services/cpp-service` are tiny native compiled
-  fixtures with Makefile-backed build and command health checks.
+  process fixtures with Makefile-backed builds. They intentionally claim no
+  network port; lifecycle health requires a matching live process-state record.
 - `services/demo-console` is a small React/Vite operational console that reads
   the service catalog and shows the representative stack.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the

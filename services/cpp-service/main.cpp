@@ -5,7 +5,6 @@
 
 namespace {
 constexpr const char *kServiceName = "cpp-service";
-constexpr int kDefaultPort = 8060;
 
 std::string responseFor(const std::string &path) {
     if (path == "/healthz" || path == "--healthz") {
@@ -15,7 +14,7 @@ std::string responseFor(const std::string &path) {
         return "{\"service\":\"cpp-service\",\"message\":\"hello from cpp-service\"}";
     }
     if (path == "/info" || path == "--info") {
-        return "{\"service\":\"cpp-service\",\"runtime\":\"native-cpp\",\"port\":8060}";
+        return "{\"service\":\"cpp-service\",\"runtime\":\"native-cpp\"}";
     }
     return "{\"error\":\"not found\"}";
 }
@@ -29,7 +28,7 @@ int statusFor(const std::string &path) {
 }
 
 void serveForever() {
-    std::cout << kServiceName << " ready on representative port " << kDefaultPort << std::endl;
+    std::cout << kServiceName << " ready as local process fixture" << std::endl;
     for (;;) {
         std::this_thread::sleep_for(std::chrono::seconds(60));
     }
