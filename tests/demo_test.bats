@@ -174,6 +174,7 @@ case "$*" in
   run\ base-demo\ --workspace\ *\ services\ --\ status)
     printf 'environment=dev\n'
     printf 'mode=operational\n'
+    printf 'compose_project=base-demo-dev-deadbeef00\n'
     printf 'NAME              KIND     RUNTIME  PORT  HEALTH                   STATE    SINCE  LOGS\n'
     printf 'project-baseline  project  base     -     file:base_manifest.yaml  healthy  -      -\n'
     printf 'postgres          database compose  5432  compose:postgres         stopped  -      docker compose logs postgres\n'
@@ -201,7 +202,7 @@ case "$*" in
     printf 'demo-console ok\n'
     ;;
   run\ base-demo\ --workspace\ *\ services\ --\ start)
-    printf 'DRY-RUN docker compose -f infra/compose.yaml -p base-demo up -d postgres mysql redis go-api\n'
+    printf 'DRY-RUN docker compose -f infra/compose.yaml -p base-demo-dev-deadbeef00 up -d postgres mysql redis go-api\n'
     printf 'DRY-RUN start python-api: python3 services/python-api/server.py\n'
     printf 'DRY-RUN start java-gradle-api: ./services/java-gradle-api/run.sh\n'
     printf 'DRY-RUN start java-maven-api: ./services/java-maven-api/run.sh\n'
@@ -314,6 +315,8 @@ EOF
   [[ "$output" == *"workspace"* ]]
   [[ "$output" == *"Inspecting activation and manifest environment values."* ]]
   [[ "$output" == *"Reading the manifest summary command."* ]]
+  [[ "$output" == *"worktree-scoped Compose project."* ]]
+  [[ "$output" == *"compose_project=base-demo-dev-deadbeef00"* ]]
   [[ "$output" == *"Checking representative service health."* ]]
   [[ "$output" == *"Representative Environment"* ]]
   [[ "$output" == *"Dry-running service startup without launching dependencies."* ]]

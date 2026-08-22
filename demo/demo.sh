@@ -420,11 +420,12 @@ inspection_step() {
   printf '%s\n' "$uv_output"
   require_contains "uv command" "$uv_output" "base-demo uv runner"
 
-  printf '\nViewing the representative service catalog and health states.\n'
+  printf '\nViewing the representative service catalog, health states, and worktree-scoped Compose project.\n'
   services_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- status)"
   printf '%s\n' "$services_output"
   require_contains "services command" "$services_output" "project-baseline"
   require_contains "services command" "$services_output" "healthy"
+  require_contains "services command" "$services_output" "compose_project=base-demo-dev-"
 
   printf '\nListing modeled environments and deployment boundaries.\n'
   environments_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" environments -- list)"
@@ -452,6 +453,7 @@ representative_environment_step() {
   start_output="$(capture_command env BASE_DEMO_SERVICES_DRY_RUN=1 "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- start)"
   printf '%s\n' "$start_output"
   require_contains "services dry-run start" "$start_output" "DRY-RUN docker compose"
+  require_contains "services dry-run start" "$start_output" " -p base-demo-dev-"
   require_contains "services dry-run start" "$start_output" "go-api"
   require_contains "services dry-run start" "$start_output" "demo-console"
 

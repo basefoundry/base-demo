@@ -471,6 +471,39 @@ grep -Fq '  go-api:' infra/compose.yaml || {
   exit 1
 }
 
+if grep -Fq 'container_name:' infra/compose.yaml; then
+  printf 'infra/compose.yaml must let Compose derive worktree-scoped container names.\n' >&2
+  exit 1
+fi
+
+compose_port_count="$(grep -Ec '^[[:space:]]+- "127\.0\.0\.1:[0-9]+:[0-9]+"$' infra/compose.yaml || true)"
+if [[ "$compose_port_count" -ne 4 ]]; then
+  printf 'infra/compose.yaml must bind all four published ports to 127.0.0.1.\n' >&2
+  exit 1
+fi
+
+if grep -Eq '^[[:space:]]+- "[0-9]+:[0-9]+"$' infra/compose.yaml; then
+  printf 'infra/compose.yaml contains a published port without an explicit loopback host.\n' >&2
+  exit 1
+fi
+
+for compose_contract in compose_project_name BASE_DEMO_COMPOSE_PROJECT checkout_digest; do
+  grep -Fq "$compose_contract" bin/base-demo-services || {
+    printf 'bin/base-demo-services does not declare Compose isolation contract: %s.\n' "$compose_contract" >&2
+    exit 1
+  }
+done
+
+grep -Fq '`compose-local-isolation`' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the Compose local-isolation contract.\n' >&2
+  exit 1
+}
+
+grep -Fq 'compose_project=base-demo-dev-' demo/demo.sh || {
+  printf 'demo/demo.sh does not demonstrate worktree-scoped Compose project naming.\n' >&2
+  exit 1
+}
+
 if command -v go >/dev/null 2>&1; then
   (cd services/go-api && CGO_ENABLED=0 go test ./...) || exit 1
 else
