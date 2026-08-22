@@ -46,6 +46,7 @@ required_files=(
   bin/base-demo-python-info
   bin/base-demo-services
   bin/base-demo-environments
+  bin/base_demo_environment.py
   services/catalog.json
   infra/compose.yaml
   services/go-api/go.mod
@@ -541,8 +542,15 @@ for environment in dev staging prod; do
   }
 done
 
-grep -Fq 'REQUIRED_FIELDS = ("name", "mode", "operational", "base_url", "logging", "services", "infrastructure")' bin/base-demo-environments || {
-  printf 'bin/base-demo-environments does not declare the expected environment schema fields.\n' >&2
+for environment_field in name mode operational base_url logging services infrastructure; do
+  grep -Fq "\"$environment_field\"" bin/base_demo_environment.py || {
+    printf 'bin/base_demo_environment.py does not declare expected environment field: %s.\n' "$environment_field" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'load_validated_environment' bin/base-demo-services || {
+  printf 'bin/base-demo-services does not reuse validated environment loading.\n' >&2
   exit 1
 }
 
@@ -923,6 +931,7 @@ for contract in \
   non-interactive-demo \
   manifest-trust-flow \
   environment-schema \
+  environment-aware-services \
   uv-project-manager \
   uv-runner-command \
   activation-owned-env \

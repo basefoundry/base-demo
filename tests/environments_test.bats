@@ -76,6 +76,104 @@ EOF
   [ "$status" -eq 0 ]
   [[ "$output" == *"environment=prod"* ]]
   [[ "$output" == *"mode=modeled"* ]]
+  [[ "$output" == *"operational=false"* ]]
+  [[ "$output" == *"project-baseline"* ]]
+  [[ "$output" != *"postgres"* ]]
+  [[ "$output" != *"python-api"* ]]
+}
+
+@test "services command rejects lifecycle operations for modeled environments" {
+  local environment
+
+  for environment in staging prod; do
+    run env BASE_DEMO_SERVICES_DRY_RUN=1 "$TEST_ROOT/bin/base-demo-services" --env "$environment" start
+
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"environment '$environment' is modeled and not operational"* ]]
+    [[ "$output" == *"configuration examples, not deployable targets"* ]]
+    [[ "$output" != *"DRY-RUN"* ]]
+  done
+}
+
+@test "services command keeps dev operational and applies its selection" {
+  run env BASE_DEMO_SERVICES_DRY_RUN=1 "$TEST_ROOT/bin/base-demo-services" --env dev start
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"DRY-RUN docker compose"* ]]
+  [[ "$output" == *"postgres"* ]]
+  [[ "$output" == *"mysql"* ]]
+  [[ "$output" == *"redis"* ]]
+  [[ "$output" == *"go-api"* ]]
+  [[ "$output" == *"DRY-RUN start python-api"* ]]
+}
+
+@test "services command excludes disabled infrastructure from read-only operations" {
+  run env BASE_DEMO_SERVICES_DRY_RUN=1 "$TEST_ROOT/bin/base-demo-services" --env prod logs
+
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"docker compose"* ]]
+  [[ "$output" != *"postgres"* ]]
+  [[ "$output" != *"mysql"* ]]
+  [[ "$output" != *"redis"* ]]
+}
+
+@test "services command applies environment requiredness overrides" {
+  mkdir -p "$TEST_TMPDIR/environments" "$TEST_TMPDIR/services"
+  cat > "$TEST_TMPDIR/environments/custom.json" <<'EOF'
+{
+  "name": "custom",
+  "mode": "operational",
+  "operational": true,
+  "base_url": "http://127.0.0.1",
+  "logging": {"level": "debug", "format": "text"},
+  "services": {"required-fixture": {"required": true}},
+  "infrastructure": {}
+}
+EOF
+  cat > "$TEST_TMPDIR/services/catalog.json" <<'EOF'
+{
+  "services": [
+    {
+      "name": "required-fixture",
+      "kind": "service",
+      "runtime": "test",
+      "port": null,
+      "health_url": null,
+      "required": false,
+      "check": {"type": "file", "path": "missing.required"},
+      "logs": null
+    }
+  ]
+}
+EOF
+
+  run env BASE_PROJECT_ROOT="$TEST_TMPDIR" "$TEST_ROOT/bin/base-demo-services" --env custom check
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"required-fixture fail file:missing.required"* ]]
+  [[ "$output" != *"skip optional"* ]]
+}
+
+@test "services command rejects structurally invalid environment configuration" {
+  mkdir -p "$TEST_TMPDIR/environments" "$TEST_TMPDIR/services"
+  cat > "$TEST_TMPDIR/environments/broken.json" <<'EOF'
+{
+  "name": "broken",
+  "mode": "modeled",
+  "operational": true,
+  "base_url": "https://example.invalid",
+  "logging": {},
+  "services": {},
+  "infrastructure": {}
+}
+EOF
+  printf '{"services": []}\n' > "$TEST_TMPDIR/services/catalog.json"
+
+  run env BASE_PROJECT_ROOT="$TEST_TMPDIR" "$TEST_ROOT/bin/base-demo-services" --env broken status
+
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"environment broken is invalid"* ]]
+  [[ "$output" == *"modeled environments must not be operational"* ]]
 }
 
 @test "services command rejects unknown environments" {

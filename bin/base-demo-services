@@ -18,6 +18,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, NamedTuple
 
+from base_demo_environment import load_validated_environment
+
 
 # Match base_cli.ExitCode without requiring standalone lifecycle commands to import base_cli.
 SUCCESS = 0
@@ -53,18 +55,6 @@ def load_catalog(path: Path) -> list[dict[str, Any]]:
     return services
 
 
-def load_environment(root: Path, name: str) -> dict[str, Any]:
-    path = root / "environments" / f"{name}.json"
-    try:
-        with path.open(encoding="utf-8") as handle:
-            payload = json.load(handle)
-    except FileNotFoundError:
-        raise ValueError(f"environment not found: {name}") from None
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"environment {name} is not valid JSON: {exc}") from None
-    return payload
-
-
 def compose_file(root: Path) -> Path:
     return root / "infra" / "compose.yaml"
 
@@ -84,6 +74,61 @@ def process_services(services: list[dict[str, Any]]) -> list[dict[str, Any]]:
         for service in services
         if (service.get("lifecycle") or {}).get("type") == "process"
     ]
+
+
+def select_environment_services(
+    services: list[dict[str, Any]],
+    environment: dict[str, Any],
+    *,
+    retain_unconfigured: bool = False,
+) -> list[dict[str, Any]]:
+    service_overrides = environment["services"]
+    infrastructure = environment["infrastructure"]
+    selected: list[dict[str, Any]] = []
+
+    for service in services:
+        name = service.get("name")
+        if not isinstance(name, str) or not name:
+            continue
+
+        if name in service_overrides:
+            configured = dict(service)
+            override = service_overrides[name]
+            if isinstance(override, dict) and isinstance(override.get("required"), bool):
+                configured["required"] = override["required"]
+            selected.append(configured)
+            continue
+
+        if name in infrastructure:
+            override = infrastructure[name]
+            if not isinstance(override, dict) or override.get("enabled") is not True:
+                continue
+            configured = dict(service)
+            if isinstance(override.get("port"), int):
+                configured["port"] = override["port"]
+            selected.append(configured)
+            continue
+
+        if retain_unconfigured:
+            selected.append(dict(service))
+
+    return selected
+
+
+def environment_is_operational(environment: dict[str, Any]) -> bool:
+    return environment.get("mode") == "operational" and environment.get("operational") is True
+
+
+def reject_modeled_lifecycle(environment: dict[str, Any], command: str) -> int | None:
+    if command not in {"start", "stop", "restart"} or environment_is_operational(environment):
+        return None
+    name = environment.get("name", "unknown")
+    print(
+        f"ERROR: environment '{name}' is modeled and not operational; "
+        "modeled environments are configuration examples, not deployable targets.",
+        file=sys.stderr,
+    )
+    return USAGE_ERROR
 
 
 def process_command(service: dict[str, Any]) -> list[str]:
@@ -370,6 +415,7 @@ def cmd_status(services: list[dict[str, Any]], root: Path, environment: dict[str
     env_name = str(environment.get("name", "dev"))
     print(f"environment={env_name}")
     print(f"mode={environment.get('mode', 'operational')}")
+    print(f"operational={str(environment.get('operational', False)).lower()}")
     rows = service_rows(services, root)
     if not rows:
         print("No services configured.")
@@ -452,11 +498,20 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     root = project_root()
     try:
-        environment = load_environment(root, args.env)
+        environment = load_validated_environment(root, args.env)
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return USAGE_ERROR
-    services = load_catalog(Path(args.catalog))
+    rejected = reject_modeled_lifecycle(environment, args.command)
+    if rejected is not None:
+        return rejected
+
+    catalog_path = Path(args.catalog).resolve()
+    services = select_environment_services(
+        load_catalog(catalog_path),
+        environment,
+        retain_unconfigured=catalog_path != (root / "services" / "catalog.json").resolve(),
+    )
 
     if args.command == "status":
         return cmd_status(services, root, environment)
