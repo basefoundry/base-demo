@@ -38,10 +38,16 @@ EOF
   [ -x "$TEST_ROOT/services/cpp-service/test.sh" ]
   [ -x "$TEST_ROOT/services/cpp-service/run.sh" ]
 
-  grep -Fq '"name": "c-service"' "$TEST_ROOT/services/catalog.json"
-  grep -Fq '"port": 8050' "$TEST_ROOT/services/catalog.json"
-  grep -Fq '"name": "cpp-service"' "$TEST_ROOT/services/catalog.json"
-  grep -Fq '"port": 8060' "$TEST_ROOT/services/catalog.json"
+  python3 - "$TEST_ROOT/services/catalog.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    services = {service["name"]: service for service in json.load(handle)["services"]}
+for name in ("c-service", "cpp-service"):
+    assert services[name]["port"] is None
+    assert services[name]["check"] == {"type": "process"}
+PY
 }
 
 @test "services status shows native service fixtures" {
@@ -50,10 +56,10 @@ EOF
   [ "$status" -eq 0 ]
   [[ "$output" == *"c-service"* ]]
   [[ "$output" == *"native-c"* ]]
-  [[ "$output" == *"8050"* ]]
+  [[ "$output" == *"c-service"*"process"*"stopped"* ]]
   [[ "$output" == *"cpp-service"* ]]
   [[ "$output" == *"native-cpp"* ]]
-  [[ "$output" == *"8060"* ]]
+  [[ "$output" == *"cpp-service"*"process"*"stopped"* ]]
 }
 
 @test "services lifecycle dry-run includes native process commands" {
@@ -66,7 +72,7 @@ EOF
   [[ "$output" == *"services/cpp-service/run.sh"* ]]
 }
 
-@test "native service build scripts and command health checks pass" {
+@test "native builds pass but never-started fixtures remain stopped" {
   run "$TEST_ROOT/services/c-service/build.sh"
   [ "$status" -eq 0 ]
 
@@ -82,6 +88,6 @@ EOF
   write_fake_docker_without_compose_state "$TEST_TMPDIR/bin"
   run env BASE_DEMO_SERVICES_STATE_DIR="$TEST_TMPDIR/state" PATH="$TEST_TMPDIR/bin:$PATH" "$TEST_ROOT/bin/base-demo-services" check
   [ "$status" -eq 0 ]
-  [[ "$output" == *"c-service ok"* ]]
-  [[ "$output" == *"cpp-service ok"* ]]
+  [[ "$output" == *"c-service skip optional process:missing"* ]]
+  [[ "$output" == *"cpp-service skip optional process:missing"* ]]
 }

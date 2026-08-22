@@ -128,7 +128,7 @@
       "name": "c-service",
       "kind": "service",
       "runtime": "native-c",
-      "port": 8050,
+      "port": null,
       "health_url": null,
       "required": false,
       "lifecycle": {
@@ -138,11 +138,7 @@
         ]
       },
       "check": {
-        "type": "command",
-        "command": [
-          "./services/c-service/build/c-service",
-          "--healthz"
-        ]
+        "type": "process"
       },
       "logs": "var/services/c-service.log"
     },
@@ -150,7 +146,7 @@
       "name": "cpp-service",
       "kind": "service",
       "runtime": "native-cpp",
-      "port": 8060,
+      "port": null,
       "health_url": null,
       "required": false,
       "lifecycle": {
@@ -160,11 +156,7 @@
         ]
       },
       "check": {
-        "type": "command",
-        "command": [
-          "./services/cpp-service/build/cpp-service",
-          "--healthz"
-        ]
+        "type": "process"
       },
       "logs": "var/services/cpp-service.log"
     },

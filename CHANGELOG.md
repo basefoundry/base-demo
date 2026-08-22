@@ -84,6 +84,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Fixed
 
+- Made process lifecycle state identity-aware, waited for bounded startup
+  readiness, refused mismatched PID signaling, and reclassified native fixtures
+  as portless process-health examples.
 - Applied validated environment service and infrastructure selection to every
   services operation and blocked lifecycle mutations for modeled staging and
   production examples.

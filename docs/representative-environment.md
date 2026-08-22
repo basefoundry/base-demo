@@ -45,8 +45,8 @@ The target stack is broad enough to feel real and small enough to inspect:
 | Go | Tiny Go HTTP API on port 8010 | Demonstrate Go service development and native test/build flow. |
 | Docker | Dockerized Go service through Compose | Make Docker first-class without containerizing every app service. |
 | Java | One Gradle service on port 8030 and one Maven service on port 8040 | Demonstrate common Java build tools without Spring-scale complexity. |
-| C | Tiny native service on port 8050 | Represent lower-level compiled components. |
-| C++ | Tiny native service on port 8060 | Represent C++ service/tooling presence in a mixed environment. |
+| C | Tiny native process fixture | Represent lower-level compiled components. |
+| C++ | Tiny native process fixture | Represent C++ service/tooling presence in a mixed environment. |
 | JavaScript UI | React + Vite demo console on port 8070 | Provide a common frontend framework and human-facing operational surface. |
 | Databases | Postgres and MySQL through Compose | Represent common data dependencies without cross-service dependency complexity. |
 | Cache | Redis through Compose | Represent cache infrastructure as a local dependency pattern. |
@@ -77,6 +77,12 @@ The command should read a catalog rather than hard-code each service in the
 script. The catalog should be the source of truth for service name, kind,
 runtime/tooling, port, health URL, start/stop behavior, and whether the service
 is required for a given environment.
+
+For process-backed entries, `start` waits for child survival and the configured
+health check within a bounded timeout before reporting success. Its state file
+records the PID, process-group ID, operating-system start time, and configured
+command. Later status, check, and stop operations require that identity to
+match; stop refuses to signal a live PID when it does not.
 
 The status view should answer the practical local questions:
 
@@ -129,9 +135,11 @@ because both Gradle and Maven are common enough to be first-class in a
 representative IT environment.
 
 The native fixtures are `services/c-service` and `services/cpp-service`. They
-use small Makefiles and command-level health checks to avoid adding C/C++ HTTP
-frameworks solely for the demo. Their `/healthz`, `/hello`, and `/info` behavior
-is still visible through the compiled binaries and the shared services catalog.
+use small Makefiles and process-state health checks to avoid adding C/C++ HTTP
+frameworks solely for the demo. They do not bind or advertise network ports.
+Their standalone `/healthz`, `/hello`, and `/info` command behavior remains
+available for build tests, while service health requires an identity-matched
+process started by the lifecycle command.
 
 The UI fixture is `services/demo-console`, a React/Vite operational console that
 reads the checked-in service catalog copy generated from `services/catalog.json`.

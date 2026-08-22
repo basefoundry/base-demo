@@ -4,7 +4,6 @@
 
 #define SERVICE_NAME "c-service"
 #define RUNTIME_NAME "native-c"
-#define DEFAULT_PORT 8050
 
 static const char *response_for(const char *path) {
     if (strcmp(path, "/healthz") == 0 || strcmp(path, "--healthz") == 0) {
@@ -14,7 +13,7 @@ static const char *response_for(const char *path) {
         return "{\"service\":\"c-service\",\"message\":\"hello from c-service\"}";
     }
     if (strcmp(path, "/info") == 0 || strcmp(path, "--info") == 0) {
-        return "{\"service\":\"c-service\",\"runtime\":\"native-c\",\"port\":8050}";
+        return "{\"service\":\"c-service\",\"runtime\":\"native-c\"}";
     }
     return "{\"error\":\"not found\"}";
 }
@@ -29,7 +28,7 @@ static int status_for(const char *path) {
 }
 
 static void serve_forever(void) {
-    printf("%s ready on representative port %d\n", SERVICE_NAME, DEFAULT_PORT);
+    printf("%s ready as local process fixture\n", SERVICE_NAME);
     fflush(stdout);
     for (;;) {
         sleep(60);
