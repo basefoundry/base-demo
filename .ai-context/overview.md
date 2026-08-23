@@ -29,7 +29,7 @@ uv-managed project environment, command-level `runner: uv`,
 `infra/compose.yaml`, and `.ai-context/` examples in this repository.
 
 The Python CLI dependency is intentionally reproducible: `pyproject.toml` and
-`uv.lock` pin `base-cli==0.4.1` for the normal project environment. Base's
+`uv.lock` pin `base-cli==0.4.2` for the normal project environment. Base's
 `base-wrapper` can opt into a peer source checkout with
 `BASE_CLI_SOURCE_DIR=../base-cli/lib/python`; this is an explicit development
 and compatibility path, not an automatic override of the locked dependency.
@@ -106,3 +106,8 @@ basectl demo base-demo
 `.base/activate.sh` in the activated project shell and by CI at the workflow
 level. Running `check` or `doctor` before activation can intentionally report
 the missing variable as a diagnostic example.
+
+`BASE_DEMO_ENV` is not the representative service configuration selector. Use
+`services --env dev` for the default operational model; use
+`services --env staging` or `services --env prod` only to inspect those
+validated, non-operational models.

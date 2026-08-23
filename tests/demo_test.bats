@@ -211,6 +211,8 @@ case "$*" in
     printf 'DRY-RUN start demo-console: ./services/demo-console/run.sh\n'
     ;;
   run\ base-demo\ --workspace\ *\ environments\ --\ list)
+    printf 'services_selector=services --env <name>\n'
+    printf 'base_health_marker=BASE_DEMO_ENV=baseline\n'
     printf 'NAME     MODE         OPERATIONAL  BASE_URL\n'
     printf 'dev      operational  true         http://127.0.0.1\n'
     printf 'staging  modeled      false        https://staging.base-demo.example.invalid\n'
@@ -317,6 +319,8 @@ EOF
   [[ "$output" == *"Reading the manifest summary command."* ]]
   [[ "$output" == *"worktree-scoped Compose project."* ]]
   [[ "$output" == *"compose_project=base-demo-dev-deadbeef00"* ]]
+  [[ "$output" == *"BASE_DEMO_ENV=baseline is the Base health marker; services --env dev is the separate runtime selector."* ]]
+  [[ "$output" == *"services_selector=services --env <name>"* ]]
   [[ "$output" == *"Checking representative service health."* ]]
   [[ "$output" == *"Representative Environment"* ]]
   [[ "$output" == *"Dry-running service startup without launching dependencies."* ]]

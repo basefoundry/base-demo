@@ -69,6 +69,10 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Aligned AI context with locked `base-cli==0.4.2`, corrected modeled
+  environment claims, and expanded environment validation to enforce nested
+  URL, logging, service, infrastructure, port, catalog, and Compose contracts.
+
 - Made the React/Vite console a required compiled CI artifact on macOS and
   Ubuntu, added a moderate-severity npm audit gate, and refreshed the lockfile
   to remove known `nanoid` and `postcss` advisories.

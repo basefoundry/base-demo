@@ -5,6 +5,12 @@ setup() {
   TEST_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/base-demo-environments-test.XXXXXX")"
 }
 
+copy_environment_contract() {
+  mkdir -p "$TEST_TMPDIR/services" "$TEST_TMPDIR/infra"
+  cp "$TEST_ROOT/services/catalog.json" "$TEST_TMPDIR/services/catalog.json"
+  cp "$TEST_ROOT/infra/compose.yaml" "$TEST_TMPDIR/infra/compose.yaml"
+}
+
 teardown() {
   rm -rf "$TEST_TMPDIR"
 }
@@ -24,6 +30,8 @@ teardown() {
   [[ "$output" == *"dev"* ]]
   [[ "$output" == *"staging"* ]]
   [[ "$output" == *"prod"* ]]
+  [[ "$output" == *"services_selector=services --env <name>"* ]]
+  [[ "$output" == *"base_health_marker=BASE_DEMO_ENV=baseline"* ]]
 }
 
 @test "environment command shows operational boundary" {
@@ -46,6 +54,7 @@ teardown() {
 
 @test "environment command discovers additional JSON environments" {
   cp -R "$TEST_ROOT/environments" "$TEST_TMPDIR/environments"
+  copy_environment_contract
   cat > "$TEST_TMPDIR/environments/local.json" <<'EOF'
 {
   "name": "local",
@@ -68,6 +77,115 @@ EOF
   [[ "$output" == *"local ok"* ]]
   [[ "$output" == *"prod ok"* ]]
   [[ "$output" == *"staging ok"* ]]
+}
+
+@test "environment validation reports actionable nested field paths" {
+  mkdir -p "$TEST_TMPDIR/environments"
+  copy_environment_contract
+  cat > "$TEST_TMPDIR/environments/broken.json" <<'EOF'
+{
+  "name": "broken",
+  "mode": "operational",
+  "operational": false,
+  "base_url": "ftp://user:secret@example.invalid",
+  "logging": {
+    "level": "verbose",
+    "format": "xml",
+    "sink": "remote"
+  },
+  "services": {
+    "python-api": {
+      "required": "yes",
+      "enabled": true
+    }
+  },
+  "infrastructure": {
+    "postgres": {
+      "enabled": "yes",
+      "port": 70000,
+      "database": "other"
+    }
+  },
+  "region": "local"
+}
+EOF
+
+  run env BASE_PROJECT_ROOT="$TEST_TMPDIR" "$TEST_ROOT/bin/base-demo-environments" validate broken
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"operational environments must set operational to true"* ]]
+  [[ "$output" == *"base_url must be an http or https URL without credentials"* ]]
+  [[ "$output" == *"unsupported field: region"* ]]
+  [[ "$output" == *"logging.level must be one of"* ]]
+  [[ "$output" == *"logging.format must be one of"* ]]
+  [[ "$output" == *"logging.sink is not supported"* ]]
+  [[ "$output" == *"services.python-api.required must be a boolean"* ]]
+  [[ "$output" == *"services.python-api.enabled is not supported"* ]]
+  [[ "$output" == *"infrastructure.postgres.enabled must be a boolean"* ]]
+  [[ "$output" == *"infrastructure.postgres.port must be an integer from 1 to 65535"* ]]
+  [[ "$output" == *"infrastructure.postgres.database is not supported"* ]]
+}
+
+@test "environment validation rejects unknown catalog and Compose references" {
+  mkdir -p "$TEST_TMPDIR/environments"
+  copy_environment_contract
+  cat > "$TEST_TMPDIR/environments/broken.json" <<'EOF'
+{
+  "name": "broken",
+  "mode": "modeled",
+  "operational": false,
+  "base_url": "https://broken.example.invalid",
+  "logging": {"level": "info", "format": "json"},
+  "services": {
+    "missing-api": {"required": false},
+    "postgres": {"required": false}
+  },
+  "infrastructure": {
+    "rabbitmq": {"enabled": false, "port": 5672},
+    "go-api": {"enabled": false, "port": 8010}
+  }
+}
+EOF
+
+  run env BASE_PROJECT_ROOT="$TEST_TMPDIR" "$TEST_ROOT/bin/base-demo-environments" validate broken
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"services.missing-api must reference a non-infrastructure catalog service"* ]]
+  [[ "$output" == *"services.postgres must reference a non-infrastructure catalog service"* ]]
+  [[ "$output" == *"infrastructure.rabbitmq must reference a catalog database/cache with a Compose service"* ]]
+  [[ "$output" == *"infrastructure.go-api must reference a catalog database/cache with a Compose service"* ]]
+}
+
+@test "environment validation rejects infrastructure missing from Compose" {
+  mkdir -p "$TEST_TMPDIR/environments" "$TEST_TMPDIR/services" "$TEST_TMPDIR/infra"
+  cat > "$TEST_TMPDIR/environments/broken.json" <<'EOF'
+{
+  "name": "broken",
+  "mode": "modeled",
+  "operational": false,
+  "base_url": "https://broken.example.invalid",
+  "logging": {"level": "info", "format": "json"},
+  "services": {},
+  "infrastructure": {"postgres": {"enabled": false, "port": 5432}}
+}
+EOF
+  cat > "$TEST_TMPDIR/services/catalog.json" <<'EOF'
+{
+  "services": [
+    {
+      "name": "postgres",
+      "kind": "database",
+      "compose_service": "postgres"
+    }
+  ]
+}
+EOF
+  printf 'services:\n  redis:\n    image: redis:7-alpine\n' > "$TEST_TMPDIR/infra/compose.yaml"
+
+  run env BASE_PROJECT_ROOT="$TEST_TMPDIR" "$TEST_ROOT/bin/base-demo-environments" validate broken
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"infrastructure.postgres must reference a catalog database/cache with a Compose service"* ]]
 }
 
 @test "services command validates requested environment" {

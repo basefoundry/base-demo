@@ -175,8 +175,10 @@ environments/
 ```
 
 Only `dev` is operational by default. `staging` and `prod` are checked-in
-configuration examples that demonstrate separation of ports, URLs, image tags,
-database/cache names, and logging mode.
+configuration examples. They change the modeled URL and logging settings, keep
+only `project-baseline` selected, and disable the same Postgres, MySQL, and
+Redis definitions and ports used by `dev`. They do not declare separate image
+tags, database/cache resource names, or deployment credentials.
 
 The `services` command loads these files through the same validator as the
 `environments` command. It filters the catalog using the selected environment,
@@ -184,6 +186,18 @@ applies requiredness and enabled-infrastructure overrides consistently, and
 refuses `start`, `stop`, or `restart` when `operational` is false. Modeled
 environments remain available to `status`, `check`, and `logs` for inspection,
 but they are never treated as deployable targets.
+
+The validator enforces the exact top-level fields, HTTP(S) `base_url` values
+without embedded credentials, supported logging levels and formats, boolean
+service requiredness, boolean infrastructure enablement, ports in the
+`1..65535` range, and references to the service catalog and Compose file.
+Errors include the failing nested path, such as `services.python-api.required`
+or `infrastructure.postgres.port`.
+
+`BASE_DEMO_ENV=baseline` and `services --env dev` are intentionally different
+contracts. The former is a Base manifest health marker set by activation and
+CI; it proves `health.required_env`. The latter selects the representative
+service configuration and defaults to the only operational model, `dev`.
 
 The files use JSON so the demo can validate them with Python's standard
 library instead of adding a YAML dependency solely for configuration parsing.

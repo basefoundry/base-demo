@@ -427,13 +427,15 @@ inspection_step() {
   require_contains "services command" "$services_output" "healthy"
   require_contains "services command" "$services_output" "compose_project=base-demo-dev-"
 
-  printf '\nListing modeled environments and deployment boundaries.\n'
+  printf '\nListing modeled environments: BASE_DEMO_ENV=baseline is the Base health marker; services --env dev is the separate runtime selector.\n'
   environments_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" environments -- list)"
   printf '%s\n' "$environments_output"
   require_contains "environments command" "$environments_output" "dev"
   require_contains "environments command" "$environments_output" "staging"
   require_contains "environments command" "$environments_output" "prod"
   require_contains "environments command" "$environments_output" "modeled"
+  require_contains "environments command" "$environments_output" "services_selector=services --env <name>"
+  require_contains "environments command" "$environments_output" "base_health_marker=BASE_DEMO_ENV=baseline"
   pause
 }
 

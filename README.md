@@ -311,6 +311,11 @@ Activate the project shell, or export `BASE_DEMO_ENV=baseline`, before using
 CI sets BASE_DEMO_ENV=baseline at the workflow level so automated validation is
 deterministic without needing an interactive activated shell.
 
+`BASE_DEMO_ENV` does not select `environments/*.json`. It is only the Base
+manifest health marker above. The representative service command has a separate
+selector, defaults to `services --env dev`, and accepts staging/prod only for
+read-only inspection because those models are non-operational.
+
 ## Repository Shape
 
 - `base_manifest.yaml` declares the project name, the repository's explicit
@@ -419,11 +424,18 @@ basectl run base-demo environments -- validate --all
 ```
 
 `dev` is the runnable local environment. `staging` and `prod` are modeled
-configuration examples that are validated structurally but not deployed. The
-`services` command applies each environment's service, requiredness, and
-infrastructure selection to status, checks, lifecycle actions, and logs. It
-rejects `start`, `stop`, and `restart` for non-operational environments before
-running Docker Compose or a local process.
+configuration examples that reuse the declared infrastructure ports while
+changing only checked-in URL, logging, service-selection, requiredness, and
+enabled-infrastructure values; they do not define separate images or resource
+names. Validation checks nested types and allowed values and rejects unknown
+service/catalog or infrastructure/Compose references with field paths. The
+`services` command applies each environment's selection to status, checks,
+lifecycle actions, and logs, and rejects `start`, `stop`, and `restart` for
+non-operational environments before running Docker Compose or a local process.
+
+`BASE_DEMO_ENV=baseline` is the Base activation/CI health marker. It is not an
+alias for this model: `services --env dev` is the separate default service
+configuration selector.
 
 The first representative-environment command is:
 
