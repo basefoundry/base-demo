@@ -40,5 +40,8 @@ and exercises dry-run startup through `BASE_DEMO_SERVICES_DRY_RUN=1`.
 Compose-backed infrastructure lives in `infra/compose.yaml`.
 Current multi-language service fixtures live under `services/`.
 The React/Vite console provides the catalog UI. The `environments` command
-validates the `dev`/`staging`/`prod` configuration model while keeping only
-local `dev` operational by default.
+validates URLs, logging, service overrides, infrastructure flags/ports, and
+catalog/Compose references in the `dev`/`staging`/`prod` configuration model
+while keeping only local `dev` operational by default. `BASE_DEMO_ENV=baseline`
+is the manifest health marker set by activation and CI; `services --env dev` is
+the separate default selector for representative service configuration.

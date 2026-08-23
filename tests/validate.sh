@@ -616,6 +616,62 @@ for environment_field in name mode operational base_url logging services infrast
   }
 done
 
+for environment_contract in \
+  LOG_LEVELS \
+  LOG_FORMATS \
+  SERVICE_OVERRIDE_FIELDS \
+  INFRASTRUCTURE_OVERRIDE_FIELDS \
+  valid_http_url \
+  catalog_contract \
+  compose_service_names; do
+  grep -Fq "$environment_contract" bin/base_demo_environment.py || {
+    printf 'bin/base_demo_environment.py does not enforce environment contract: %s.\n' "$environment_contract" >&2
+    exit 1
+  }
+done
+
+for environment_contract_path in \
+  'services.python-api.required' \
+  'infrastructure.postgres.port' \
+  'services.missing-api' \
+  'infrastructure.rabbitmq'; do
+  grep -Fq "$environment_contract_path" tests/environments_test.bats || {
+    printf 'tests/environments_test.bats does not cover nested environment path: %s.\n' "$environment_contract_path" >&2
+    exit 1
+  }
+done
+
+for environment_contract_doc in \
+  README.md \
+  .ai-context/overview.md \
+  .ai-context/manifest.md \
+  docs/representative-environment.md \
+  demo/demo.sh; do
+  grep -Fq 'BASE_DEMO_ENV=baseline' "$environment_contract_doc" || {
+    printf '%s does not document the Base environment health marker.\n' "$environment_contract_doc" >&2
+    exit 1
+  }
+  grep -Fq 'services --env dev' "$environment_contract_doc" || {
+    printf '%s does not distinguish the representative service selector.\n' "$environment_contract_doc" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'base-cli==0.4.2' .ai-context/overview.md || {
+  printf '.ai-context/overview.md does not match the locked base-cli version.\n' >&2
+  exit 1
+}
+
+if grep -Rq 'base-cli==0.4.1' .ai-context; then
+  printf '.ai-context still contains the stale base-cli==0.4.1 claim.\n' >&2
+  exit 1
+fi
+
+if grep -Fq 'separation of ports' docs/representative-environment.md; then
+  printf 'docs/representative-environment.md still claims modeled port separation.\n' >&2
+  exit 1
+fi
+
 grep -Fq 'load_validated_environment' bin/base-demo-services || {
   printf 'bin/base-demo-services does not reuse validated environment loading.\n' >&2
   exit 1

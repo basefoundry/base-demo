@@ -38,10 +38,12 @@ def load_environment(name: str) -> dict[str, Any]:
 
 def load_validated(name: str) -> tuple[dict[str, Any], list[str]]:
     payload = load_environment(name)
-    return payload, validate_environment(name, payload)
+    return payload, validate_environment(name, payload, root=project_root())
 
 
 def cmd_list() -> int:
+    print("services_selector=services --env <name>")
+    print("base_health_marker=BASE_DEMO_ENV=baseline")
     print("NAME     MODE         OPERATIONAL  BASE_URL")
     for name in environment_names():
         payload, errors = load_validated(name)
@@ -71,6 +73,8 @@ def cmd_show(name: str) -> int:
     print(f"base_url={payload['base_url']}")
     print(f"logging.level={payload['logging'].get('level', '-')}")
     print(f"logging.format={payload['logging'].get('format', '-')}")
+    print(f"services_selector=services --env {name}")
+    print("base_health_marker=BASE_DEMO_ENV=baseline")
     return SUCCESS
 
 

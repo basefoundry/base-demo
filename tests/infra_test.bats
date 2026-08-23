@@ -27,10 +27,11 @@ EOF
 
 write_checkout_fixture() {
   local checkout_root="$1"
-  mkdir -p "$checkout_root/environments" "$checkout_root/infra"
+  mkdir -p "$checkout_root/environments" "$checkout_root/infra" "$checkout_root/services"
   cp "$TEST_ROOT/environments/dev.json" "$checkout_root/environments/dev.json"
   cp "$TEST_ROOT/environments/staging.json" "$checkout_root/environments/staging.json"
   cp "$TEST_ROOT/infra/compose.yaml" "$checkout_root/infra/compose.yaml"
+  cp "$TEST_ROOT/services/catalog.json" "$checkout_root/services/catalog.json"
 }
 
 compose_project_from_output() {
