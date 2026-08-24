@@ -102,6 +102,43 @@ write_stable_process_catalog() {
 EOF
 }
 
+write_named_process_catalog() {
+  local catalog="$1"
+  local name="$2"
+  local marker="$3"
+
+  python3 - "$catalog" "$name" "$marker" <<'PY'
+import json
+import sys
+
+catalog, name, marker = sys.argv[1:]
+with open(catalog, "w", encoding="utf-8") as handle:
+    json.dump(
+        {
+            "services": [
+                {
+                    "name": name,
+                    "kind": "service",
+                    "runtime": "test",
+                    "required": False,
+                    "lifecycle": {
+                        "type": "process",
+                        "command": [
+                            "python3",
+                            "-c",
+                            f"import pathlib; pathlib.Path({marker!r}).touch()",
+                        ],
+                    },
+                    "check": {"type": "none"},
+                    "logs": None,
+                }
+            ]
+        },
+        handle,
+    )
+PY
+}
+
 write_readiness_timeout_catalog() {
   local catalog="$1"
 
@@ -392,15 +429,83 @@ EOF
   [ "$status" -eq 0 ]
   [[ "$output" == *"stable-log started pid="* ]]
   [ "$(file_mode "$log_path")" = "600" ]
+  [ "$(file_mode "$state_path")" = "600" ]
   grep -Fq '"process_group_id":' "$state_path"
   grep -Fq '"process_start_time":' "$state_path"
   grep -Fq '"command":' "$state_path"
+  [ -z "$(find "$state_dir" -name '.stable-log.json.*.tmp' -print -quit)" ]
 
   run env BASE_DEMO_SERVICES_STATE_DIR="$state_dir" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" stop
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"stable-log stopped"* ]]
   [ ! -e "$state_path" ]
+}
+
+@test "services rejects unsafe catalog names before lifecycle execution" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local marker="$TEST_TMPDIR/lifecycle-ran"
+  local name
+
+  for name in '../escape' '/absolute' 'nested/name' 'nested\name' 'not_a_slug' $'control\nname'; do
+    write_named_process_catalog "$catalog" "$name" "$marker"
+
+    run env BASE_DEMO_SERVICES_STATE_DIR="$TEST_TMPDIR/state" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"services[0].name must be a lowercase slug"* ]]
+    [ ! -e "$marker" ]
+  done
+}
+
+@test "services rejects state and log symlinks before lifecycle execution" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local state_dir="$TEST_TMPDIR/state"
+  local outside_state="$TEST_TMPDIR/outside-state"
+  local outside_log="$TEST_TMPDIR/outside-log"
+  write_stable_process_catalog "$catalog"
+  mkdir -p "$state_dir"
+  printf 'outside-state\n' > "$outside_state"
+  printf 'outside-log\n' > "$outside_log"
+  ln -s "$outside_state" "$state_dir/stable-log.json"
+
+  run env BASE_DEMO_SERVICES_STATE_DIR="$state_dir" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"service artifact path is not a safe state-directory child"* ]]
+  [ "$(cat "$outside_state")" = "outside-state" ]
+  [ -L "$state_dir/stable-log.json" ]
+
+  rm "$state_dir/stable-log.json"
+  ln -s "$outside_log" "$state_dir/stable-log.log"
+
+  run env BASE_DEMO_SERVICES_STATE_DIR="$state_dir" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"service artifact path is not a safe state-directory child"* ]]
+  [ "$(cat "$outside_log")" = "outside-log" ]
+  [ -L "$state_dir/stable-log.log" ]
+}
+
+@test "services uses private state and log files in the default state directory" {
+  local checkout="$TEST_TMPDIR/checkout"
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local state_dir="$checkout/var/services"
+  write_stable_process_catalog "$catalog"
+  mkdir -p "$checkout/environments" "$checkout/services" "$checkout/infra"
+  cp "$TEST_ROOT/environments/dev.json" "$checkout/environments/dev.json"
+  cp "$TEST_ROOT/services/catalog.json" "$checkout/services/catalog.json"
+  cp "$TEST_ROOT/infra/compose.yaml" "$checkout/infra/compose.yaml"
+
+  run env BASE_PROJECT_ROOT="$checkout" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+  [ "$status" -eq 0 ]
+  [ "$(file_mode "$state_dir/stable-log.json")" = "600" ]
+  [ "$(file_mode "$state_dir/stable-log.log")" = "600" ]
+
+  run env BASE_PROJECT_ROOT="$checkout" "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" stop
+
+  [ "$status" -eq 0 ]
 }
 
 @test "services start enforces readiness timeout and removes failed state" {

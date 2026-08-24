@@ -11,16 +11,18 @@ import re
 import signal
 import shlex
 import shutil
+import stat
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any, BinaryIO, NamedTuple
 
-from base_demo_environment import load_validated_environment
+from base_demo_environment import load_validated_environment, validate_service_name
 
 
 # Match base_cli.ExitCode without requiring standalone lifecycle commands to import base_cli.
@@ -58,13 +60,23 @@ def load_catalog(path: Path) -> list[dict[str, Any]]:
         with path.open(encoding="utf-8") as handle:
             payload = json.load(handle)
     except FileNotFoundError:
-        raise SystemExit(f"ERROR: service catalog not found: {path}") from None
+        raise ValueError(f"service catalog not found: {path}") from None
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"ERROR: service catalog is not valid JSON: {exc}") from None
+        raise ValueError(f"service catalog is not valid JSON: {exc}") from None
 
-    services = payload.get("services")
+    services = payload.get("services") if isinstance(payload, dict) else None
     if not isinstance(services, list):
-        raise SystemExit("ERROR: service catalog must contain a services array.")
+        raise ValueError("service catalog must contain a services array")
+    names: set[str] = set()
+    for index, service in enumerate(services):
+        if not isinstance(service, dict):
+            raise ValueError(f"service catalog services[{index}] must be an object")
+        name = validate_service_name(
+            service.get("name"), f"service catalog services[{index}].name"
+        )
+        if name in names:
+            raise ValueError(f"service catalog contains duplicate name: {name}")
+        names.add(name)
     return services
 
 
@@ -171,31 +183,111 @@ def process_command(service: dict[str, Any]) -> list[str]:
 
 def state_dir(root: Path) -> Path:
     configured = os.environ.get("BASE_DEMO_SERVICES_STATE_DIR")
-    if configured:
-        return Path(configured).resolve()
-    return root / "var" / "services"
+    directory = Path(configured).expanduser() if configured else root / "var" / "services"
+    if directory.is_symlink():
+        raise ValueError(f"service state directory must not be a symbolic link: {directory}")
+    return directory.resolve()
+
+
+def ensure_private_state_directory(root: Path) -> Path:
+    directory = state_dir(root)
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if not directory.is_dir() or directory.is_symlink():
+        raise ValueError(f"service state path is not a safe directory: {directory}")
+    directory.chmod(0o700)
+    return directory
+
+
+def process_artifact_path(root: Path, service: dict[str, Any], suffix: str) -> Path:
+    name = validate_service_name(service.get("name"), "service name")
+    directory = state_dir(root)
+    path = directory / f"{name}{suffix}"
+    if path.parent != directory or path.is_symlink():
+        raise ValueError(f"service artifact path is not a safe state-directory child: {path}")
+    try:
+        resolved = path.resolve(strict=False)
+    except RuntimeError as exc:
+        raise ValueError(f"service artifact path cannot be resolved safely: {path}") from exc
+    if resolved.parent != directory or (path.exists() and not path.is_file()):
+        raise ValueError(f"service artifact path is not a safe state-directory file: {path}")
+    return path
 
 
 def process_state_path(root: Path, service: dict[str, Any]) -> Path:
-    return state_dir(root) / f"{service.get('name', 'service')}.json"
+    return process_artifact_path(root, service, ".json")
 
 
 def process_log_path(root: Path, service: dict[str, Any]) -> Path:
-    return state_dir(root) / f"{service.get('name', 'service')}.log"
+    return process_artifact_path(root, service, ".log")
 
 
-def ensure_private_log_file(path: Path) -> None:
-    path.touch(mode=0o600, exist_ok=True)
-    path.chmod(0o600)
+def validate_process_artifact_paths(services: list[dict[str, Any]], root: Path) -> None:
+    for service in process_services(services):
+        process_state_path(root, service)
+        process_log_path(root, service)
+
+
+def open_private_log_file(path: Path) -> BinaryIO:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags, 0o600)
+    except OSError as exc:
+        raise ValueError(f"cannot safely open service log file {path}: {exc}") from exc
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ValueError(f"service log path is not a regular file: {path}")
+        os.fchmod(descriptor, 0o600)
+        return os.fdopen(descriptor, "ab")
+    except Exception:
+        os.close(descriptor)
+        raise
+
+
+def write_private_state(path: Path, payload: dict[str, Any]) -> None:
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
+    )
+    temporary_path = Path(temporary_name)
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            descriptor = -1
+            json.dump(payload, handle, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        if path.is_symlink():
+            raise ValueError(f"service state path became a symbolic link: {path}")
+        os.replace(temporary_path, path)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        try:
+            temporary_path.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def read_process_state(root: Path, service: dict[str, Any]) -> dict[str, Any] | None:
     path = process_state_path(root, service)
     try:
-        with path.open(encoding="utf-8") as handle:
-            payload = json.load(handle)
-    except (FileNotFoundError, json.JSONDecodeError):
+        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    except FileNotFoundError:
         return None
+    except OSError as exc:
+        raise ValueError(f"cannot safely read service state file {path}: {exc}") from exc
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ValueError(f"service state path is not a regular file: {path}")
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, encoding="utf-8") as handle:
+            descriptor = -1
+            payload = json.load(handle)
+    except json.JSONDecodeError:
+        return None
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
     return payload if isinstance(payload, dict) else None
 
 
@@ -395,17 +487,15 @@ def start_process(service: dict[str, Any], root: Path, compose_project: str) -> 
         )
     remove_process_state(state_path)
 
-    directory = state_dir(root)
-    directory.mkdir(parents=True, exist_ok=True)
+    ensure_private_state_directory(root)
     log_path = process_log_path(root, service)
-    ensure_private_log_file(log_path)
     env = os.environ.copy()
     env["BASE_PROJECT_ROOT"] = str(root)
     port = service.get("port")
     if port is not None:
         env["PORT"] = str(port)
 
-    with log_path.open("ab") as log_handle:
+    with open_private_log_file(log_path) as log_handle:
         process = subprocess.Popen(
             command,
             cwd=root,
@@ -433,9 +523,12 @@ def start_process(service: dict[str, Any], root: Path, compose_project: str) -> 
         "command": command,
         "log": str(log_path),
     }
-    with state_path.open("w", encoding="utf-8") as handle:
-        json.dump(state_payload, handle, indent=2)
-        handle.write("\n")
+    try:
+        write_private_state(state_path, state_payload)
+    except (OSError, ValueError) as exc:
+        terminate_process_group(process.pid, identity.process_group_id, process)
+        print(f"ERROR: {name} state could not be recorded atomically: {exc}", file=sys.stderr)
+        return FAILURE
 
     deadline = time.monotonic() + readiness_timeout(service)
     survival_deadline = time.monotonic() + 0.2
@@ -693,7 +786,20 @@ def cmd_logs(services: list[dict[str, Any]], root: Path, compose_project: str) -
             print(f"{name} logs unavailable")
             continue
         print(f"==> {name} {log_path} <==")
-        print(log_path.read_text(encoding="utf-8")[-4000:], end="")
+        try:
+            descriptor = os.open(log_path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        except OSError as exc:
+            raise ValueError(f"cannot safely read service log file {log_path}: {exc}") from exc
+        try:
+            if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                raise ValueError(f"service log path is not a regular file: {log_path}")
+            os.fchmod(descriptor, 0o600)
+            with os.fdopen(descriptor, encoding="utf-8") as handle:
+                descriptor = -1
+                print(handle.read()[-4000:], end="")
+        finally:
+            if descriptor >= 0:
+                os.close(descriptor)
     return result
 
 
@@ -723,21 +829,27 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return USAGE_ERROR
 
-    catalog_path = Path(args.catalog).resolve()
-    services = select_environment_services(
-        load_catalog(catalog_path),
-        environment,
-        retain_unconfigured=catalog_path != (root / "services" / "catalog.json").resolve(),
-    )
+    try:
+        catalog_path = Path(args.catalog).resolve()
+        services = select_environment_services(
+            load_catalog(catalog_path),
+            environment,
+            retain_unconfigured=catalog_path
+            != (root / "services" / "catalog.json").resolve(),
+        )
+        validate_process_artifact_paths(services, root)
 
-    if args.command == "status":
-        return cmd_status(services, root, environment, compose_project)
-    if args.command == "check":
-        return cmd_check(services, root, compose_project)
-    if args.command in {"start", "stop", "restart"}:
-        return cmd_lifecycle(services, root, compose_project, args.command)
-    if args.command == "logs":
-        return cmd_logs(services, root, compose_project)
+        if args.command == "status":
+            return cmd_status(services, root, environment, compose_project)
+        if args.command == "check":
+            return cmd_check(services, root, compose_project)
+        if args.command in {"start", "stop", "restart"}:
+            return cmd_lifecycle(services, root, compose_project, args.command)
+        if args.command == "logs":
+            return cmd_logs(services, root, compose_project)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return USAGE_ERROR
 
     raise AssertionError(f"unhandled command: {args.command}")
 

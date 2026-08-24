@@ -359,7 +359,9 @@ read-only inspection because those models are non-operational.
   The audit gate fails at moderate severity or higher, and a successful build
   must create `dist/index.html` plus a JavaScript asset.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the
-  `services` lifecycle command for the representative environment.
+  `services` lifecycle command for the representative environment. Catalog
+  service names are validated as safe lowercase slugs, and process state plus
+  logs stay private within the configured service-state directory.
 - `bin/base-demo-environments` lists, shows, and validates environment
   configuration.
 - `services/catalog.json` is the initial catalog for representative services,
