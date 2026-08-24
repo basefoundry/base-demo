@@ -39,6 +39,8 @@ The `services` command reads `services/catalog.json`, validates catalog names
 before lifecycle work, reports catalog health, and exercises dry-run startup
 through `BASE_DEMO_SERVICES_DRY_RUN=1`. Process state and logs are private,
 contained children of `BASE_DEMO_SERVICES_STATE_DIR` (or `var/services`).
+Lifecycle starts fail closed, roll back invocation-owned resources after a
+later failure, and never restart after process-ownership or safe-stop failure.
 Compose-backed infrastructure lives in `infra/compose.yaml`.
 Current multi-language service fixtures live under `services/`.
 The React/Vite console provides the catalog UI. The `environments` command
