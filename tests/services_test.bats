@@ -263,6 +263,137 @@ EOF
   chmod +x "$bin_dir/docker"
 }
 
+write_transaction_fake_docker() {
+  local bin_dir="$1"
+  mkdir -p "$bin_dir"
+  cat > "$bin_dir/docker" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$FAKE_DOCKER_LOG"
+if [[ "$*" == *"ps --services --status running"* ]]; then
+  exit 0
+fi
+if [[ "$*" == *"up -d"* ]]; then
+  exit "${FAKE_DOCKER_UP_EXIT:-0}"
+fi
+if [[ "$*" == *"stop"* ]]; then
+  exit "${FAKE_DOCKER_STOP_EXIT:-0}"
+fi
+exit 0
+EOF
+  chmod +x "$bin_dir/docker"
+}
+
+write_transaction_catalog() {
+  local catalog="$1"
+  local scenario="$2"
+  local first_marker="$3"
+  local later_marker="$4"
+
+  python3 - "$catalog" "$scenario" "$first_marker" "$later_marker" <<'PY'
+import json
+import sys
+
+catalog, scenario, first_marker, later_marker = sys.argv[1:]
+services = [
+    {
+        "name": "transaction-db",
+        "kind": "database",
+        "runtime": "compose",
+        "required": False,
+        "compose_service": "transaction-db",
+        "check": {"type": "compose", "service": "transaction-db"},
+        "logs": None,
+    }
+]
+
+if scenario == "invalid-plan":
+    services.append(
+        {
+            "name": "invalid-process",
+            "kind": "service",
+            "runtime": "test",
+            "required": False,
+            "lifecycle": {"type": "process", "command": "not-an-array"},
+            "check": {"type": "none"},
+            "logs": None,
+        }
+    )
+elif scenario == "compose-failure":
+    services.append(
+        {
+            "name": "later-process",
+            "kind": "service",
+            "runtime": "test",
+            "required": False,
+            "lifecycle": {
+                "type": "process",
+                "command": [
+                    "python3",
+                    "-c",
+                    f"import pathlib,time; pathlib.Path({later_marker!r}).touch(); time.sleep(60)",
+                ],
+            },
+            "check": {"type": "none"},
+            "logs": None,
+        }
+    )
+elif scenario == "process-failure":
+    services.extend(
+        [
+            {
+                "name": "first-process",
+                "kind": "service",
+                "runtime": "test",
+                "required": False,
+                "lifecycle": {
+                    "type": "process",
+                    "command": [
+                        "python3",
+                        "-c",
+                        f"import pathlib,time; pathlib.Path({first_marker!r}).touch(); time.sleep(60)",
+                    ],
+                },
+                "check": {"type": "none"},
+                "logs": None,
+            },
+            {
+                "name": "failing-process",
+                "kind": "service",
+                "runtime": "test",
+                "required": False,
+                "lifecycle": {
+                    "type": "process",
+                    "command": ["python3", "-c", "raise SystemExit(9)"],
+                },
+                "check": {"type": "none"},
+                "logs": None,
+            },
+            {
+                "name": "later-process",
+                "kind": "service",
+                "runtime": "test",
+                "required": False,
+                "lifecycle": {
+                    "type": "process",
+                    "command": [
+                        "python3",
+                        "-c",
+                        f"import pathlib,time; pathlib.Path({later_marker!r}).touch(); time.sleep(60)",
+                    ],
+                },
+                "check": {"type": "none"},
+                "logs": None,
+            },
+        ]
+    )
+else:
+    raise SystemExit(f"unknown scenario: {scenario}")
+
+with open(catalog, "w", encoding="utf-8") as handle:
+    json.dump({"services": services}, handle)
+PY
+}
+
 @test "services command is declared and executable" {
   grep -Fq "services: ./bin/base-demo-services" "$TEST_ROOT/base_manifest.yaml"
   [ -x "$TEST_ROOT/bin/base-demo-services" ]
@@ -394,6 +525,156 @@ EOF
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"missing-http skip optional http:<missing health_url>"* ]]
+}
+
+@test "services validates the complete lifecycle plan before Compose mutation" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local fake_bin="$TEST_TMPDIR/bin"
+  local docker_log="$TEST_TMPDIR/docker.log"
+  write_transaction_catalog "$catalog" invalid-plan "$TEST_TMPDIR/first" "$TEST_TMPDIR/later"
+  write_transaction_fake_docker "$fake_bin"
+
+  run env PATH="$fake_bin:$PATH" FAKE_DOCKER_LOG="$docker_log" \
+    BASE_DEMO_SERVICES_STATE_DIR="$TEST_TMPDIR/state" \
+    "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"invalid-process: process lifecycle command must be a string array"* ]]
+  [ ! -e "$docker_log" ]
+}
+
+@test "services stops after Compose start failure and rolls back the attempted resources" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local fake_bin="$TEST_TMPDIR/bin"
+  local docker_log="$TEST_TMPDIR/docker.log"
+  local later_marker="$TEST_TMPDIR/later-ran"
+  write_transaction_catalog "$catalog" compose-failure "$TEST_TMPDIR/first" "$later_marker"
+  write_transaction_fake_docker "$fake_bin"
+
+  run env PATH="$fake_bin:$PATH" FAKE_DOCKER_LOG="$docker_log" \
+    FAKE_DOCKER_UP_EXIT=17 BASE_DEMO_SERVICES_STATE_DIR="$TEST_TMPDIR/state" \
+    "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+  [ "$status" -eq 17 ]
+  [[ "$output" == *"lifecycle start failed at compose (exit 17)"* ]]
+  [[ "$output" == *"ROLLBACK compose:transaction-db ok"* ]]
+  [ ! -e "$later_marker" ]
+  [ "$(grep -c 'up -d transaction-db' "$docker_log")" -eq 1 ]
+  [ "$(grep -c 'stop transaction-db' "$docker_log")" -eq 1 ]
+}
+
+@test "services restart never starts replacements after a stop failure" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local fake_bin="$TEST_TMPDIR/bin"
+  local docker_log="$TEST_TMPDIR/docker.log"
+  local later_marker="$TEST_TMPDIR/later-ran"
+  write_transaction_catalog "$catalog" compose-failure "$TEST_TMPDIR/first" "$later_marker"
+  write_transaction_fake_docker "$fake_bin"
+
+  run env PATH="$fake_bin:$PATH" FAKE_DOCKER_LOG="$docker_log" \
+    FAKE_DOCKER_STOP_EXIT=31 BASE_DEMO_SERVICES_STATE_DIR="$TEST_TMPDIR/state" \
+    "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" restart
+
+  [ "$status" -eq 31 ]
+  [[ "$output" == *"lifecycle stop failed at compose (exit 31)"* ]]
+  [[ "$output" == *"lifecycle restart aborted after stop failure (exit 31)"* ]]
+  [[ "$output" == *"no replacement services were started"* ]]
+  [ ! -e "$later_marker" ]
+  [ "$(grep -c 'stop transaction-db' "$docker_log")" -eq 1 ]
+  ! grep -Fq 'up -d' "$docker_log"
+}
+
+@test "services rolls back prior work, skips later starts, and reports rollback failures" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local fake_bin="$TEST_TMPDIR/bin"
+  local docker_log="$TEST_TMPDIR/docker.log"
+  local state_dir="$TEST_TMPDIR/state"
+  local first_marker="$TEST_TMPDIR/first-ran"
+  local later_marker="$TEST_TMPDIR/later-ran"
+  write_transaction_catalog "$catalog" process-failure "$first_marker" "$later_marker"
+  write_transaction_fake_docker "$fake_bin"
+
+  run env PATH="$fake_bin:$PATH" FAKE_DOCKER_LOG="$docker_log" \
+    FAKE_DOCKER_STOP_EXIT=23 BASE_DEMO_SERVICES_STATE_DIR="$state_dir" \
+    "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"lifecycle start failed at process:failing-process (exit 1)"* ]]
+  [[ "$output" == *"ROLLBACK process:first-process ok"* ]]
+  [[ "$output" == *"rollback compose:transaction-db exit 23"* ]]
+  [[ "$output" == *"lifecycle start rollback failures: compose:transaction-db exit 23"* ]]
+  [ -e "$first_marker" ]
+  [ ! -e "$later_marker" ]
+  [ ! -e "$state_dir/first-process.json" ]
+  [ ! -e "$state_dir/later-process.json" ]
+}
+
+@test "services restart aborts before mutation when process ownership mismatches" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local fake_bin="$TEST_TMPDIR/bin"
+  local docker_log="$TEST_TMPDIR/docker.log"
+  local state_dir="$TEST_TMPDIR/state"
+  local state_path="$state_dir/stable-log.json"
+  write_stable_process_catalog "$catalog"
+  write_transaction_fake_docker "$fake_bin"
+  python3 - "$catalog" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    catalog = json.load(handle)
+catalog["services"].insert(
+    0,
+    {
+        "name": "transaction-db",
+        "kind": "database",
+        "runtime": "compose",
+        "required": False,
+        "compose_service": "transaction-db",
+        "check": {"type": "compose", "service": "transaction-db"},
+        "logs": None,
+    },
+)
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(catalog, handle)
+PY
+  mkdir -p "$state_dir"
+  sleep 60 &
+  UNRELATED_PID=$!
+  cat > "$state_path" <<EOF
+{
+  "pid": $UNRELATED_PID,
+  "process_group_id": $UNRELATED_PID,
+  "process_start_time": "not-the-live-start-time",
+  "started_at": "2026-08-24T00:00:00+00:00",
+  "command": ["python3", "-c", "import time; time.sleep(60)"],
+  "log": "$state_dir/stable-log.log"
+}
+EOF
+
+  run env PATH="$fake_bin:$PATH" FAKE_DOCKER_LOG="$docker_log" \
+    BASE_DEMO_SERVICES_STATE_DIR="$state_dir" \
+    "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" restart
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"lifecycle restart preflight failed at process:stable-log"* ]]
+  [[ "$output" == *"No services were mutated and no replacement was started"* ]]
+  grep -Fq "\"pid\": $UNRELATED_PID" "$state_path"
+  [ ! -e "$docker_log" ]
+  kill -0 "$UNRELATED_PID"
+
+  run env PATH="$fake_bin:$PATH" FAKE_DOCKER_LOG="$docker_log" \
+    BASE_DEMO_SERVICES_STATE_DIR="$state_dir" \
+    "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"lifecycle start preflight failed at process:stable-log"* ]]
+  [ ! -e "$docker_log" ]
+  grep -Fq "\"pid\": $UNRELATED_PID" "$state_path"
+  kill "$UNRELATED_PID"
+  wait "$UNRELATED_PID" 2>/dev/null || true
+  UNRELATED_PID=""
 }
 
 @test "services start rejects immediate process exit and removes state" {

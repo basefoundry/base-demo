@@ -97,6 +97,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Fixed
 
+- Made multi-service lifecycle starts fail fast and roll back invocation-owned
+  resources, with restart preflight and abort behavior that cannot launch a
+  replacement after PID-ownership or stop failure.
 - Contained process state and logs within the configured service-state
   directory by rejecting unsafe catalog slugs and symlinks, enforcing `0600`
   permissions, and replacing complete state files atomically.

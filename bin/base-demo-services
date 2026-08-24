@@ -48,6 +48,18 @@ class ProcessStateStatus(NamedTuple):
     process_group_id: int | None
 
 
+class LifecyclePlan(NamedTuple):
+    compose_names: tuple[str, ...]
+    process_entries: tuple[dict[str, Any], ...]
+
+
+class ProcessStartResult(NamedTuple):
+    exit_code: int
+    started: bool
+    rollback_failure: str | None = None
+    process: subprocess.Popen[Any] | None = None
+
+
 def project_root() -> Path:
     root = os.environ.get("BASE_PROJECT_ROOT")
     if root:
@@ -464,27 +476,122 @@ def run_compose(root: Path, compose_project: str, args: list[str]) -> int:
     return subprocess.run(command, check=False).returncode
 
 
-def start_process(service: dict[str, Any], root: Path, compose_project: str) -> int:
+def build_lifecycle_plan(services: list[dict[str, Any]], root: Path) -> LifecyclePlan:
+    process_entries = tuple(process_services(services))
+    for service in process_entries:
+        process_command(service)
+        process_state_path(root, service)
+        process_log_path(root, service)
+    compose_names = tuple(compose_service_names(services))
+    if (
+        compose_names
+        and os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") != "1"
+        and shutil.which("docker") is None
+    ):
+        raise ValueError("docker is not available; cannot manage Compose services")
+    return LifecyclePlan(compose_names, process_entries)
+
+
+def compose_running_services(
+    root: Path, compose_project: str
+) -> tuple[int, set[str]]:
+    if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
+        return SUCCESS, set()
+    command = compose_command(
+        root, compose_project, ["ps", "--services", "--status", "running"]
+    )
+    try:
+        result = subprocess.run(command, check=False, capture_output=True, text=True)
+    except OSError as exc:
+        print(f"ERROR: Compose state inspection failed: {exc}", file=sys.stderr)
+        return FAILURE, set()
+    if result.returncode != 0:
+        detail = result.stderr.strip()
+        suffix = f": {detail}" if detail else ""
+        print(
+            f"ERROR: Compose state inspection exited {result.returncode}{suffix}",
+            file=sys.stderr,
+        )
+        return result.returncode, set()
+    return SUCCESS, set(result.stdout.splitlines())
+
+
+def report_lifecycle_failure(action: str, stage: str, exit_code: int) -> None:
+    sys.stdout.flush()
+    print(
+        f"ERROR: lifecycle {action} failed at {stage} (exit {exit_code}).",
+        file=sys.stderr,
+    )
+
+
+def rollback_started_resources(
+    root: Path,
+    compose_project: str,
+    compose_names: list[str],
+    process_entries: list[tuple[dict[str, Any], subprocess.Popen[Any] | None]],
+    initial_failures: list[str] | None = None,
+) -> list[str]:
+    failures = list(initial_failures or [])
+    for service, process in reversed(process_entries):
+        name = str(service.get("name", "-"))
+        result = stop_process(service, root, process)
+        if result == SUCCESS:
+            print(f"ROLLBACK process:{name} ok")
+        else:
+            failure = f"process:{name} exit {result}"
+            failures.append(failure)
+            sys.stdout.flush()
+            print(f"ERROR: rollback {failure}", file=sys.stderr)
+
+    if compose_names:
+        result = run_compose(root, compose_project, ["stop", *compose_names])
+        label = f"compose:{','.join(compose_names)}"
+        if result == SUCCESS:
+            print(f"ROLLBACK {label} ok")
+        else:
+            failure = f"{label} exit {result}"
+            failures.append(failure)
+            sys.stdout.flush()
+            print(f"ERROR: rollback {failure}", file=sys.stderr)
+
+    if failures:
+        sys.stdout.flush()
+        print(
+            f"ERROR: lifecycle start rollback failures: {'; '.join(failures)}",
+            file=sys.stderr,
+        )
+    elif compose_names or process_entries:
+        print("ROLLBACK lifecycle start complete")
+    else:
+        print("ROLLBACK lifecycle start had no resources to clean up")
+    return failures
+
+
+def start_process(
+    service: dict[str, Any], root: Path, compose_project: str
+) -> ProcessStartResult:
     name = str(service.get("name", "-"))
     try:
         command = process_command(service)
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
-        return USAGE_ERROR
+        return ProcessStartResult(USAGE_ERROR, False)
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN start {name}: {shlex.join(command)}")
-        return SUCCESS
+        return ProcessStartResult(SUCCESS, False)
 
     state_path = process_state_path(root, service)
     state_status = inspect_process_state(service, read_process_state(root, service))
     if state_status.kind == "running":
         print(f"{name} already running pid={state_status.pid}")
-        return SUCCESS
+        return ProcessStartResult(SUCCESS, False)
     if state_status.kind == "mismatch":
         print(
-            f"WARN: removing stale {name} state without signaling pid={state_status.pid or '-'}.",
+            f"ERROR: {name} state does not safely identify live pid={state_status.pid or '-'}; "
+            "refusing to start a replacement.",
             file=sys.stderr,
         )
+        return ProcessStartResult(FAILURE, False)
     remove_process_state(state_path)
 
     ensure_private_state_directory(root)
@@ -495,15 +602,19 @@ def start_process(service: dict[str, Any], root: Path, compose_project: str) -> 
     if port is not None:
         env["PORT"] = str(port)
 
-    with open_private_log_file(log_path) as log_handle:
-        process = subprocess.Popen(
-            command,
-            cwd=root,
-            env=env,
-            stdout=log_handle,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
+    try:
+        with open_private_log_file(log_path) as log_handle:
+            process = subprocess.Popen(
+                command,
+                cwd=root,
+                env=env,
+                stdout=log_handle,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+    except OSError as exc:
+        print(f"ERROR: {name} could not start: {exc}", file=sys.stderr)
+        return ProcessStartResult(FAILURE, False)
     identity = process_identity(process.pid)
     if identity is None:
         process.terminate()
@@ -514,7 +625,7 @@ def start_process(service: dict[str, Any], root: Path, compose_project: str) -> 
             process.wait(timeout=2.0)
         remove_process_state(state_path)
         print(f"ERROR: {name} exited before process identity could be recorded.", file=sys.stderr)
-        return FAILURE
+        return ProcessStartResult(FAILURE, False)
     state_payload = {
         "pid": process.pid,
         "process_group_id": identity.process_group_id,
@@ -526,9 +637,10 @@ def start_process(service: dict[str, Any], root: Path, compose_project: str) -> 
     try:
         write_private_state(state_path, state_payload)
     except (OSError, ValueError) as exc:
-        terminate_process_group(process.pid, identity.process_group_id, process)
+        stopped = terminate_process_group(process.pid, identity.process_group_id, process)
         print(f"ERROR: {name} state could not be recorded atomically: {exc}", file=sys.stderr)
-        return FAILURE
+        rollback_failure = None if stopped else f"process:{name} could not be stopped"
+        return ProcessStartResult(FAILURE, False, rollback_failure)
 
     deadline = time.monotonic() + readiness_timeout(service)
     survival_deadline = time.monotonic() + 0.2
@@ -538,24 +650,29 @@ def start_process(service: dict[str, Any], root: Path, compose_project: str) -> 
         if return_code is not None:
             remove_process_state(state_path)
             print(f"ERROR: {name} exited during startup with status {return_code}.", file=sys.stderr)
-            return FAILURE
+            return ProcessStartResult(FAILURE, False)
         last_result = check_service(service, root, compose_project)
         if last_result.ok and time.monotonic() >= survival_deadline:
             print(f"{name} started pid={process.pid}")
-            return SUCCESS
+            return ProcessStartResult(SUCCESS, True, process=process)
         time.sleep(0.1)
 
-    terminate_process_group(process.pid, identity.process_group_id, process)
+    stopped = terminate_process_group(process.pid, identity.process_group_id, process)
     try:
         process.wait(timeout=2.0)
     except subprocess.TimeoutExpired:
         pass
     remove_process_state(state_path)
     print(f"ERROR: {name} failed readiness: {last_result.detail}.", file=sys.stderr)
-    return FAILURE
+    rollback_failure = None if stopped else f"process:{name} could not be stopped"
+    return ProcessStartResult(FAILURE, False, rollback_failure)
 
 
-def stop_process(service: dict[str, Any], root: Path) -> int:
+def stop_process(
+    service: dict[str, Any],
+    root: Path,
+    process: subprocess.Popen[Any] | None = None,
+) -> int:
     name = str(service.get("name", "-"))
     if os.environ.get("BASE_DEMO_SERVICES_DRY_RUN") == "1":
         print(f"DRY-RUN stop {name}")
@@ -576,7 +693,9 @@ def stop_process(service: dict[str, Any], root: Path) -> int:
         )
         return FAILURE
 
-    if not terminate_process_group(state_status.pid, state_status.process_group_id):
+    if not terminate_process_group(
+        state_status.pid, state_status.process_group_id, process
+    ):
         print(f"ERROR: {name} did not stop after SIGTERM and SIGKILL.", file=sys.stderr)
         return FAILURE
     remove_process_state(state_path)
@@ -743,30 +862,120 @@ def cmd_check(services: list[dict[str, Any]], root: Path, compose_project: str) 
     return FAILURE if failed else SUCCESS
 
 
+def start_lifecycle(plan: LifecyclePlan, root: Path, compose_project: str) -> int:
+    compose_started: list[str] = []
+    process_started: list[
+        tuple[dict[str, Any], subprocess.Popen[Any] | None]
+    ] = []
+
+    if plan.compose_names:
+        inspect_result, running_before = compose_running_services(root, compose_project)
+        if inspect_result != SUCCESS:
+            report_lifecycle_failure("start", "compose-state", inspect_result)
+            return inspect_result
+        compose_started = [
+            name for name in plan.compose_names if name not in running_before
+        ]
+        compose_result = run_compose(
+            root, compose_project, ["up", "-d", *plan.compose_names]
+        )
+        if compose_result != SUCCESS:
+            report_lifecycle_failure("start", "compose", compose_result)
+            rollback_started_resources(
+                root, compose_project, compose_started, process_started
+            )
+            return compose_result
+
+    for service in plan.process_entries:
+        name = str(service.get("name", "-"))
+        sys.stdout.flush()
+        process_result = start_process(service, root, compose_project)
+        if process_result.exit_code != SUCCESS:
+            report_lifecycle_failure(
+                "start", f"process:{name}", process_result.exit_code
+            )
+            initial_failures = (
+                [process_result.rollback_failure]
+                if process_result.rollback_failure is not None
+                else []
+            )
+            rollback_started_resources(
+                root,
+                compose_project,
+                compose_started,
+                process_started,
+                initial_failures,
+            )
+            return process_result.exit_code
+        if process_result.started:
+            process_started.append((service, process_result.process))
+    return SUCCESS
+
+
+def stop_lifecycle(plan: LifecyclePlan, root: Path, compose_project: str) -> int:
+    failures: list[tuple[str, int]] = []
+    if plan.compose_names:
+        compose_result = run_compose(
+            root, compose_project, ["stop", *plan.compose_names]
+        )
+        if compose_result != SUCCESS:
+            failures.append(("compose", compose_result))
+
+    for service in plan.process_entries:
+        name = str(service.get("name", "-"))
+        process_result = stop_process(service, root)
+        if process_result != SUCCESS:
+            failures.append((f"process:{name}", process_result))
+
+    for stage, exit_code in failures:
+        report_lifecycle_failure("stop", stage, exit_code)
+    return failures[0][1] if failures else SUCCESS
+
+
+def lifecycle_start_preflight(
+    plan: LifecyclePlan, root: Path, action: str
+) -> int:
+    for service in plan.process_entries:
+        state_status = inspect_process_state(service, read_process_state(root, service))
+        if state_status.kind != "mismatch":
+            continue
+        name = str(service.get("name", "-"))
+        print(
+            f"ERROR: lifecycle {action} preflight failed at process:{name}: "
+            f"state does not safely identify live pid={state_status.pid or '-'}. ",
+            "No services were mutated and no replacement was started.",
+            sep="",
+            file=sys.stderr,
+        )
+        return FAILURE
+    return SUCCESS
+
+
 def cmd_lifecycle(
     services: list[dict[str, Any]], root: Path, compose_project: str, action: str
 ) -> int:
+    plan = build_lifecycle_plan(services, root)
+    if action == "start":
+        preflight_result = lifecycle_start_preflight(plan, root, action)
+        if preflight_result != SUCCESS:
+            return preflight_result
+        return start_lifecycle(plan, root, compose_project)
+    if action == "stop":
+        return stop_lifecycle(plan, root, compose_project)
     if action == "restart":
-        stop_result = cmd_lifecycle(services, root, compose_project, "stop")
-        start_result = cmd_lifecycle(services, root, compose_project, "start")
-        return stop_result or start_result
-
-    result = 0
-    compose_names = compose_service_names(services)
-    if compose_names:
-        if action == "start":
-            result = run_compose(root, compose_project, ["up", "-d", *compose_names])
-        if action == "stop":
-            result = run_compose(root, compose_project, ["stop", *compose_names])
-
-    for service in process_services(services):
-        if action == "start":
-            process_result = start_process(service, root, compose_project)
-            result = result or process_result
-        if action == "stop":
-            process_result = stop_process(service, root)
-            result = result or process_result
-    return result
+        preflight_result = lifecycle_start_preflight(plan, root, action)
+        if preflight_result != SUCCESS:
+            return preflight_result
+        stop_result = stop_lifecycle(plan, root, compose_project)
+        if stop_result != SUCCESS:
+            print(
+                f"ERROR: lifecycle restart aborted after stop failure (exit {stop_result}); "
+                "no replacement services were started.",
+                file=sys.stderr,
+            )
+            return stop_result
+        return start_lifecycle(plan, root, compose_project)
+    raise AssertionError(f"unhandled lifecycle action: {action}")
 
 
 def cmd_logs(services: list[dict[str, Any]], root: Path, compose_project: str) -> int:

@@ -1064,6 +1064,7 @@ for contract in \
   installer-checksum \
   service-log-permissions \
   service-state-containment \
+  service-lifecycle-transactions \
   service-process-identity \
   ci-pinned-dependencies \
   ubuntu-ci \
