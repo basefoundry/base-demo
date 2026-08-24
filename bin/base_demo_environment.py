@@ -22,6 +22,16 @@ LOG_LEVELS = {"debug", "info", "warn", "error"}
 LOG_FORMATS = {"text", "json"}
 SERVICE_OVERRIDE_FIELDS = {"required"}
 INFRASTRUCTURE_OVERRIDE_FIELDS = {"enabled", "port"}
+SERVICE_NAME_PATTERN = re.compile(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
+SERVICE_NAME_REQUIREMENT = (
+    "must be a lowercase slug containing only letters, digits, and internal hyphens"
+)
+
+
+def validate_service_name(value: Any, location: str) -> str:
+    if not isinstance(value, str) or SERVICE_NAME_PATTERN.fullmatch(value) is None:
+        raise ValueError(f"{location} {SERVICE_NAME_REQUIREMENT}")
+    return value
 
 
 def environment_names(root: Path) -> list[str]:
@@ -87,9 +97,9 @@ def catalog_contract(root: Path) -> tuple[set[str], set[str]]:
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict):
             raise ValueError(f"service catalog services[{index}] must be an object")
-        entry_name = entry.get("name")
-        if not isinstance(entry_name, str) or not entry_name:
-            raise ValueError(f"service catalog services[{index}].name must be a non-empty string")
+        entry_name = validate_service_name(
+            entry.get("name"), f"service catalog services[{index}].name"
+        )
         if entry_name in service_names or entry_name in infrastructure_compose_names:
             raise ValueError(f"service catalog contains duplicate name: {entry_name}")
         compose_name = entry.get("compose_service")

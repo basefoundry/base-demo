@@ -35,8 +35,10 @@ can prove setup, activation, run, build, test, and demo behavior quickly. The
 `BASE_OS`, `BASE_PLATFORM`, `BASE_HOST_ENV`, and `BASE_HOST`.
 
 The representative environment is now part of the committed manifest surface.
-The `services` command reads `services/catalog.json`, reports catalog health,
-and exercises dry-run startup through `BASE_DEMO_SERVICES_DRY_RUN=1`.
+The `services` command reads `services/catalog.json`, validates catalog names
+before lifecycle work, reports catalog health, and exercises dry-run startup
+through `BASE_DEMO_SERVICES_DRY_RUN=1`. Process state and logs are private,
+contained children of `BASE_DEMO_SERVICES_STATE_DIR` (or `var/services`).
 Compose-backed infrastructure lives in `infra/compose.yaml`.
 Current multi-language service fixtures live under `services/`.
 The React/Vite console provides the catalog UI. The `environments` command

@@ -1063,6 +1063,7 @@ for contract in \
   python-env-privacy \
   installer-checksum \
   service-log-permissions \
+  service-state-containment \
   service-process-identity \
   ci-pinned-dependencies \
   ubuntu-ci \

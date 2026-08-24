@@ -97,6 +97,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Fixed
 
+- Contained process state and logs within the configured service-state
+  directory by rejecting unsafe catalog slugs and symlinks, enforcing `0600`
+  permissions, and replacing complete state files atomically.
 - Made process lifecycle state identity-aware, waited for bounded startup
   readiness, refused mismatched PID signaling, and reclassified native fixtures
   as portless process-health examples.

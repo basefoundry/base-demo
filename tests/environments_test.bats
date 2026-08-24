@@ -52,6 +52,28 @@ teardown() {
   [[ "$output" == *"prod ok"* ]]
 }
 
+@test "environment validation rejects unsafe canonical catalog service names" {
+  copy_environment_contract
+  mkdir -p "$TEST_TMPDIR/environments"
+  cp "$TEST_ROOT/environments/dev.json" "$TEST_TMPDIR/environments/dev.json"
+  python3 - "$TEST_TMPDIR/services/catalog.json" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    catalog = json.load(handle)
+catalog["services"][0]["name"] = "../project-baseline"
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(catalog, handle)
+PY
+
+  run env BASE_PROJECT_ROOT="$TEST_TMPDIR" "$TEST_ROOT/bin/base-demo-environments" validate dev
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"services[0].name must be a lowercase slug"* ]]
+}
+
 @test "environment command discovers additional JSON environments" {
   cp -R "$TEST_ROOT/environments" "$TEST_TMPDIR/environments"
   copy_environment_contract
