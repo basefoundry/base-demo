@@ -50,11 +50,17 @@ gh issue readiness` before agentic implementation work and `basectl gh branch
 stale` during branch cleanup when `gh` is authenticated; neither command is part
 of the baseline setup or CI contract.
 
+The `Validate Demo` CI workflow runs on pull-request commits and pushes to
+`main`, not on both push and pull-request events for the same feature commit.
+Its per-PR/ref concurrency group cancels only superseded runs in the same
+change stream, and its three existing validation job IDs remain stable.
+
 ## Purpose
 
 - Show what a well-structured `base_manifest.yaml` looks like
 - Demonstrate `basectl setup`, `check`, `doctor`, `run`, `test`, `build`, `activate`, and `demo`
-- Provide a working end-to-end example that CI validates on every commit
+- Provide a working end-to-end example that CI validates on every pull-request
+  commit and on every update to `main`
 - Build confidence for larger Banyan Labs work without duplicating Banyan Labs
   product or platform complexity
 

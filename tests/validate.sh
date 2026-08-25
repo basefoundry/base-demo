@@ -193,6 +193,35 @@ if [[ -n "$floating_actions_refs" ]]; then
   exit 1
 fi
 
+python3 - <<'PY'
+from pathlib import Path
+
+workflow = Path(".github/workflows/tests.yml").read_text()
+event_contract = """on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: validate-demo-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+"""
+if event_contract not in workflow:
+    raise SystemExit(
+        ".github/workflows/tests.yml must validate pull requests and main pushes "
+        "with per-PR/ref supersession."
+    )
+
+for job_id in ("validate", "validate-base-cli-source", "validate-ubuntu"):
+    declaration = f"  {job_id}:"
+    if workflow.count(declaration) != 1:
+        raise SystemExit(
+            ".github/workflows/tests.yml must preserve exactly one stable "
+            f"{job_id} job declaration."
+        )
+PY
+
 grep -Fq 'pull_request_target:' .github/workflows/issue-branch-policy.yml || {
   printf '.github/workflows/issue-branch-policy.yml does not validate pull_request_target events.\n' >&2
   exit 1
@@ -1177,6 +1206,7 @@ for contract in \
   service-state-containment \
   service-lifecycle-transactions \
   service-process-identity \
+  ci-trigger-deduplication \
   ci-pinned-dependencies \
   ubuntu-ci \
   platform-boundary \
