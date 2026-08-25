@@ -82,7 +82,7 @@ build:
       command: ./services/demo-console/build.sh
 
 test:
-  command: ./tests/validate.sh
+  mise: validate
 
 demo:
   script: ./demo/demo.sh

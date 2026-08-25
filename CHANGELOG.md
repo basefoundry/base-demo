@@ -97,6 +97,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Fixed
 
+- Provisioned Node 22.22.0/npm 10.9.4 through the supported mise setup path
+  and made `basectl test` reconcile locked demo-console dependencies before
+  validation, with actionable setup and dependency diagnostics.
 - Made multi-service lifecycle starts fail fast and roll back invocation-owned
   resources, with restart preflight and abort behavior that cannot launch a
   replacement after PID-ownership or stop failure.

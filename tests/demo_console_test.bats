@@ -47,7 +47,8 @@ setup() {
   run "$fixture/build.sh"
 
   [ "$status" -ne 0 ]
-  [[ "$output" == *"dependencies are missing; run npm ci"* ]]
+  [[ "$output" == *"dependencies are missing; run mise run frontend-install"* ]]
+  [[ "$output" == *"basectl test base-demo does this automatically"* ]]
   [[ "$output" != *"Skipping"* ]]
 }
 

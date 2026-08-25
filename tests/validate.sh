@@ -152,8 +152,8 @@ for language in python go java c cpp javascript; do
   }
 done
 
-grep -Fq 'command: ./tests/validate.sh' base_manifest.yaml || {
-  printf 'base_manifest.yaml does not declare the validation test command.\n' >&2
+grep -Fq '  mise: validate' base_manifest.yaml || {
+  printf 'base_manifest.yaml does not declare the mise validation task.\n' >&2
   exit 1
 }
 
@@ -562,8 +562,77 @@ grep -Fq '"runtime": "react-vite"' services/catalog.json || {
   exit 1
 }
 
+python3 - <<'PY' || exit 1
+import json
+import tomllib
+
+with open(".mise.toml", "rb") as handle:
+    mise = tomllib.load(handle)
+
+if mise.get("tools", {}).get("node") != "22.22.0":
+    raise SystemExit(".mise.toml must provision Node 22.22.0")
+
+frontend_install = mise.get("tasks", {}).get("frontend-install", {})
+expected_frontend_install = {
+    "dir": "services/demo-console",
+    "run": "npm ci",
+    "sources": ["package.json", "package-lock.json"],
+    "outputs": ["node_modules/.package-lock.json", "node_modules/.bin/vite"],
+}
+for key, expected in expected_frontend_install.items():
+    if frontend_install.get(key) != expected:
+        raise SystemExit(f".mise.toml frontend-install.{key} must be {expected!r}")
+
+validate = mise.get("tasks", {}).get("validate", {})
+if validate.get("depends") != ["frontend-install"]:
+    raise SystemExit(".mise.toml validate task must depend on frontend-install")
+if validate.get("run") != "./tests/validate.sh":
+    raise SystemExit(".mise.toml validate task must run ./tests/validate.sh")
+
+with open("services/demo-console/package.json", encoding="utf-8") as handle:
+    package = json.load(handle)
+if package.get("packageManager") != "npm@10.9.4":
+    raise SystemExit("demo-console packageManager must pin npm 10.9.4")
+PY
+
+if ! awk '
+  /^test:$/ { in_test = 1; next }
+  in_test && /^  mise: validate$/ { found = 1; exit }
+  in_test && /^[^[:space:]]/ { exit }
+  END { exit(found ? 0 : 1) }
+' base_manifest.yaml; then
+  printf 'base_manifest.yaml test contract must delegate to mise task validate.\n' >&2
+  exit 1
+fi
+
+for frontend_remediation in \
+  'run basectl setup base-demo' \
+  'run mise run frontend-install' \
+  'basectl test base-demo does this automatically'; do
+  grep -Fq "$frontend_remediation" services/demo-console/build.sh || {
+    printf 'demo-console build does not provide frontend remediation: %s.\n' "$frontend_remediation" >&2
+    exit 1
+  }
+done
+
+grep -Fq '`frontend-setup-path`' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the supported frontend setup path.\n' >&2
+  exit 1
+}
+
+for frontend_doc_contract in \
+  'Node 22.22.0' \
+  'npm 10.9.4' \
+  'mise run frontend-install' \
+  'test.mise'; do
+  grep -Fq "$frontend_doc_contract" README.md || {
+    printf 'README.md does not document frontend setup contract: %s.\n' "$frontend_doc_contract" >&2
+    exit 1
+  }
+done
+
 if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
-  printf 'Node and npm are required to validate the demo console build.\n' >&2
+  printf 'Node and npm are required to validate the demo console build; run basectl setup base-demo.\n' >&2
   exit 1
 fi
 
