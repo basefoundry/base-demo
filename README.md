@@ -77,6 +77,13 @@ finding; if that happens, continue with the explicit commands below.
 
 From the `base-demo` repository root on a machine where Base is already set up:
 
+`basectl setup base-demo` installs the repository's mise-managed Python 3.13
+and Node 22.22.0 toolchains; Node supplies the pinned npm 10.9.4 release.
+`basectl test base-demo` runs the mise `validate` task, which first runs locked
+`npm ci` when the demo-console lockfile changes or `node_modules` is absent.
+Use `mise run frontend-install` from the repository root to reconcile only the
+frontend dependencies.
+
 ```bash
 basectl projects list
 basectl setup base-demo  # macOS only
@@ -227,7 +234,8 @@ The commands above exercise the complete Base project loop:
   catalog and current health state.
 - `basectl run base-demo environments -- list` shows the modeled
   `dev`/`staging`/`prod` configuration set.
-- `basectl test base-demo` runs the manifest-declared test command.
+- `basectl test base-demo` runs the manifest-declared mise validation task,
+  including locked frontend dependency reconciliation.
 - `basectl logs --limit 3`, `basectl history --project base-demo --limit 5`,
   and `basectl history --project base-demo --limit 5 --report` show the local
   audit trail and privacy-conscious activity report for recent Base activity.
@@ -249,7 +257,7 @@ Expected command output includes:
 $ basectl run base-demo --list
 Commands for project 'base-demo'
 
-test                 ./tests/validate.sh
+test                 mise run validate
 hello                ./src/hello.sh
 env                  ./src/env.sh
 manifest             ./src/manifest.sh
@@ -319,7 +327,7 @@ read-only inspection because those models are non-operational.
 ## Repository Shape
 
 - `base_manifest.yaml` declares the project name, the repository's explicit
-  language taxonomy, activation source, command, test command, and Brewfile
+  language taxonomy, activation source, commands, mise test task, and Brewfile
   location using current Base contracts.
 - `pyproject.toml` and `uv.lock` declare the dependency-manager-owned Python
   project environment. Its declared runtime dependencies are `base-cli==0.4.2`,
@@ -354,10 +362,11 @@ read-only inspection because those models are non-operational.
   network port; lifecycle health requires a matching live process-state record.
 - `services/demo-console` is a small React/Vite operational console that reads
   the service catalog and shows the representative stack. Its build is a real
-  production compilation gate: use Node 22.22.0 with npm 10.9.4, run `npm ci`
-  in `services/demo-console`, and then run `npm run build` plus `npm run audit`.
-  The audit gate fails at moderate severity or higher, and a successful build
-  must create `dist/index.html` plus a JavaScript asset.
+  production compilation gate. The supported Base path installs Node 22.22.0
+  with npm 10.9.4 through mise, and the `validate` task runs locked `npm ci`
+  before validation when needed. The audit gate fails at moderate severity or
+  higher, and a successful build must create `dist/index.html` plus a
+  JavaScript asset.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the
   `services` lifecycle command for the representative environment. Catalog
   service names are validated as safe lowercase slugs, and process state plus
@@ -374,8 +383,9 @@ read-only inspection because those models are non-operational.
 - `environments/dev.json`, `environments/staging.json`, and
   `environments/prod.json` model environment-specific configuration. Only
   `dev` is operational by default.
-- `.mise.toml` declares the host tool versions (Python 3.13) managed by mise;
-  uv uses that supported Python range for the project virtual environment.
+- `.mise.toml` declares the host tool versions (Python 3.13 and Node 22.22.0)
+  managed by mise, plus the locked frontend-install and validation task chain;
+  uv uses the supported Python range for the project virtual environment.
 - `justfile` and `Taskfile.yml` provide optional task-runner wrappers that
   delegate to Base commands without replacing the `basectl` contract.
 - `examples/tooling/env-dotfiles/` contains reference-only direnv, asdf,
@@ -402,7 +412,7 @@ each field maps to a visible Base workflow:
 | `python.manager` | `basectl setup`, `basectl check`, and `basectl doctor` | Delegates the project virtual environment to uv; `pyproject.toml` and `uv.lock` are the dependency source of truth. |
 | `health.required_env` | `basectl check base-demo` | Declares env vars that must be set; green in an activated shell and intentionally reported missing as a pre-activation diagnostic. |
 | `health.required_ports` | `basectl check base-demo` | Declares that the baseline `go-api` port 8010 should be free before services are started. |
-| `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs declared tool versions (Python 3.13) via mise. |
+| `mise` | `basectl setup base-demo` | Points to `.mise.toml` so Base installs Python 3.13 and Node 22.22.0 with its bundled npm 10.9.4 via mise. |
 | `python.requires_python` | `basectl check base-demo` | Lets Base verify Python 3.13 while uv enforces the matching project interpreter range. |
 | `activate.source` | `basectl activate base-demo` | Sources project-owned shell state into the activated project shell. |
 | `ide.vscode` | `basectl setup base-demo` | Declares VS Code Python extensions and auto-injects the project venv as `python.defaultInterpreterPath` when IDE setup is enabled. |
@@ -410,7 +420,7 @@ each field maps to a visible Base workflow:
 | `commands[*].runner` | `basectl run base-demo uv-info` | Keeps command-level `uv run --` selection visible alongside the project-wide uv environment manager. |
 | `build.targets` | `basectl build base-demo` | Declares build targets; the `info` target runs `src/build-info.sh`. |
 | `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the target command needing to change directories itself. |
-| `test.command` | `basectl test base-demo` | Defines the project-owned validation command. |
+| `test.mise` | `basectl test base-demo` | Delegates to the project-owned mise `validate` task, which reconciles locked frontend dependencies before baseline validation. |
 | `demo.script` | `basectl demo base-demo` | Defines the project-owned interactive walkthrough. |
 | `artifacts` | `basectl setup base-demo` | Requests the `bats-core` tool artifact; the project setup layer reports whether Homebrew already has it or would install it. |
 

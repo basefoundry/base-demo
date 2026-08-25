@@ -14,7 +14,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `python.manager` | `basectl setup` / `check` / `doctor` | `uv` owns the project virtual environment; `pyproject.toml` and `uv.lock` are the dependency source of truth |
 | `health.required_env` | `basectl check` / `doctor` | `BASE_DEMO_ENV=baseline` on the green path; missing before activation as a diagnostic example |
 | `health.required_ports` | `basectl check` / `doctor` | Baseline `go-api` port 8010 is expected to be free before services are started |
-| `mise` | `basectl setup` | Declares `.mise.toml`; setup installs tool versions (Python 3.13) via mise |
+| `mise` | `basectl setup` | Declares `.mise.toml`; setup installs Python 3.13 and Node 22.22.0 with bundled npm 10.9.4 via mise |
 | `python.requires_python` | `basectl check` / `doctor` | Base validates Python 3.13 while uv enforces the matching project interpreter range |
 | `activate.source` | `basectl activate` | Sources `.base/activate.sh` into the project shell |
 | `ide.vscode` | `basectl setup` | Declares VS Code Python extensions and project venv auto-injection when IDE setup is enabled |
@@ -22,7 +22,7 @@ base-demo's manifest is intentional and maps to a visible Base workflow.
 | `commands[*].runner` | `basectl run base-demo uv-info` | Routes the uv-info command through `uv run --` alongside the project-wide uv manager |
 | `build.targets` | `basectl build` | Default `info` target plus Go, Python, Java, C/C++, and demo-console service build targets |
 | `build.targets[*].working_dir` | `basectl build base-demo go-api` | Runs the Go build from `services/go-api` without the command changing directories |
-| `test.command` | `basectl test` | Runs `tests/validate.sh` |
+| `test.mise` | `basectl test` | Runs the mise `validate` task, which reconciles locked demo-console dependencies before `tests/validate.sh` |
 | `demo.script` | `basectl demo` | Runs `demo/demo.sh` |
 | `artifacts` | `basectl setup` | Requests the `bats-core` tool artifact; setup reports whether the Homebrew package is already current or would be installed |
 

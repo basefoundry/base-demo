@@ -86,7 +86,7 @@ of the baseline setup or CI contract.
 | `examples/tooling/env-dotfiles/` | Reference-only direnv, asdf, chezmoi, and dotbot coexistence examples |
 | `examples/tooling/multi-repo/` | Read-only mani, gita, vcs2l, and west examples aligned to `workspace.yaml.example` |
 | `demo/demo.sh` | Interactive walkthrough |
-| `tests/validate.sh` | Baseline validation (the declared test command) |
+| `tests/validate.sh` | Baseline validation invoked by the declared mise test task |
 | `docs/representative-environment.md` | Direction for the multi-language representative environment |
 | `docs/tooling-testbed.md` | Local matrix for active, optional, reference-only, and future external tool examples |
 
