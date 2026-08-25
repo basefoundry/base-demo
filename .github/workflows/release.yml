@@ -1,0 +1,38 @@
+name: Release Demo
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify release identity
+        run: ./bin/base-demo-release-check "$GITHUB_REF_NAME"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          notes_file="$RUNNER_TEMP/base-demo-release-notes.md"
+          awk -v heading="## [${version}]" '
+            index($0, heading) == 1 { in_release = 1; next }
+            in_release && /^## \[/ { exit }
+            in_release { print }
+          ' CHANGELOG.md > "$notes_file"
+          test -s "$notes_file"
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "base-demo $GITHUB_REF_NAME" \
+            --notes-file "$notes_file"

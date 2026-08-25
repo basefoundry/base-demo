@@ -7,6 +7,11 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ## [Unreleased]
 
+Changes after the latest published release belong here. The release workflow
+promotes this section into a dated version heading before tagging.
+
+## [0.1.0] - 2026-08-25
+
 ### Added
 
 - Added `docs/representative-environment.md` to define the reduced-scale
@@ -157,9 +162,7 @@ and versions are tracked in the repo-root `VERSION` file.
 - Added CI coverage for the representative service, environment,
   infrastructure, language fixture, UI, and dry-run startup contracts.
 
-## [0.1.0] - 2026-06-12
-
-### Added
+### Initial baseline (2026-06-12)
 
 - Initialized the repository with the Base-managed repo baseline.
 - Added a Base manifest, Brewfile, activation source, example command, and
