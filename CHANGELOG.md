@@ -10,6 +10,11 @@ and versions are tracked in the repo-root `VERSION` file.
 Changes after the latest published release belong here. The release workflow
 promotes this section into a dated version heading before tagging.
 
+### Changed
+
+- Moved the current release identity into a top-of-page README version strip
+  with the matching release and release-policy links.
+
 ## [0.1.0] - 2026-08-25
 
 ### Added
