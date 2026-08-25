@@ -1,5 +1,7 @@
 # base-demo
 
+![Version](https://img.shields.io/badge/version-0.1.0-blue) · [Current release: v0.1.0](https://github.com/basefoundry/base-demo/releases/tag/v0.1.0) · [Release policy](docs/release.md)
+
 Reference Base-managed project and representative demo environment.
 
 This repository is the public reference project for Base-managed repositories.
@@ -17,9 +19,6 @@ Base orchestration remains the point.
 Binding promises between the manifest, demo, services, installer, CI, and docs
 are tracked in [Contracts](docs/contracts.md). Update that registry whenever a
 new invariant becomes part of the reference project.
-
-Current release: [v0.1.0](https://github.com/basefoundry/base-demo/releases/tag/v0.1.0)
-· [Release policy](docs/release.md)
 
 The external tooling direction is tracked in
 [Tooling Test Bed](docs/tooling-testbed.md). That matrix separates active

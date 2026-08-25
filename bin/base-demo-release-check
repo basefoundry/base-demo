@@ -43,12 +43,18 @@ for relative_path in ("services/demo-console/package.json", "services/demo-conso
 
 
 readme = (ROOT / "README.md").read_text(encoding="utf-8")
-release_marker = (
-    f"Current release: [v{version}]"
+release_strip = (
+    f"![Version](https://img.shields.io/badge/version-{version}-blue)"
+    f" · [Current release: v{version}]"
     f"(https://github.com/basefoundry/base-demo/releases/tag/v{version})"
+    " · [Release policy](docs/release.md)"
 )
-if release_marker not in readme:
-    fail("README.md does not expose the release link for VERSION")
+if not readme.startswith(f"# base-demo\n\n{release_strip}\n\n"):
+    fail("README.md does not expose the VERSION badge and release links directly below the title")
+if readme.count(release_strip) != 1:
+    fail("README.md must contain exactly one VERSION badge and release strip")
+if "Current release: [v" in readme:
+    fail("README.md contains the obsolete standalone current-release marker")
 
 
 changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
