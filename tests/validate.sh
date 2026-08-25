@@ -911,10 +911,20 @@ grep -Fq 'basectl onboard base-demo --dry-run' README.md || {
   exit 1
 }
 
-grep -Fq 'base#1887' README.md || {
-  printf 'README.md does not document the current onboard Doctor-stop limitation.\n' >&2
+grep -Fq 'Some doctor findings remain. Project discovery and trust status will still run.' README.md || {
+  printf 'README.md does not document the current onboarding continuation message.\n' >&2
   exit 1
 }
+
+grep -Fq 'returns success when those later' README.md || {
+  printf 'README.md does not document onboarding exit behavior after Doctor findings.\n' >&2
+  exit 1
+}
+
+if grep -R -n -E '18[8]7' -- README.md CHANGELOG.md docs .ai-context tests .github demo; then
+  printf 'Repository documentation or validation still references the resolved onboarding limitation.\n' >&2
+  exit 1
+fi
 
 onboard_preview_count="$(
   grep -Fc '../base/bin/basectl onboard base-demo --dry-run' .github/workflows/tests.yml || true
@@ -937,8 +947,25 @@ for onboard_preview_assertion in \
   }
 done
 
-grep -Fq 'onboard-dry-run-preview' docs/contracts.md || {
-  printf 'docs/contracts.md does not register the onboard dry-run preview contract.\n' >&2
+onboard_continuation_test='basectl onboard continues to projects and trust when doctor reports findings'
+onboard_continuation_count="$(
+  grep -Fc "$onboard_continuation_test" .github/workflows/tests.yml || true
+)"
+if [[ "$onboard_continuation_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must run the pinned Base onboarding continuation test in both validation jobs.\n' >&2
+  exit 1
+fi
+
+onboard_test_path_count="$(
+  grep -Fc '../base/cli/bash/commands/basectl/tests/onboard.bats' .github/workflows/tests.yml || true
+)"
+if [[ "$onboard_test_path_count" -ne 2 ]]; then
+  printf '.github/workflows/tests.yml must use the pinned Base onboarding test path in both validation jobs.\n' >&2
+  exit 1
+fi
+
+grep -Fq 'onboard-continuation' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the onboarding continuation contract.\n' >&2
   exit 1
 }
 

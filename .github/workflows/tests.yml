@@ -67,6 +67,12 @@ jobs:
           git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3ae9bc920
           git -C ../base checkout --detach FETCH_HEAD
 
+      - name: Verify onboarding continues after Doctor findings
+        run: >
+          bats
+          --filter 'basectl onboard continues to projects and trust when doctor reports findings'
+          ../base/cli/bash/commands/basectl/tests/onboard.bats
+
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
@@ -304,6 +310,12 @@ jobs:
           bats --version
           gh --version
           shellcheck --version
+
+      - name: Verify onboarding continues after Doctor findings
+        run: >
+          bats
+          --filter 'basectl onboard continues to projects and trust when doctor reports findings'
+          ../base/cli/bash/commands/basectl/tests/onboard.bats
 
       - name: Check base-demo in CI mode
         run: ../base/bin/basectl check --ci base-demo --manifest ./base_manifest.yaml --format json | tee /tmp/base-demo-ci.json

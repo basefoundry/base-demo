@@ -70,10 +70,14 @@ users. Run `basectl onboard base-demo --dry-run` to preview the steps without
 changing local state.
 
 CI executes `basectl onboard base-demo --dry-run` and asserts the preview reaches
-the Check, Setup, Projects, and Trust stages. Until
-[`base#1887`](https://github.com/basefoundry/base/issues/1887) is fixed, a real
-non-dry-run onboarding attempt can stop early when `basectl doctor` reports a
-finding; if that happens, continue with the explicit commands below.
+the Check, Setup, Projects, and Trust stages. The supported non-dry-run sequence
+is Check, Setup, Shell Profile, Doctor, Projects, Trust, and Next Steps. When
+Doctor reports remaining findings, onboarding prints
+`Some doctor findings remain. Project discovery and trust status will still run.`,
+continues through Projects and Trust, and returns success when those later
+stages succeed. Setup, shell-profile, project-discovery, and trust failures
+retain their nonzero exit status. CI executes the focused continuation test
+from the pinned supported Base release in addition to the dry-run preview.
 
 From the `base-demo` repository root on a machine where Base is already set up:
 

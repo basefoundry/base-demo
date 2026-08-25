@@ -69,6 +69,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Replaced the resolved onboarding limitation with the current continuation
+  contract and CI execution of the supported Base test that proves Doctor
+  findings do not prevent project discovery and trust status.
 - Aligned AI context with locked `base-cli==0.4.2`, corrected modeled
   environment claims, and expanded environment validation to enforce nested
   URL, logging, service, infrastructure, port, catalog, and Compose contracts.
