@@ -699,6 +699,20 @@ for environment_contract in \
   }
 done
 
+for catalog_validator_contract in \
+  validate_service_catalog \
+  load_service_catalog; do
+  grep -Fq "def ${catalog_validator_contract}" bin/base_demo_environment.py || {
+    printf 'bin/base_demo_environment.py does not declare shared catalog validator: %s.\n' "$catalog_validator_contract" >&2
+    exit 1
+  }
+done
+
+grep -Fq 'load_service_catalog(catalog_path)' bin/base-demo-services || {
+  printf 'bin/base-demo-services does not use the shared catalog loader.\n' >&2
+  exit 1
+}
+
 for environment_contract_path in \
   'services.python-api.required' \
   'infrastructure.postgres.port' \
@@ -1159,6 +1173,7 @@ for contract in \
   python-env-privacy \
   installer-checksum \
   service-log-permissions \
+  service-catalog-schema \
   service-state-containment \
   service-lifecycle-transactions \
   service-process-identity \

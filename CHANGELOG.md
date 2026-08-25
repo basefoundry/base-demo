@@ -100,6 +100,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Fixed
 
+- Routed canonical and custom service catalogs through one structural and
+  typed-field validator so malformed input returns concise path-specific usage
+  errors instead of Python tracebacks.
 - Provisioned Node 22.22.0/npm 10.9.4 through the supported mise setup path
   and made `basectl test` reconcile locked demo-console dependencies before
   validation, with actionable setup and dependency diagnostics.
