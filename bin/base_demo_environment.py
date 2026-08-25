@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from pathlib import Path
 from typing import Any
@@ -26,12 +27,148 @@ SERVICE_NAME_PATTERN = re.compile(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
 SERVICE_NAME_REQUIREMENT = (
     "must be a lowercase slug containing only letters, digits, and internal hyphens"
 )
+CATALOG_CHECK_TYPES = {"command", "compose", "file", "http", "none", "process"}
 
 
 def validate_service_name(value: Any, location: str) -> str:
     if not isinstance(value, str) or SERVICE_NAME_PATTERN.fullmatch(value) is None:
         raise ValueError(f"{location} {SERVICE_NAME_REQUIREMENT}")
     return value
+
+
+def _validate_nonempty_string(value: Any, location: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"{location} must be a non-empty string")
+    return value
+
+
+def _validate_string_array(value: Any, location: str) -> list[str]:
+    if (
+        not isinstance(value, list)
+        or not value
+        or not all(isinstance(item, str) and item for item in value)
+    ):
+        raise ValueError(f"{location} must be a non-empty string array")
+    return value
+
+
+def validate_service_catalog(payload: Any) -> list[dict[str, Any]]:
+    """Validate the shared structural contract for canonical and custom catalogs."""
+    if not isinstance(payload, dict):
+        raise ValueError("service catalog root must be an object")
+
+    version = payload.get("version")
+    if version is not None and (
+        isinstance(version, bool) or not isinstance(version, int) or version < 1
+    ):
+        raise ValueError("service catalog.version must be a positive integer")
+
+    services = payload.get("services")
+    if not isinstance(services, list):
+        raise ValueError("service catalog.services must be an array")
+
+    names: set[str] = set()
+    for index, service in enumerate(services):
+        location = f"service catalog.services[{index}]"
+        if not isinstance(service, dict):
+            raise ValueError(f"{location} must be an object")
+
+        name = validate_service_name(service.get("name"), f"{location}.name")
+        if name in names:
+            raise ValueError(f"service catalog contains duplicate name: {name}")
+        names.add(name)
+
+        for field in ("kind", "runtime"):
+            if field in service:
+                _validate_nonempty_string(service[field], f"{location}.{field}")
+
+        if "port" in service:
+            port = service["port"]
+            if port is not None and (
+                isinstance(port, bool)
+                or not isinstance(port, int)
+                or not 1 <= port <= 65535
+            ):
+                raise ValueError(
+                    f"{location}.port must be null or an integer from 1 to 65535"
+                )
+
+        if "health_url" in service:
+            health_url = service["health_url"]
+            if health_url is not None and not valid_http_url(health_url):
+                raise ValueError(
+                    f"{location}.health_url must be null or an http or https URL "
+                    "without credentials"
+                )
+
+        if "required" in service and not isinstance(service["required"], bool):
+            raise ValueError(f"{location}.required must be a boolean")
+
+        if "logs" in service:
+            logs = service["logs"]
+            if logs is not None:
+                _validate_nonempty_string(logs, f"{location}.logs")
+
+        if "compose_service" in service:
+            _validate_nonempty_string(
+                service["compose_service"], f"{location}.compose_service"
+            )
+
+        check = service.get("check")
+        if check is not None:
+            if not isinstance(check, dict):
+                raise ValueError(f"{location}.check must be an object")
+            check_type = _validate_nonempty_string(
+                check.get("type"), f"{location}.check.type"
+            )
+            if check_type not in CATALOG_CHECK_TYPES:
+                supported = ", ".join(sorted(CATALOG_CHECK_TYPES))
+                raise ValueError(f"{location}.check.type must be one of: {supported}")
+            for field in ("path", "service"):
+                if field in check:
+                    _validate_nonempty_string(check[field], f"{location}.check.{field}")
+            if "command" in check:
+                _validate_string_array(check["command"], f"{location}.check.command")
+
+        lifecycle = service.get("lifecycle")
+        if lifecycle is not None:
+            if not isinstance(lifecycle, dict):
+                raise ValueError(f"{location}.lifecycle must be an object")
+            lifecycle_type = _validate_nonempty_string(
+                lifecycle.get("type"), f"{location}.lifecycle.type"
+            )
+            if lifecycle_type != "process":
+                raise ValueError(f"{location}.lifecycle.type must be process")
+            _validate_string_array(
+                lifecycle.get("command"), f"{location}.lifecycle.command"
+            )
+            if "readiness_timeout_seconds" in lifecycle:
+                timeout = lifecycle["readiness_timeout_seconds"]
+                if (
+                    isinstance(timeout, bool)
+                    or not isinstance(timeout, (int, float))
+                    or not math.isfinite(timeout)
+                    or timeout <= 0
+                ):
+                    raise ValueError(
+                        f"{location}.lifecycle.readiness_timeout_seconds "
+                        "must be a positive finite number"
+                    )
+
+    return services
+
+
+def load_service_catalog(path: Path) -> list[dict[str, Any]]:
+    try:
+        with path.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except FileNotFoundError:
+        raise ValueError(f"service catalog not found: {path}") from None
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"service catalog is not valid JSON: {exc}") from None
+    except OSError as exc:
+        raise ValueError(f"service catalog could not be read: {path}: {exc}") from None
+    return validate_service_catalog(payload)
 
 
 def environment_names(root: Path) -> list[str]:
@@ -80,28 +217,12 @@ def compose_service_names(root: Path) -> set[str]:
 
 def catalog_contract(root: Path) -> tuple[set[str], set[str]]:
     path = root / "services" / "catalog.json"
-    try:
-        with path.open(encoding="utf-8") as handle:
-            payload = json.load(handle)
-    except FileNotFoundError:
-        raise ValueError(f"service catalog not found: {path}") from None
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"service catalog is not valid JSON: {exc}") from None
-
-    entries = payload.get("services") if isinstance(payload, dict) else None
-    if not isinstance(entries, list):
-        raise ValueError("service catalog must contain a services array")
+    entries = load_service_catalog(path)
 
     service_names: set[str] = set()
     infrastructure_compose_names: dict[str, str] = {}
-    for index, entry in enumerate(entries):
-        if not isinstance(entry, dict):
-            raise ValueError(f"service catalog services[{index}] must be an object")
-        entry_name = validate_service_name(
-            entry.get("name"), f"service catalog services[{index}].name"
-        )
-        if entry_name in service_names or entry_name in infrastructure_compose_names:
-            raise ValueError(f"service catalog contains duplicate name: {entry_name}")
+    for entry in entries:
+        entry_name = entry["name"]
         compose_name = entry.get("compose_service")
         if entry.get("kind") in {"database", "cache"}:
             if not isinstance(compose_name, str) or not compose_name:

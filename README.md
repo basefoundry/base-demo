@@ -373,11 +373,13 @@ read-only inspection because those models are non-operational.
   JavaScript asset.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the
   `services` lifecycle command for the representative environment. Catalog
-  service names are validated as safe lowercase slugs, and process state plus
-  logs stay private within the configured service-state directory. Lifecycle
-  starts fail fast and roll back resources created by that invocation, while
-  restart aborts before replacement when an existing process cannot be safely
-  identified or stopped.
+  roots, service arrays, entries, names, and known field types share one schema
+  validator for the canonical file and custom `--catalog` inputs. Invalid
+  catalogs fail with field-specific input errors instead of tracebacks. Process
+  state plus logs stay private within the configured service-state directory.
+  Lifecycle starts fail fast and roll back resources created by that invocation,
+  while restart aborts before replacement when an existing process cannot be
+  safely identified or stopped.
 - `bin/base-demo-environments` lists, shows, and validates environment
   configuration.
 - `services/catalog.json` is the initial catalog for representative services,

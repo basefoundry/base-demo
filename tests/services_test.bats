@@ -400,6 +400,68 @@ PY
   [ -f "$TEST_ROOT/services/catalog.json" ]
 }
 
+@test "services rejects malformed catalog containers without a traceback" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local case_value
+  local payload
+  local expected
+  local cases=(
+    '[]|service catalog root must be an object'
+    '{}|service catalog.services must be an array'
+    '{"services": {}}|service catalog.services must be an array'
+    '{"services": [null]}|service catalog.services[0] must be an object'
+    '{"services": [7]}|service catalog.services[0] must be an object'
+  )
+
+  for case_value in "${cases[@]}"; do
+    payload="${case_value%%|*}"
+    expected="${case_value#*|}"
+    printf '%s\n' "$payload" > "$catalog"
+
+    run "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" status
+
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"ERROR: $expected"* ]]
+    [[ "$output" != *"Traceback"* ]]
+  done
+}
+
+@test "services rejects wrong-typed catalog fields with field paths" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local case_value
+  local payload
+  local expected
+  local cases=(
+    '{"version": "one", "services": []}|service catalog.version must be a positive integer'
+    '{"services": [{"name": "bad", "kind": []}]}|service catalog.services[0].kind must be a non-empty string'
+    '{"services": [{"name": "bad", "runtime": false}]}|service catalog.services[0].runtime must be a non-empty string'
+    '{"services": [{"name": "bad", "port": true}]}|service catalog.services[0].port must be null or an integer from 1 to 65535'
+    '{"services": [{"name": "bad", "health_url": []}]}|service catalog.services[0].health_url must be null or an http or https URL without credentials'
+    '{"services": [{"name": "bad", "required": "yes"}]}|service catalog.services[0].required must be a boolean'
+    '{"services": [{"name": "bad", "logs": {}}]}|service catalog.services[0].logs must be a non-empty string'
+    '{"services": [{"name": "bad", "compose_service": 7}]}|service catalog.services[0].compose_service must be a non-empty string'
+    '{"services": [{"name": "bad", "check": []}]}|service catalog.services[0].check must be an object'
+    '{"services": [{"name": "bad", "check": {"type": 7}}]}|service catalog.services[0].check.type must be a non-empty string'
+    '{"services": [{"name": "bad", "check": {"type": "command", "command": "echo"}}]}|service catalog.services[0].check.command must be a non-empty string array'
+    '{"services": [{"name": "bad", "lifecycle": []}]}|service catalog.services[0].lifecycle must be an object'
+    '{"services": [{"name": "bad", "lifecycle": {"type": "compose", "command": ["true"]}}]}|service catalog.services[0].lifecycle.type must be process'
+    '{"services": [{"name": "bad", "lifecycle": {"type": "process", "command": "true"}}]}|service catalog.services[0].lifecycle.command must be a non-empty string array'
+    '{"services": [{"name": "bad", "lifecycle": {"type": "process", "command": ["true"], "readiness_timeout_seconds": "fast"}}]}|service catalog.services[0].lifecycle.readiness_timeout_seconds must be a positive finite number'
+  )
+
+  for case_value in "${cases[@]}"; do
+    payload="${case_value%%|*}"
+    expected="${case_value#*|}"
+    printf '%s\n' "$payload" > "$catalog"
+
+    run "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" status
+
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"ERROR: $expected"* ]]
+    [[ "$output" != *"Traceback"* ]]
+  done
+}
+
 @test "services status shows catalog entries" {
   run "$TEST_ROOT/bin/base-demo-services" status
 
@@ -539,7 +601,7 @@ EOF
     "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" start
 
   [ "$status" -eq 2 ]
-  [[ "$output" == *"invalid-process: process lifecycle command must be a string array"* ]]
+  [[ "$output" == *"service catalog.services[1].lifecycle.command must be a non-empty string array"* ]]
   [ ! -e "$docker_log" ]
 }
 

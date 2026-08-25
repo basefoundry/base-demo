@@ -22,7 +22,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, BinaryIO, NamedTuple
 
-from base_demo_environment import load_validated_environment, validate_service_name
+from base_demo_environment import (
+    load_service_catalog,
+    load_validated_environment,
+    validate_service_name,
+)
 
 
 # Match base_cli.ExitCode without requiring standalone lifecycle commands to import base_cli.
@@ -65,31 +69,6 @@ def project_root() -> Path:
     if root:
         return Path(root).resolve()
     return Path(__file__).resolve().parents[1]
-
-
-def load_catalog(path: Path) -> list[dict[str, Any]]:
-    try:
-        with path.open(encoding="utf-8") as handle:
-            payload = json.load(handle)
-    except FileNotFoundError:
-        raise ValueError(f"service catalog not found: {path}") from None
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"service catalog is not valid JSON: {exc}") from None
-
-    services = payload.get("services") if isinstance(payload, dict) else None
-    if not isinstance(services, list):
-        raise ValueError("service catalog must contain a services array")
-    names: set[str] = set()
-    for index, service in enumerate(services):
-        if not isinstance(service, dict):
-            raise ValueError(f"service catalog services[{index}] must be an object")
-        name = validate_service_name(
-            service.get("name"), f"service catalog services[{index}].name"
-        )
-        if name in names:
-            raise ValueError(f"service catalog contains duplicate name: {name}")
-        names.add(name)
-    return services
 
 
 def compose_file(root: Path) -> Path:
@@ -1041,7 +1020,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         catalog_path = Path(args.catalog).resolve()
         services = select_environment_services(
-            load_catalog(catalog_path),
+            load_service_catalog(catalog_path),
             environment,
             retain_unconfigured=catalog_path
             != (root / "services" / "catalog.json").resolve(),
