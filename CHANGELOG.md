@@ -69,6 +69,9 @@ and versions are tracked in the repo-root `VERSION` file.
 
 ### Changed
 
+- Restricted push validation to `main` while preserving pull-request
+  validation, and added per-PR/ref concurrency cancellation without renaming
+  the existing validation jobs.
 - Replaced the resolved onboarding limitation with the current continuation
   contract and CI execution of the supported Base test that proves Doctor
   findings do not prevent project discovery and trust status.

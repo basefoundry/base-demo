@@ -183,6 +183,16 @@ branch stale` reports old local and origin branches from the current checkout so
 cleanup can be reviewed deliberately. These commands are contributor workflow
 helpers, not setup requirements or CI gates.
 
+## CI Event Contract
+
+The `Validate Demo` workflow runs once for each pull-request commit and again
+when the resulting change lands on `main`. Direct pushes to feature branches do
+not start a second copy of the same validation. If a newer commit supersedes an
+in-progress run for the same pull request or ref, GitHub Actions cancels that
+older run; unrelated pull requests and refs use separate concurrency groups.
+The stable check names are `validate`, `validate-base-cli-source`, and
+`validate-ubuntu`.
+
 The commands above exercise the complete Base project loop:
 
 - `basectl projects list` proves the repository is discoverable from the
