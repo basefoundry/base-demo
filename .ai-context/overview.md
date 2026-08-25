@@ -3,6 +3,11 @@
 `base-demo` is the public reference project and representative environment for
 Base-managed repositories.
 
+Release identity is versioned from the root `VERSION` file. The first formal
+release is `0.1.0`; `bin/base-demo-release-check` verifies Python, uv, frontend,
+README, and changelog metadata, while `.github/workflows/release.yml` publishes
+only from an explicit matching `vX.Y.Z` tag.
+
 It includes the Base project shape plus a reduced-scale representative
 environment: a `base_manifest.yaml` that declares every current Base contract,
 runnable commands, a Python CLI that uses `base_cli.App`, an interactive demo

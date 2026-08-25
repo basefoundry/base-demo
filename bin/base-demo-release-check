@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""Validate base-demo's release identity across governed metadata files."""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def fail(message: str) -> None:
+    print(f"release identity check: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+if not re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", version):
+    fail(f"VERSION is not a stable SemVer value: {version!r}")
+
+
+pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+pyproject_match = re.search(r'^version = "([^"]+)"$', pyproject, re.MULTILINE)
+if pyproject_match is None or pyproject_match.group(1) != version:
+    actual = pyproject_match.group(1) if pyproject_match else "missing"
+    fail(f"pyproject.toml version {actual!r} does not match VERSION {version!r}")
+
+
+for relative_path in ("services/demo-console/package.json", "services/demo-console/package-lock.json"):
+    try:
+        payload = json.loads((ROOT / relative_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        fail(f"could not read {relative_path}: {exc}")
+    if relative_path.endswith("package-lock.json"):
+        actual = payload.get("packages", {}).get("", {}).get("version")
+    else:
+        actual = payload.get("version")
+    if actual != version:
+        fail(f"{relative_path} version {actual!r} does not match VERSION {version!r}")
+
+
+readme = (ROOT / "README.md").read_text(encoding="utf-8")
+release_marker = (
+    f"Current release: [v{version}]"
+    f"(https://github.com/basefoundry/base-demo/releases/tag/v{version})"
+)
+if release_marker not in readme:
+    fail("README.md does not expose the release link for VERSION")
+
+
+changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+if not re.search(rf"^## \[{re.escape(version)}\] - [0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}}$", changelog, re.MULTILINE):
+    fail(f"CHANGELOG.md has no dated section for {version}")
+
+
+if len(sys.argv) > 2:
+    fail("usage: bin/base-demo-release-check [vX.Y.Z]")
+if len(sys.argv) == 2 and sys.argv[1] != f"v{version}":
+    fail(f"tag {sys.argv[1]!r} does not match VERSION v{version}")
+
+print(f"release identity is consistent: v{version}")
