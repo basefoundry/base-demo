@@ -44,15 +44,24 @@ for relative_path in ("services/demo-console/package.json", "services/demo-conso
 
 readme = (ROOT / "README.md").read_text(encoding="utf-8")
 release_strip = (
-    f"![Version](https://img.shields.io/badge/version-{version}-blue)"
-    f" · [Current release: v{version}]"
+    "![Tests](https://github.com/basefoundry/base-demo/actions/workflows/tests.yml/badge.svg)\n"
+    "![Platform: macOS + Ubuntu/Debian](https://img.shields.io/badge/platform-macOS%20%2B%20Ubuntu%2FDebian-lightgrey)\n"
+    f"![Version](https://img.shields.io/badge/version-{version}-blue)\n\n"
+    f"[Current release: v{version}]"
     f"(https://github.com/basefoundry/base-demo/releases/tag/v{version})"
     " · [Release policy](docs/release.md)"
 )
 if not readme.startswith(f"# base-demo\n\n{release_strip}\n\n"):
-    fail("README.md does not expose the VERSION badge and release links directly below the title")
+    fail("README.md does not expose the Base-style badge strip and release links directly below the title")
 if readme.count(release_strip) != 1:
-    fail("README.md must contain exactly one VERSION badge and release strip")
+    fail("README.md must contain exactly one Base-style badge strip and release-link block")
+for badge in (
+    "![Tests](https://github.com/basefoundry/base-demo/actions/workflows/tests.yml/badge.svg)",
+    "![Platform: macOS + Ubuntu/Debian](https://img.shields.io/badge/platform-macOS%20%2B%20Ubuntu%2FDebian-lightgrey)",
+    f"![Version](https://img.shields.io/badge/version-{version}-blue)",
+):
+    if readme.count(badge) != 1:
+        fail(f"README.md must contain exactly one {badge!r} badge")
 if "Current release: [v" in readme:
     fail("README.md contains the obsolete standalone current-release marker")
 

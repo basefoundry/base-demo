@@ -10,8 +10,8 @@ The following values must agree with `VERSION`:
 
 - `pyproject.toml` and the matching `uv.lock` project entry;
 - `services/demo-console/package.json` and its lockfile root entry;
-- the top-of-page version badge, current-release link, and release-policy link
-  in `README.md`; and
+- the Base-style top-of-page tests, platform, and version badges plus the
+  current-release and release-policy links in `README.md`; and
 - the dated version heading in `CHANGELOG.md`.
 
 `base-cli` and `base-bash-libs` versions are independent compatibility pins.
@@ -22,7 +22,7 @@ They do not change merely because base-demo publishes a release.
 1. Keep post-release work under `## [Unreleased]` in `CHANGELOG.md`.
 2. In a release PR, choose the next SemVer version, update `VERSION` and all
    governed metadata, promote `Unreleased` into a dated version section, and
-   update the README version strip.
+   update the README badge strip and release links.
 3. Run `bin/base-demo-release-check`, `mise run validate`, and the normal hosted
    pull-request checks.
 4. After the release PR is merged to `main`, create an annotated tag from the
