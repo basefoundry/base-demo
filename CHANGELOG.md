@@ -14,6 +14,8 @@ promotes this section into a dated version heading before tagging.
 
 - Moved the current release identity into a top-of-page README version strip
   with the matching release and release-policy links.
+- Aligned the README badge strip with Base's tests, platform, and version
+  ordering.
 
 ## [0.1.0] - 2026-08-25
 
