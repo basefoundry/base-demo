@@ -71,6 +71,44 @@ if not re.search(rf"^## \[{re.escape(version)}\] - [0-9]{{4}}-[0-9]{{2}}-[0-9]{{
     fail(f"CHANGELOG.md has no dated section for {version}")
 
 
+install_script = (ROOT / "install.sh").read_text(encoding="utf-8")
+project_ref_match = re.search(
+    r'^PROJECT_RELEASE_REF="\$\{PROJECT_RELEASE_REF:-([^}]+)\}"$',
+    install_script,
+    re.MULTILINE,
+)
+if project_ref_match is None or project_ref_match.group(1) != f"v{version}":
+    actual = project_ref_match.group(1) if project_ref_match else "missing"
+    fail(f"install.sh project release ref {actual!r} does not match VERSION v{version}")
+
+project_commit_match = re.search(
+    r'^PROJECT_RELEASE_COMMIT="\$\{PROJECT_RELEASE_COMMIT:-([0-9a-f]{40})\}"$',
+    install_script,
+    re.MULTILINE,
+)
+if project_commit_match is None:
+    fail("install.sh must carry a 40-character base-demo release commit pin")
+
+base_commit_match = re.search(
+    r'^BASE_RELEASE_COMMIT="\$\{BASE_RELEASE_COMMIT:-([0-9a-f]{40})\}"$',
+    install_script,
+    re.MULTILINE,
+)
+if base_commit_match is None:
+    fail("install.sh must carry a 40-character Base release commit pin")
+
+if "/base/HEAD/install.sh" in install_script:
+    fail("install.sh must not use Base HEAD as its release-mode installer URL")
+
+base_checksum_match = re.search(
+    r'^BASE_INSTALL_SHA256="\$\{BASE_INSTALL_SHA256-([0-9a-f]{64})\}"$',
+    install_script,
+    re.MULTILINE,
+)
+if base_checksum_match is None:
+    fail("install.sh must carry a 64-character default Base installer checksum")
+
+
 if len(sys.argv) > 2:
     fail("usage: bin/base-demo-release-check [vX.Y.Z]")
 if len(sys.argv) == 2 and sys.argv[1] != f"v{version}":

@@ -12,6 +12,9 @@ promotes this section into a dated version heading before tagging.
 
 ### Changed
 
+- Pinned the release installer to reviewed Base and base-demo revisions, made
+  checksum and existing-checkout validation fail closed, and added explicit
+  `--dev`/`BASE_DEMO_DEV_MODE` support for contributor workspaces.
 - Moved the current release identity into a top-of-page README version strip
   with the matching release and release-policy links.
 - Aligned the README badge strip with Base's tests, platform, and version

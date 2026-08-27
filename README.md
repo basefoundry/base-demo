@@ -63,6 +63,29 @@ in the Base repository.
 
 ## Quick Start
 
+The versioned release installer is the reproducible bootstrap path. Download
+the script from the desired base-demo release, inspect it if required by your
+environment, and run it from the release checkout:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/basefoundry/base-demo/v0.1.0/install.sh -o install.sh
+bash install.sh
+```
+
+The release path pins and verifies its Base dependency and pins the base-demo
+checkout. It never pulls, resets, detaches, or switches an existing checkout.
+Contributors with peer checkouts under one workspace should opt into the local
+developer path explicitly:
+
+```bash
+./install.sh --dev
+# or, for wrappers and CI:
+BASE_DEMO_DEV_MODE=1 ./install.sh
+```
+
+Developer mode reuses the current `base` and `base-demo` checkouts without
+automatic pulls or branch changes.
+
 Clone `base` and `base-demo` as peer directories:
 
 ```bash
