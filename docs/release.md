@@ -17,12 +17,50 @@ The following values must agree with `VERSION`:
 `base-cli` and `base-bash-libs` versions are independent compatibility pins.
 They do not change merely because base-demo publishes a release.
 
+## Bootstrap provenance
+
+The release path in `install.sh` is pinned to reviewed immutable inputs:
+
+- Base installer: the versioned `v1.8.0` URL, SHA-256
+  `492dd06eee86223c780f011b545cdef8e11964489c8a2d54c9da426f55ed9980`, and
+  Base commit `26b9af5dee16efcb47e652513ce734b3ae9bc920`;
+- base-demo checkout: release ref `v0.1.0` and commit
+  `b74521c85d410cb67e497560976e0d95fc53fd41`.
+
+When preparing a release, update the `PROJECT_RELEASE_REF` and
+`PROJECT_RELEASE_COMMIT` values in `install.sh` to the new release tag and
+reviewed merge commit. Update the Base release ref, commit, installer URL, and
+checksum together whenever the supported Base release changes. Verify the
+installer content with:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/basefoundry/base/<base-ref>/install.sh \
+  | shasum -a 256
+```
+
+Release mode never pulls, resets, detaches, or switches an existing checkout.
+If `~/work/base` or `~/work/base-demo` is a contributor checkout at another
+revision, the command stops without changing it. Contributors should opt into
+the local workspace explicitly:
+
+```bash
+./install.sh --dev
+BASE_DEMO_DEV_MODE=1 ./install.sh
+```
+
+Developer mode reuses existing sibling checkouts exactly as they are, without
+automatic pulls or branch changes. A developer may set `BASE_INSTALL_URL`,
+`PROJECT_REPO_URL`, or related pin variables for an explicit local override;
+missing checksum verification is warned about in this mode and is never
+silently accepted by the release path.
+
 ## Release procedure
 
 1. Keep post-release work under `## [Unreleased]` in `CHANGELOG.md`.
 2. In a release PR, choose the next SemVer version, update `VERSION` and all
    governed metadata, promote `Unreleased` into a dated version section, and
-   update the README badge strip and release links.
+   update the README badge strip, release links, and bootstrap pins in
+   `install.sh`.
 3. Run `bin/base-demo-release-check`, `mise run validate`, and the normal hosted
    pull-request checks.
 4. After the release PR is merged to `main`, create an annotated tag from the

@@ -6,16 +6,23 @@
 # Project-owned values.
 PROJECT_NAME="${PROJECT_NAME:-base-demo}"
 PROJECT_REPO_URL="${PROJECT_REPO_URL:-https://github.com/basefoundry/base-demo.git}"
+BASE_REPO_URL="${BASE_REPO_URL:-https://github.com/basefoundry/base.git}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/work}"
 BASE_DIR="${BASE_DIR:-$WORKSPACE_DIR/base}"
 PROJECT_DIR="${PROJECT_DIR:-$WORKSPACE_DIR/$PROJECT_NAME}"
-BASE_INSTALL_URL="${BASE_INSTALL_URL:-https://raw.githubusercontent.com/basefoundry/base/HEAD/install.sh}"
-# Matches Base's project installer policy: mutable installer URLs warn when
-# unverified; pinned installer URLs should set BASE_INSTALL_SHA256.
-BASE_INSTALL_SHA256="${BASE_INSTALL_SHA256:-}"
+BASE_RELEASE_REF="${BASE_RELEASE_REF:-v1.8.0}"
+BASE_RELEASE_COMMIT="${BASE_RELEASE_COMMIT:-26b9af5dee16efcb47e652513ce734b3ae9bc920}"
+BASE_INSTALL_URL="${BASE_INSTALL_URL:-https://raw.githubusercontent.com/basefoundry/base/${BASE_RELEASE_REF}/install.sh}"
+# The empty-value form is intentional: an explicit empty checksum must not
+# silently restore the release checksum and bypass the release-mode guard.
+BASE_INSTALL_SHA256="${BASE_INSTALL_SHA256-492dd06eee86223c780f011b545cdef8e11964489c8a2d54c9da426f55ed9980}"
+PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-v0.1.0}"
+PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-b74521c85d410cb67e497560976e0d95fc53fd41}"
+BASE_DEMO_DEV_MODE="${BASE_DEMO_DEV_MODE:-false}"
 RUN_UPDATE_PROFILE="${RUN_UPDATE_PROFILE:-true}"
 
 INSTALLER_TMP=""
+DEV_MODE=false
 
 log() {
     printf '%s\n' "$*"
@@ -24,6 +31,24 @@ log() {
 die() {
     printf 'ERROR: %s\n' "$*" >&2
     exit 1
+}
+
+usage() {
+    cat <<'EOF'
+Usage:
+  install.sh [--dev] [-h|--help]
+
+Install or validate the pinned base-demo release workspace. Existing
+developer checkouts are never switched or reset. Use --dev, or set
+BASE_DEMO_DEV_MODE=1, to reuse local sibling checkouts as-is.
+
+Environment:
+  BASE_DIR, PROJECT_DIR, WORKSPACE_DIR
+  BASE_REPO_URL, BASE_RELEASE_REF, BASE_RELEASE_COMMIT
+  BASE_INSTALL_URL, BASE_INSTALL_SHA256
+  PROJECT_REPO_URL, PROJECT_RELEASE_REF, PROJECT_RELEASE_COMMIT
+  RUN_UPDATE_PROFILE
+EOF
 }
 
 run() {
@@ -39,8 +64,11 @@ verify_base_installer_checksum() {
     local actual_sha256
 
     if [[ -z "$BASE_INSTALL_SHA256" ]]; then
-        log "WARNING: Base installer checksum verification skipped; set BASE_INSTALL_SHA256 for pinned installers."
-        return 0
+        if [[ "$DEV_MODE" == true ]]; then
+            log "WARNING: Base installer checksum verification skipped in developer mode; set BASE_INSTALL_SHA256 to verify the override."
+            return 0
+        fi
+        die "Base installer checksum is required in release mode; set BASE_INSTALL_SHA256 only with an explicit verified value or use --dev."
     fi
 
     require_command shasum
@@ -68,12 +96,43 @@ ensure_workspace() {
     run mkdir -p "$WORKSPACE_DIR" || die "Failed to create workspace directory '$WORKSPACE_DIR'."
 }
 
+is_git_checkout() {
+    [[ -e "$1/.git" ]]
+}
+
+verify_release_checkout() {
+    local label="$1"
+    local checkout_dir="$2"
+    local expected_commit="$3"
+    local checkout_status
+    local actual_commit
+
+    checkout_status="$(git -C "$checkout_dir" status --porcelain --untracked-files=no 2>/dev/null)" || {
+        die "$label checkout at '$checkout_dir' could not be inspected. Release mode will not modify an existing checkout; use --dev for a contributor workspace."
+    }
+    if [[ -n "$checkout_status" ]]; then
+        die "$label checkout at '$checkout_dir' has local changes. Release mode will not modify it; use --dev for a contributor workspace."
+    fi
+
+    actual_commit="$(git -C "$checkout_dir" rev-parse HEAD 2>/dev/null)" || {
+        die "$label checkout at '$checkout_dir' could not be inspected. Release mode will not modify an existing checkout; use --dev for a contributor workspace."
+    }
+    if [[ "$actual_commit" != "$expected_commit" ]]; then
+        die "$label checkout at '$actual_commit'; expected pinned release commit '$expected_commit'. Release mode will not switch an existing checkout; use --dev for a contributor workspace."
+    fi
+    log "Verified pinned $label commit $actual_commit."
+}
+
 install_or_update_base() {
     require_command git
 
-    if [[ -d "$BASE_DIR/.git" ]]; then
-        log "Updating Base at '$BASE_DIR'."
-        run git -C "$BASE_DIR" pull --ff-only || die "Failed to update Base at '$BASE_DIR'."
+    if is_git_checkout "$BASE_DIR"; then
+        if [[ "$DEV_MODE" == true ]]; then
+            log "Developer mode: reusing Base checkout at '$BASE_DIR' without pulling or switching revisions."
+        else
+            log "Release mode: reusing Base checkout at '$BASE_DIR'."
+            verify_release_checkout "Base" "$BASE_DIR" "$BASE_RELEASE_COMMIT"
+        fi
         return 0
     fi
 
@@ -83,18 +142,32 @@ install_or_update_base() {
 
     require_command curl
     INSTALLER_TMP="$(mktemp "${TMPDIR:-/tmp}/base-install.XXXXXX")" || die "Failed to create installer temp file."
-    log "Installing Base into '$BASE_DIR'."
+    if [[ "$DEV_MODE" == true ]]; then
+        log "WARNING: Developer mode is cloning Base from the configured moving/default source."
+    else
+        log "Installing pinned Base release '$BASE_RELEASE_REF' into '$BASE_DIR'."
+    fi
     run curl -fsSL -o "$INSTALLER_TMP" "$BASE_INSTALL_URL" || die "Failed to download Base installer."
     verify_base_installer_checksum "$INSTALLER_TMP" || die "Base installer checksum verification failed."
-    run bash "$INSTALLER_TMP" --dir "$BASE_DIR" --no-profile || die "Failed to install Base into '$BASE_DIR'."
+    if [[ "$DEV_MODE" == true ]]; then
+        run bash "$INSTALLER_TMP" --dir "$BASE_DIR" --repo-url "$BASE_REPO_URL" --no-profile || die "Failed to install Base into '$BASE_DIR'."
+    else
+        run bash "$INSTALLER_TMP" --dir "$BASE_DIR" --repo-url "$BASE_REPO_URL" --branch "$BASE_RELEASE_REF" --no-profile || die "Failed to install Base into '$BASE_DIR'."
+        is_git_checkout "$BASE_DIR" || die "Pinned Base installer did not create a Git checkout at '$BASE_DIR'."
+        verify_release_checkout "Base" "$BASE_DIR" "$BASE_RELEASE_COMMIT"
+    fi
 }
 
 clone_or_update_project() {
     require_command git
 
-    if [[ -d "$PROJECT_DIR/.git" ]]; then
-        log "Updating $PROJECT_NAME at '$PROJECT_DIR'."
-        run git -C "$PROJECT_DIR" pull --ff-only || die "Failed to update $PROJECT_NAME at '$PROJECT_DIR'."
+    if is_git_checkout "$PROJECT_DIR"; then
+        if [[ "$DEV_MODE" == true ]]; then
+            log "Developer mode: reusing $PROJECT_NAME checkout at '$PROJECT_DIR' without pulling or switching revisions."
+        else
+            log "Release mode: reusing $PROJECT_NAME checkout at '$PROJECT_DIR'."
+            verify_release_checkout "$PROJECT_NAME" "$PROJECT_DIR" "$PROJECT_RELEASE_COMMIT"
+        fi
         return 0
     fi
 
@@ -102,8 +175,15 @@ clone_or_update_project() {
         die "Project path '$PROJECT_DIR' exists but is not a Git checkout."
     fi
 
-    log "Cloning $PROJECT_NAME into '$PROJECT_DIR'."
-    run git clone "$PROJECT_REPO_URL" "$PROJECT_DIR" || die "Failed to clone $PROJECT_NAME into '$PROJECT_DIR'."
+    if [[ "$DEV_MODE" == true ]]; then
+        log "WARNING: Developer mode is cloning $PROJECT_NAME from the repository's moving/default branch."
+        run git clone "$PROJECT_REPO_URL" "$PROJECT_DIR" || die "Failed to clone $PROJECT_NAME into '$PROJECT_DIR'."
+    else
+        log "Cloning pinned $PROJECT_NAME release '$PROJECT_RELEASE_REF' into '$PROJECT_DIR'."
+        run git clone --depth 1 --branch "$PROJECT_RELEASE_REF" "$PROJECT_REPO_URL" "$PROJECT_DIR" || die "Failed to clone $PROJECT_NAME release."
+        is_git_checkout "$PROJECT_DIR" || die "Pinned $PROJECT_NAME clone did not create a Git checkout at '$PROJECT_DIR'."
+        verify_release_checkout "$PROJECT_NAME" "$PROJECT_DIR" "$PROJECT_RELEASE_COMMIT"
+    fi
 }
 
 run_project_setup() {
@@ -133,9 +213,49 @@ maybe_update_profile() {
     esac
 }
 
+parse_dev_mode_env() {
+    case "$BASE_DEMO_DEV_MODE" in
+        true|1|yes)
+            DEV_MODE=true
+            ;;
+        false|0|no)
+            ;;
+        *)
+            die "BASE_DEMO_DEV_MODE must be true or false."
+            ;;
+    esac
+}
+
+parse_args() {
+    while (($# > 0)); do
+        case "$1" in
+            --dev)
+                DEV_MODE=true
+                shift
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                usage >&2
+                die "Unknown option '$1'."
+                ;;
+        esac
+    done
+}
+
 main() {
+    parse_dev_mode_env
+    parse_args "$@"
+
     log "Installing $PROJECT_NAME workspace."
     log "Workspace: $WORKSPACE_DIR"
+    if [[ "$DEV_MODE" == true ]]; then
+        log "Mode: developer (local checkouts are preserved; moving-source overrides are explicit)."
+    else
+        log "Mode: release (Base $BASE_RELEASE_REF at $BASE_RELEASE_COMMIT; $PROJECT_NAME $PROJECT_RELEASE_REF at $PROJECT_RELEASE_COMMIT)."
+    fi
 
     ensure_workspace || die "Workspace preparation failed."
     install_or_update_base || die "Base installation failed."
