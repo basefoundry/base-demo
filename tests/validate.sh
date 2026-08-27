@@ -217,6 +217,7 @@ if [[ -n "$floating_actions_refs" ]]; then
 fi
 
 python3 - <<'PY'
+import re
 from pathlib import Path
 
 workflow = Path(".github/workflows/tests.yml").read_text()
@@ -242,6 +243,22 @@ for job_id in ("validate", "validate-base-cli-source", "validate-ubuntu"):
         raise SystemExit(
             ".github/workflows/tests.yml must preserve exactly one stable "
             f"{job_id} job declaration."
+        )
+
+if "permissions:\n  contents: read" not in workflow:
+    raise SystemExit(
+        ".github/workflows/tests.yml must declare a read-only contents permission default."
+    )
+
+for job_id in ("validate", "validate-base-cli-source", "validate-ubuntu"):
+    match = re.search(
+        rf"(?ms)^  {re.escape(job_id)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:|\Z)",
+        workflow,
+    )
+    if match is None or re.search(r"(?m)^    timeout-minutes:\s*[1-9][0-9]*\s*$", match.group(1)) is None:
+        raise SystemExit(
+            ".github/workflows/tests.yml must give every validation job an explicit positive timeout: "
+            f"{job_id}."
         )
 PY
 
