@@ -266,6 +266,8 @@ security_workflow_contracts=(
   '  security:'
   'name: Security scanners'
   'timeout-minutes: 20'
+  'actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065'
+  'python -m pip install --disable-pip-version-check uv==0.12.5'
   'uv run --no-project --with bandit==1.9.4'
   'uv run --no-project --with pip-audit==2.10.1'
   'uv export --locked --no-dev --no-emit-project --format requirements-txt'
