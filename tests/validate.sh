@@ -262,6 +262,23 @@ for job_id in ("validate", "validate-base-cli-source", "validate-ubuntu"):
         )
 PY
 
+security_workflow_contracts=(
+  '  security:'
+  'name: Security scanners'
+  'timeout-minutes: 20'
+  'uv run --no-project --with bandit==1.9.4'
+  'uv run --no-project --with pip-audit==2.10.1'
+  'uv export --locked --no-dev --no-emit-project --format requirements-txt'
+  "git ls-files -z '*.sh' 'bin/base-demo-python-info'"
+  'shellcheck --severity=error'
+)
+for security_contract in "${security_workflow_contracts[@]}"; do
+  grep -Fq "$security_contract" .github/workflows/tests.yml || {
+    printf '.github/workflows/tests.yml is missing security contract: %s\n' "$security_contract" >&2
+    exit 1
+  }
+done
+
 grep -Fq 'pull_request_target:' .github/workflows/issue-branch-policy.yml || {
   printf '.github/workflows/issue-branch-policy.yml does not validate pull_request_target events.\n' >&2
   exit 1
