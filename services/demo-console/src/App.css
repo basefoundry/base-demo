@@ -101,7 +101,7 @@ h1 {
 }
 
 .service-panel {
-  overflow: hidden;
+  overflow-x: auto;
   border: 1px solid #d7dee2;
   border-radius: 6px;
   background: #ffffff;
@@ -193,7 +193,4 @@ h1 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .service-panel {
-    overflow-x: auto;
-  }
 }

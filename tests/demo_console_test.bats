@@ -30,6 +30,25 @@ setup() {
   [[ "$output" == *"demo-console catalog contains"* ]]
 }
 
+@test "demo console table remains scrollable below its minimum width" {
+  run python3 - "$TEST_ROOT/services/demo-console/src/App.css" <<'PY'
+import re
+import sys
+
+css = open(sys.argv[1], encoding="utf-8").read()
+panel = re.search(r"\.service-panel\s*\{([^}]*)\}", css, re.S)
+if panel is None:
+    raise SystemExit(".service-panel rule is missing")
+styles = panel.group(1)
+if "overflow-x: auto" not in styles:
+    raise SystemExit(".service-panel must expose horizontal scrolling")
+if "overflow: hidden" in styles:
+    raise SystemExit(".service-panel must not hide the wider service table")
+PY
+
+  [ "$status" -eq 0 ]
+}
+
 @test "demo console build compiles production entry artifacts" {
   run "$TEST_ROOT/services/demo-console/build.sh"
 
