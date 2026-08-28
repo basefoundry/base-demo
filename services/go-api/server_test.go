@@ -51,3 +51,15 @@ func TestInfoHandler(t *testing.T) {
 		}
 	}
 }
+
+func TestInfoHandlerUsesResolvedPort(t *testing.T) {
+	t.Setenv("PORT", "9999")
+	request := httptest.NewRequest(http.MethodGet, "/info", nil)
+	response := httptest.NewRecorder()
+
+	infoHandler(response, request)
+
+	if !strings.Contains(response.Body.String(), `"port":9999`) {
+		t.Fatalf("body %q does not include resolved port", response.Body.String())
+	}
+}

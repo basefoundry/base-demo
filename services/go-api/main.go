@@ -5,12 +5,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 const (
 	serviceName = "go-api"
 	runtimeName = "go"
-	defaultPort = "8010"
+	defaultPort = 8010
 )
 
 func writeJSON(response http.ResponseWriter, payload map[string]any) {
@@ -39,16 +40,20 @@ func infoHandler(response http.ResponseWriter, request *http.Request) {
 	writeJSON(response, map[string]any{
 		"service": serviceName,
 		"runtime": runtimeName,
-		"port":    8010,
+		"port":    port(),
 	})
 }
 
-func port() string {
+func port() int {
 	value := os.Getenv("PORT")
 	if value == "" {
 		return defaultPort
 	}
-	return value
+	resolved, err := strconv.Atoi(value)
+	if err != nil {
+		log.Fatalf("invalid PORT %q: %v", value, err)
+	}
+	return resolved
 }
 
 func main() {
@@ -57,7 +62,7 @@ func main() {
 	mux.HandleFunc("/hello", helloHandler)
 	mux.HandleFunc("/info", infoHandler)
 
-	address := ":" + port()
+	address := ":" + strconv.Itoa(port())
 	log.Printf("%s listening on %s", serviceName, address)
 	if err := http.ListenAndServe(address, mux); err != nil {
 		log.Fatal(err)

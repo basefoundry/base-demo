@@ -9,6 +9,7 @@ public final class JavaMavenApiTest {
         assertContains(JavaMavenApi.responseFor("/hello"), "hello from java-maven-api");
         assertContains(JavaMavenApi.responseFor("/info"), "\"runtime\":\"java-maven\"");
         assertContains(JavaMavenApi.responseFor("/info"), "\"port\":8040");
+        assertContains(JavaMavenApi.responseFor("/info", 9999), "\"port\":9999");
         if (JavaMavenApi.statusFor("/missing") != 404) {
             throw new AssertionError("missing path should return 404");
         }
