@@ -9,6 +9,7 @@ public final class JavaGradleApiTest {
         assertContains(JavaGradleApi.responseFor("/hello"), "hello from java-gradle-api");
         assertContains(JavaGradleApi.responseFor("/info"), "\"runtime\":\"java-gradle\"");
         assertContains(JavaGradleApi.responseFor("/info"), "\"port\":8030");
+        assertContains(JavaGradleApi.responseFor("/info", 9999), "\"port\":9999");
         if (JavaGradleApi.statusFor("/missing") != 404) {
             throw new AssertionError("missing path should return 404");
         }

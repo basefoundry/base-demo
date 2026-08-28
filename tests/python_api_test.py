@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -53,6 +54,20 @@ class PythonApiTests(unittest.TestCase):
         self.assertEqual(payload["service"], "python-api")
         self.assertEqual(payload["runtime"], "python")
         self.assertEqual(payload["port"], 8020)
+
+    def test_info_endpoint_reports_resolved_port_override(self) -> None:
+        original_port = os.environ.get("PORT")
+        os.environ["PORT"] = "9999"
+        try:
+            status, _headers, payload = call_app("/info")
+        finally:
+            if original_port is None:
+                os.environ.pop("PORT", None)
+            else:
+                os.environ["PORT"] = original_port
+
+        self.assertEqual(status, "200 OK")
+        self.assertEqual(payload["port"], 9999)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,10 @@ public final class JavaGradleApi {
     }
 
     public static String responseFor(String path) {
+        return responseFor(path, port());
+    }
+
+    static String responseFor(String path, int listenPort) {
         if ("/healthz".equals(path)) {
             return "{\"service\":\"" + SERVICE_NAME + "\",\"status\":\"ok\"}";
         }
@@ -31,7 +35,7 @@ public final class JavaGradleApi {
             return "{\"service\":\"" + SERVICE_NAME + "\",\"message\":\"hello from java-gradle-api\"}";
         }
         if ("/info".equals(path)) {
-            return "{\"service\":\"" + SERVICE_NAME + "\",\"runtime\":\"" + RUNTIME_NAME + "\",\"port\":" + DEFAULT_PORT + "}";
+            return "{\"service\":\"" + SERVICE_NAME + "\",\"runtime\":\"" + RUNTIME_NAME + "\",\"port\":" + listenPort + "}";
         }
         return "{\"error\":\"not found\"}";
     }

@@ -33,7 +33,7 @@ def application(environ: dict[str, object], start_response) -> list[bytes]:
             {
                 "service": SERVICE_NAME,
                 "runtime": RUNTIME_NAME,
-                "port": DEFAULT_PORT,
+                "port": port(),
             }
         )
     else:
