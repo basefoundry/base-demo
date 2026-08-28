@@ -17,7 +17,7 @@ if ! node -e 'const [major, minor] = process.versions.node.split(".").map(Number
   exit 1
 fi
 
-if [[ ! -x node_modules/.bin/vite ]]; then
+if [[ ! -x node_modules/.bin/vite || ! -x node_modules/.bin/vitest ]]; then
   printf 'ERROR: demo-console dependencies are missing; run mise run frontend-install from the repository root (basectl test base-demo does this automatically).\n' >&2
   exit 1
 fi

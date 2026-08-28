@@ -10,7 +10,9 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 8070",
     "build": "vite build",
-    "validate": "node scripts/prepare-catalog.mjs && node scripts/validate-source.mjs",
+    "source-check": "node scripts/prepare-catalog.mjs && node scripts/validate-source.mjs",
+    "test:unit": "vitest run",
+    "validate": "npm run source-check && npm run test:unit",
     "test": "npm run validate",
     "audit": "npm audit --audit-level=moderate"
   },
@@ -19,7 +21,12 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
     "@vitejs/plugin-react": "6.0.2",
-    "vite": "8.0.16"
+    "jest-axe": "11.0.0",
+    "jsdom": "28.1.0",
+    "vite": "8.0.16",
+    "vitest": "4.1.11"
   }
 }

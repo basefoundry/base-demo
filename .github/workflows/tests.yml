@@ -44,6 +44,10 @@ jobs:
           test -f dist/index.html
           find dist/assets -type f -name '*.js' -print -quit | grep -q .
 
+      - name: Run demo-console behavioral tests
+        working-directory: services/demo-console
+        run: npm test
+
       - name: Install Bash and BATS
         run: brew install bash bats-core
 
@@ -322,6 +326,10 @@ jobs:
           npm run audit
           test -f dist/index.html
           find dist/assets -type f -name '*.js' -print -quit | grep -q .
+
+      - name: Run demo-console behavioral tests
+        working-directory: services/demo-console
+        run: npm test
 
       - name: Install Ubuntu prerequisites
         run: sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip jq

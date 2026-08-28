@@ -10,7 +10,7 @@ description = "Install locked demo-console frontend dependencies"
 dir = "services/demo-console"
 run = "npm ci"
 sources = ["package.json", "package-lock.json"]
-outputs = ["node_modules/.package-lock.json", "node_modules/.bin/vite"]
+outputs = ["node_modules/.package-lock.json", "node_modules/.bin/vite", "node_modules/.bin/vitest"]
 
 [tasks.validate]
 description = "Run the repository baseline validation"
