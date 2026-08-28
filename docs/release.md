@@ -65,14 +65,19 @@ silently accepted by the release path.
    pull-request checks.
 4. After the release PR is merged to `main`, create an annotated tag from the
    clean merge commit: `git tag -a vX.Y.Z -m "base-demo vX.Y.Z"`.
-5. Push the tag. The `Release Demo` workflow verifies that the tag matches every
-   identity source and creates the GitHub Release from the changelog section.
+5. Push the tag. The read-only `verify` job in the `Release Demo` workflow
+   verifies the version identity, requires an annotated tag, and checks that
+   the tag target (`GITHUB_SHA`) is reachable from `origin/main`. Only after
+   those checks pass does the separate `release` job receive `contents: write`
+   and create the GitHub Release from the changelog section.
 6. Treat published tags and releases as immutable. Corrections require a new
    patch release.
 
+The provenance helper can be dry-run against a local fixture with
+`bin/base-demo-release-provenance --repo PATH --main-ref REF vX.Y.Z COMMIT`.
 The workflow does not publish from ordinary branch or pull-request events. A
 release is therefore reproducible from a reviewed merge commit and an explicit
-tag push.
+annotated tag push.
 
 ## SemVer journey
 

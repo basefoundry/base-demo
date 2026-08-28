@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  printf 'usage: %s [--repo PATH] [--main-ref REF] TAG COMMIT\n' "$(basename "$0")" >&2
+}
+
+repo='.'
+main_ref='origin/main'
+while (($#)); do
+  case "$1" in
+    --repo)
+      (($# >= 2)) || { usage; exit 2; }
+      repo=$2
+      shift 2
+      ;;
+    --main-ref)
+      (($# >= 2)) || { usage; exit 2; }
+      main_ref=$2
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -* )
+      usage
+      exit 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if (($# != 2)); then
+  usage
+  exit 2
+fi
+
+tag_name=$1
+expected_commit=$2
+cd -- "$repo"
+
+fail() {
+  printf 'release provenance check: %s\n' "$1" >&2
+  exit 1
+}
+
+[[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "tag must be a versioned vX.Y.Z name: $tag_name"
+[[ "$expected_commit" =~ ^[0-9a-fA-F]{40}$ ]] || fail "commit must be a full 40-character SHA: $expected_commit"
+
+git show-ref --verify --quiet "refs/tags/$tag_name" || fail "tag $tag_name is not present"
+tag_type=$(git cat-file -t "refs/tags/$tag_name" 2>/dev/null || true)
+[[ "$tag_type" == tag ]] || fail "tag $tag_name is lightweight; an annotated tag is required"
+
+tag_commit=$(git rev-parse --verify --quiet "refs/tags/$tag_name^{}") || fail "tag $tag_name does not resolve to a commit"
+[[ "$tag_commit" == "$expected_commit" ]] || fail "tag $tag_name resolves to $tag_commit, not $expected_commit"
+
+main_commit=$(git rev-parse --verify --quiet "$main_ref^{commit}") || fail "main ref $main_ref is not available"
+git merge-base --is-ancestor "$tag_commit" "$main_commit" || fail "tag target $tag_commit is not reachable from $main_ref"
+
+printf 'release provenance is valid: %s -> %s (reachable from %s)\n' "$tag_name" "$tag_commit" "$main_ref"

@@ -48,6 +48,7 @@ required_files=(
   bin/base-demo-services
   bin/base-demo-environments
   bin/base-demo-release-check
+  bin/base-demo-release-provenance
   bin/base_demo_environment.py
   services/catalog.json
   infra/compose.yaml
@@ -121,6 +122,7 @@ required_files=(
   tests/java_services_test.bats
   tests/native_services_test.bats
   tests/demo_console_test.bats
+  tests/release_test.bats
   .github/workflows/tests.yml
   .github/workflows/release.yml
   .github/workflows/issue-branch-policy.yml
@@ -134,7 +136,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments bin/base-demo-release-check src/hello.sh src/env.sh src/manifest.sh src/build-info.sh src/uv-info.py services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
+for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments bin/base-demo-release-check bin/base-demo-release-provenance src/hello.sh src/env.sh src/manifest.sh src/build-info.sh src/uv-info.py services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -145,6 +147,11 @@ done
   printf 'base-demo release identity metadata is inconsistent.\n' >&2
   exit 1
 }
+
+if ! bats tests/release_test.bats; then
+  printf 'base-demo release provenance tests failed.\n' >&2
+  exit 1
+fi
 
 grep -Fq 'name: Release Demo' .github/workflows/release.yml || {
   printf '.github/workflows/release.yml does not declare the release workflow.\n' >&2
@@ -158,6 +165,26 @@ grep -Fq 'tags:' .github/workflows/release.yml || {
 
 grep -Fq 'gh release create' .github/workflows/release.yml || {
   printf '.github/workflows/release.yml does not publish a GitHub Release.\n' >&2
+  exit 1
+}
+
+grep -Fq $'permissions:\n  contents: read' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml must default to read-only contents permissions.\n' >&2
+  exit 1
+}
+
+grep -Fq 'run: ./bin/base-demo-release-provenance "$GITHUB_REF_NAME" "$GITHUB_SHA"' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml does not enforce reviewed tag provenance.\n' >&2
+  exit 1
+}
+
+grep -Fq 'needs: verify' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml release job does not depend on provenance verification.\n' >&2
+  exit 1
+}
+
+grep -Fq 'contents: write' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml release job does not declare write permission.\n' >&2
   exit 1
 }
 
