@@ -70,6 +70,16 @@ h1 {
   background: #fff1ed;
 }
 
+.catalog-message {
+  margin: 16px 0;
+  color: #52636d;
+}
+
+.catalog-message-error {
+  color: #8a2f1d;
+  font-weight: 700;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -108,32 +118,59 @@ h1 {
 }
 
 .service-table {
+  width: 100%;
   min-width: 860px;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .service-row {
-  display: grid;
-  grid-template-columns: minmax(160px, 1.25fr) 92px 120px 72px minmax(240px, 1.6fr) 104px;
-  gap: 12px;
-  align-items: center;
-  min-height: 48px;
-  padding: 8px 14px;
-  border-top: 1px solid #e5eaed;
   color: #34454f;
   font-size: 0.9rem;
 }
 
-.service-row:first-child {
-  border-top: 0;
+.service-column-name {
+  width: 20%;
+}
+
+.service-column-kind {
+  width: 11%;
+}
+
+.service-column-runtime {
+  width: 14%;
+}
+
+.service-column-port {
+  width: 8%;
+}
+
+.service-column-health {
+  width: 33%;
+}
+
+.service-column-state {
+  width: 14%;
+}
+
+.service-row th,
+.service-row td {
+  padding: 8px 14px;
+  border-top: 1px solid #e5eaed;
+  text-align: left;
+  vertical-align: middle;
 }
 
 .service-row-head {
-  min-height: 42px;
   color: #52636d;
   background: #eef2f4;
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.service-row-head th {
+  border-top: 0;
 }
 
 .service-name {
@@ -171,6 +208,18 @@ h1 {
 .state-cataloged {
   color: #43515a;
   background: #e8edf0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (max-width: 760px) {

@@ -92,27 +92,56 @@ export default function App() {
         </div>
       </section>
 
+      {loadState === "loading" && (
+        <p className="catalog-message" role="status" aria-live="polite">
+          Loading service catalog…
+        </p>
+      )}
+      {loadState === "unavailable" && (
+        <p className="catalog-message catalog-message-error" role="alert">
+          Service catalog unavailable.
+        </p>
+      )}
+      {loadState === "ready" && services.length === 0 && (
+        <p className="catalog-message" role="status" aria-live="polite">
+          No services are cataloged yet.
+        </p>
+      )}
+
       <section className="service-panel" aria-label="Service catalog">
-        <div className="service-table" role="table">
-          <div className="service-row service-row-head" role="row">
-            <span>Name</span>
-            <span>Kind</span>
-            <span>Runtime</span>
-            <span>Port</span>
-            <span>Health</span>
-            <span>State</span>
-          </div>
-          {services.map((service) => (
-            <div className="service-row" role="row" key={service.name}>
-              <span className="service-name">{service.name}</span>
-              <span>{service.kind}</span>
-              <span>{service.runtime}</span>
-              <span>{service.port || "-"}</span>
-              <span className="health-cell">{healthLabel(service)}</span>
-              <span className={`state-pill state-${stateFor(service)}`}>{stateFor(service)}</span>
-            </div>
-          ))}
-        </div>
+        <table className="service-table">
+          <caption className="sr-only">Service catalog</caption>
+          <colgroup>
+            <col className="service-column-name" />
+            <col className="service-column-kind" />
+            <col className="service-column-runtime" />
+            <col className="service-column-port" />
+            <col className="service-column-health" />
+            <col className="service-column-state" />
+          </colgroup>
+          <thead>
+            <tr className="service-row service-row-head">
+              <th scope="col">Name</th>
+              <th scope="col">Kind</th>
+              <th scope="col">Runtime</th>
+              <th scope="col">Port</th>
+              <th scope="col">Health</th>
+              <th scope="col">State</th>
+            </tr>
+          </thead>
+          <tbody>
+            {services.map((service) => (
+              <tr className="service-row" key={service.name}>
+                <th scope="row" className="service-name">{service.name}</th>
+                <td>{service.kind}</td>
+                <td>{service.runtime}</td>
+                <td>{service.port || "-"}</td>
+                <td className="health-cell">{healthLabel(service)}</td>
+                <td><span className={`state-pill state-${stateFor(service)}`}>{stateFor(service)}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
     </main>
   );

@@ -61,6 +61,7 @@ describe("Base Demo Console", () => {
     render(<App />);
 
     expect(screen.getByText("loading")).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent("Loading service catalog…");
     expect(screen.getByRole("heading", { name: "Base Demo Console" })).toBeVisible();
   });
 
@@ -81,6 +82,8 @@ describe("Base Demo Console", () => {
     expect(screen.getByText("required")).toHaveClass("state-required");
     expect(screen.getByText("optional")).toHaveClass("state-optional");
     expect(screen.getByText("cataloged")).toHaveClass("state-cataloged");
+    expect(screen.getByRole("columnheader", { name: "Name" })).toBeInTheDocument();
+    expect(screen.getAllByRole("cell")).toHaveLength(15);
   });
 
   it("renders an empty catalog as a successful response with zero counts", async () => {
@@ -90,8 +93,9 @@ describe("Base Demo Console", () => {
 
     expect(await screen.findByText("ready")).toBeVisible();
     expect(metric("Total")).toHaveTextContent("0");
-    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "Service catalog" })).toBeInTheDocument();
     expect(screen.getAllByRole("row")).toHaveLength(1);
+    expect(screen.getByRole("status")).toHaveTextContent("No services are cataloged yet.");
   });
 
   it("shows an unavailable state when the catalog request fails", async () => {
@@ -100,6 +104,7 @@ describe("Base Demo Console", () => {
     render(<App />);
 
     expect(await screen.findByText("unavailable")).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent("Service catalog unavailable.");
     expect(screen.getByRole("region", { name: "Service summary" })).toBeInTheDocument();
   });
 
@@ -109,6 +114,7 @@ describe("Base Demo Console", () => {
     render(<App />);
 
     expect(await screen.findByText("unavailable")).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent("Service catalog unavailable.");
   });
 
   it("keeps the rendered catalog discoverable through the current accessibility surface", async () => {
@@ -120,14 +126,12 @@ describe("Base Demo Console", () => {
     expect(screen.getByRole("heading", { name: "Base Demo Console" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Service summary" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Service catalog" })).toBeInTheDocument();
-    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "Service catalog" })).toBeInTheDocument();
     expect(screen.getAllByRole("row")).toHaveLength(4);
+    expect(screen.getAllByRole("columnheader")).toHaveLength(6);
+    expect(screen.getAllByRole("rowheader")).toHaveLength(3);
 
-    // #258 completes the ARIA table children; keep the rest of the axe smoke
-    // test active here so this harness can land before that semantic change.
-    const results = await axe(container, {
-      rules: { "aria-required-children": { enabled: false } }
-    });
+    const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
 });
