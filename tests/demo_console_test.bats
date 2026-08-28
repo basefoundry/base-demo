@@ -9,9 +9,12 @@ setup() {
   [ -f "$TEST_ROOT/services/demo-console/package-lock.json" ]
   [ -f "$TEST_ROOT/services/demo-console/index.html" ]
   [ -f "$TEST_ROOT/services/demo-console/vite.config.js" ]
+  [ -f "$TEST_ROOT/services/demo-console/vitest.config.js" ]
   [ -f "$TEST_ROOT/services/demo-console/src/main.jsx" ]
   [ -f "$TEST_ROOT/services/demo-console/src/App.jsx" ]
   [ -f "$TEST_ROOT/services/demo-console/src/App.css" ]
+  [ -f "$TEST_ROOT/services/demo-console/src/App.test.jsx" ]
+  [ -f "$TEST_ROOT/services/demo-console/src/test-setup.js" ]
   [ -f "$TEST_ROOT/services/demo-console/scripts/prepare-catalog.mjs" ]
   [ -f "$TEST_ROOT/services/demo-console/scripts/validate-source.mjs" ]
   [ -f "$TEST_ROOT/services/demo-console/public/service-catalog.json" ]
@@ -21,6 +24,8 @@ setup() {
 
   grep -Fq '"react"' "$TEST_ROOT/services/demo-console/package.json"
   grep -Fq '"vite"' "$TEST_ROOT/services/demo-console/package.json"
+  grep -Fq '"vitest"' "$TEST_ROOT/services/demo-console/package.json"
+  grep -Fq '"@testing-library/react"' "$TEST_ROOT/services/demo-console/package.json"
 }
 
 @test "demo console lightweight source validation remains separate" {

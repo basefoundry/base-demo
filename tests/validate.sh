@@ -86,9 +86,12 @@ required_files=(
   services/demo-console/package-lock.json
   services/demo-console/index.html
   services/demo-console/vite.config.js
+  services/demo-console/vitest.config.js
   services/demo-console/src/main.jsx
   services/demo-console/src/App.jsx
   services/demo-console/src/App.css
+  services/demo-console/src/App.test.jsx
+  services/demo-console/src/test-setup.js
   services/demo-console/scripts/prepare-catalog.mjs
   services/demo-console/scripts/validate-source.mjs
   services/demo-console/public/service-catalog.json
@@ -665,7 +668,11 @@ expected_frontend_install = {
     "dir": "services/demo-console",
     "run": "npm ci",
     "sources": ["package.json", "package-lock.json"],
-    "outputs": ["node_modules/.package-lock.json", "node_modules/.bin/vite"],
+    "outputs": [
+        "node_modules/.package-lock.json",
+        "node_modules/.bin/vite",
+        "node_modules/.bin/vitest",
+    ],
 }
 for key, expected in expected_frontend_install.items():
     if frontend_install.get(key) != expected:
@@ -712,7 +719,10 @@ for frontend_doc_contract in \
   'Node 22.22.0' \
   'npm 10.9.4' \
   'mise run frontend-install' \
-  'test.mise'; do
+  'test.mise' \
+  'Vitest' \
+  'React Testing Library' \
+  'npm test'; do
   grep -Fq "$frontend_doc_contract" README.md || {
     printf 'README.md does not document frontend setup contract: %s.\n' "$frontend_doc_contract" >&2
     exit 1
@@ -746,7 +756,8 @@ for frontend_ci_contract in \
   'node-version: 22.22.0' \
   'run: npm ci' \
   'npm run build' \
-  'npm run audit'; do
+  'npm run audit' \
+  'run: npm test'; do
   frontend_ci_count="$(grep -Fc "$frontend_ci_contract" .github/workflows/tests.yml || true)"
   if [[ "$frontend_ci_count" -lt 2 ]]; then
     printf '.github/workflows/tests.yml must enforce frontend contract in macOS and Ubuntu CI: %s.\n' "$frontend_ci_contract" >&2

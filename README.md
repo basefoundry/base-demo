@@ -407,9 +407,10 @@ read-only inspection because those models are non-operational.
   the service catalog and shows the representative stack. Its build is a real
   production compilation gate. The supported Base path installs Node 22.22.0
   with npm 10.9.4 through mise, and the `validate` task runs locked `npm ci`
-  before validation when needed. The audit gate fails at moderate severity or
-  higher, and a successful build must create `dist/index.html` plus a
-  JavaScript asset.
+  before validation when needed. `npm test` runs source validation plus the
+  Vitest/React Testing Library catalog behavior and accessibility suite. The
+  audit gate fails at moderate severity or higher, and a successful build must
+  create `dist/index.html` plus a JavaScript asset.
 - `bin/base-demo-services` reads `services/catalog.json` and provides the
   `services` lifecycle command for the representative environment. Catalog
   roots, service arrays, entries, names, and known field types share one schema
