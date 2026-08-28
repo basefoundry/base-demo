@@ -14,6 +14,14 @@ teardown() {
   [ -x "$TEST_ROOT/demo/demo.sh" ]
 }
 
+@test "manifest summary includes the services command" {
+  run env BASE_PROJECT_MANIFEST="$TEST_ROOT/base_manifest.yaml" "$TEST_ROOT/src/manifest.sh"
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"  services: ./bin/base-demo-services"* ]]
+  [[ "$output" == *"  environments: ./bin/base-demo-environments"* ]]
+}
+
 @test "demo script prints help" {
   run "$TEST_ROOT/demo/demo.sh" --help
 
