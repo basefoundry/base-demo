@@ -36,7 +36,7 @@ uv-managed project environment, command-level `runner: uv`,
 `infra/compose.yaml`, and `.ai-context/` examples in this repository.
 
 The Python CLI dependency is intentionally reproducible: `pyproject.toml` and
-`uv.lock` pin `base-cli==0.4.2` for the normal project environment. Base's
+`uv.lock` pin `base-cli==0.4.3` for the normal project environment. Base's
 `base-wrapper` can opt into a peer source checkout with
 `BASE_CLI_SOURCE_DIR=../base-cli/lib/python`; this is an explicit development
 and compatibility path, not an automatic override of the locked dependency.

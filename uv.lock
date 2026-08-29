@@ -4,15 +4,14 @@ requires-python = "==3.13.*"
 
 [[package]]
 name = "base-cli"
-version = "0.4.2"
+version = "0.4.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
-    { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/52/00/26e7961068055c9dc375fb7c951c5b77099ff02742b01064fb9c36022493/base_cli-0.4.2.tar.gz", hash = "sha256:33acd0461be1d6319796c712f72cc6257478ef6aed3eea59aa44cc63a212462a", size = 270338, upload-time = "2026-08-08T20:54:53.481Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/aa/cb963f3a1e26b84e44992d2dd08a31539bd94454b4d26104f30e9d3d375a/base_cli-0.4.3.tar.gz", hash = "sha256:d9d05ff479c2f0ff03334a69f4f20cb17b2e1844d94e8727f837e5b8dfe3fc95", size = 320272, upload-time = "2026-08-29T04:19:08.582Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/b9/8c3275201be12a7f701d91c7f4962fc028f3a67038e0c476633d0c7873fd/base_cli-0.4.2-py3-none-any.whl", hash = "sha256:6b89b8d30b9b26c8877e415e9c8f4d2d2000a9a3b578f5bf04ba6bee618770fe", size = 112081, upload-time = "2026-08-08T20:54:52.219Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/d3/8ad3a107480e55b9ac956a84460616d9152c4ca7055c50acec12ca40785e/base_cli-0.4.3-py3-none-any.whl", hash = "sha256:b4bf684d164b9fdf31d1d0176dfcb5359cedf9b22434d6f6a5483243e27c9b89", size = 123477, upload-time = "2026-08-29T04:19:07.27Z" },
 ]
 
 [[package]]
@@ -27,7 +26,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "base-cli", specifier = "==0.4.2" },
+    { name = "base-cli", specifier = "==0.4.3" },
     { name = "click" },
     { name = "pyyaml" },
 ]

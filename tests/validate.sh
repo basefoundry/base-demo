@@ -429,8 +429,8 @@ grep -Fq 'BASE_CLI_SOURCE_DIR: ${{ github.workspace }}/../base-cli/lib/python' .
   exit 1
 }
 
-grep -Fq 'git clone --depth 1 --branch v0.4.2 https://github.com/basefoundry/base-cli.git ../base-cli' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not pin the source compatibility checkout to base-cli v0.4.2.\n' >&2
+grep -Fq 'git clone --depth 1 --branch v0.4.3 https://github.com/basefoundry/base-cli.git ../base-cli' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the source compatibility checkout to base-cli v0.4.3.\n' >&2
   exit 1
 }
 
@@ -866,7 +866,7 @@ for environment_contract_doc in \
   }
 done
 
-grep -Fq 'base-cli==0.4.2' .ai-context/overview.md || {
+grep -Fq 'base-cli==0.4.3' .ai-context/overview.md || {
   printf '.ai-context/overview.md does not match the locked base-cli version.\n' >&2
   exit 1
 }
@@ -1559,7 +1559,7 @@ grep -Fq 'requires-python = ">=3.13,<3.14"' pyproject.toml || {
   exit 1
 }
 
-grep -Fq 'dependencies = ["base-cli==0.4.2", "click", "PyYAML"]' pyproject.toml || {
+grep -Fq 'dependencies = ["base-cli==0.4.3", "click", "PyYAML"]' pyproject.toml || {
   printf 'pyproject.toml does not declare the Base CLI runtime dependencies.\n' >&2
   exit 1
 }
