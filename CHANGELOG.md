@@ -12,6 +12,9 @@ promotes this section into a dated version heading before tagging.
 
 ### Changed
 
+- Align the locked project dependency and source-compatibility CI checkout
+  with the released `base-cli` `0.4.3` provider.
+
 - Pinned the release installer to reviewed Base and base-demo revisions, made
   checksum and existing-checkout validation fail closed, and added explicit
   `--dev`/`BASE_DEMO_DEV_MODE` support for contributor workspaces.
