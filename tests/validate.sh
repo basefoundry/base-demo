@@ -116,6 +116,7 @@ required_files=(
   tests/services_test.bats
   tests/environments_test.bats
   tests/infra_test.bats
+  tests/project_intake_test.py
   tests/go_api_test.bats
   tests/python_api_test.py
   tests/python_api_test.bats
@@ -150,6 +151,11 @@ done
 
 if ! bats tests/release_test.bats; then
   printf 'base-demo release provenance tests failed.\n' >&2
+  exit 1
+fi
+
+if ! python3 tests/project_intake_test.py; then
+  printf 'base-demo Project Intake conformance tests failed.\n' >&2
   exit 1
 fi
 
