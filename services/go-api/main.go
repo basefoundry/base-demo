@@ -56,15 +56,18 @@ func port() int {
 	return resolved
 }
 
-func main() {
+func newServeMux() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", healthHandler)
 	mux.HandleFunc("/hello", helloHandler)
 	mux.HandleFunc("/info", infoHandler)
+	return mux
+}
 
+func main() {
 	address := ":" + strconv.Itoa(port())
 	log.Printf("%s listening on %s", serviceName, address)
-	if err := http.ListenAndServe(address, mux); err != nil {
+	if err := http.ListenAndServe(address, newServeMux()); err != nil {
 		log.Fatal(err)
 	}
 }

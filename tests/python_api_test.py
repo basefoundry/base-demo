@@ -69,6 +69,15 @@ class PythonApiTests(unittest.TestCase):
         self.assertEqual(status, "200 OK")
         self.assertEqual(payload["port"], 9999)
 
+    def test_unknown_endpoint_returns_json_not_found(self) -> None:
+        status, headers, payload = call_app("/missing")
+
+        self.assertEqual(status, "404 Not Found")
+        self.assertEqual(headers["Content-Type"], "application/json")
+        self.assertEqual(payload, {"error": "not found"})
+        encoded_payload = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        self.assertEqual(headers["Content-Length"], str(len(encoded_payload)))
+
 
 if __name__ == "__main__":
     unittest.main()
