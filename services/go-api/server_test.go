@@ -11,7 +11,7 @@ func TestHealthHandler(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	response := httptest.NewRecorder()
 
-	healthHandler(response, request)
+	newServeMux().ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
@@ -25,7 +25,7 @@ func TestHelloHandler(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/hello", nil)
 	response := httptest.NewRecorder()
 
-	helloHandler(response, request)
+	newServeMux().ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
@@ -39,7 +39,7 @@ func TestInfoHandler(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/info", nil)
 	response := httptest.NewRecorder()
 
-	infoHandler(response, request)
+	newServeMux().ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
@@ -57,9 +57,20 @@ func TestInfoHandlerUsesResolvedPort(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/info", nil)
 	response := httptest.NewRecorder()
 
-	infoHandler(response, request)
+	newServeMux().ServeHTTP(response, request)
 
 	if !strings.Contains(response.Body.String(), `"port":9999`) {
 		t.Fatalf("body %q does not include resolved port", response.Body.String())
+	}
+}
+
+func TestServeMuxReturnsNotFoundForUnknownRoute(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/missing", nil)
+	response := httptest.NewRecorder()
+
+	newServeMux().ServeHTTP(response, request)
+
+	if response.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusNotFound)
 	}
 }

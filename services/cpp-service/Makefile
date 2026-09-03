@@ -15,7 +15,8 @@ test: $(BIN)
 	@$(BIN) --healthz | grep -F '"status":"ok"' >/dev/null
 	@$(BIN) --hello | grep -F 'hello from cpp-service' >/dev/null
 	@$(BIN) --info | grep -F '"runtime":"native-cpp"' >/dev/null
-	@$(BIN) --info | grep -F '"runtime":"native-cpp"' >/dev/null
+	@$(BIN) | grep -F '"runtime":"native-cpp"' >/dev/null
+	@output="$$( $(BIN) --missing 2>&1)"; status="$$?"; test "$$status" -eq 1; test "$$output" = '{"error":"not found"}'
 
 clean:
 	rm -rf $(BUILD_DIR)
