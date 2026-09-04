@@ -118,6 +118,8 @@ required_files=(
   tests/infra_test.bats
   tests/project_intake_test.py
   tests/go_api_test.bats
+  tests/live_api_smoke.py
+  tests/live_api_smoke.sh
   tests/python_api_test.py
   tests/python_api_test.bats
   tests/java_services_test.bats
@@ -658,6 +660,12 @@ if command -v javac >/dev/null 2>&1; then
   services/java-maven-api/build.sh || exit 1
 else
   printf 'Skipping Java service builds because javac is not available.\n'
+fi
+
+if command -v go >/dev/null 2>&1 && command -v javac >/dev/null 2>&1; then
+  ./tests/live_api_smoke.sh || exit 1
+else
+  printf 'Skipping live API smoke tests because go or javac is not available.\n'
 fi
 
 for service in c-service cpp-service; do
