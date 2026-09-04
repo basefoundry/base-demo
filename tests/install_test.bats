@@ -8,7 +8,7 @@ setup() {
   TEST_MARKER="$TEST_TMPDIR/installer-executed"
   TEST_GIT_LOG="$TEST_TMPDIR/git.log"
   TEST_BASE_COMMIT="26b9af5dee16efcb47e652513ce734b3ae9bc920"
-  TEST_PROJECT_COMMIT="b74521c85d410cb67e497560976e0d95fc53fd41"
+  TEST_PROJECT_COMMIT="b8ac2ae490e4965b8131195a11377fd0bd787daf"
 
   mkdir -p "$TEST_FAKE_BIN"
   write_fake_curl

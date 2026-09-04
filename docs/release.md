@@ -25,7 +25,7 @@ The release path in `install.sh` is pinned to reviewed immutable inputs:
   `492dd06eee86223c780f011b545cdef8e11964489c8a2d54c9da426f55ed9980`, and
   Base commit `26b9af5dee16efcb47e652513ce734b3ae9bc920`;
 - base-demo checkout: release ref `v0.1.0` and commit
-  `b74521c85d410cb67e497560976e0d95fc53fd41`.
+  `b8ac2ae490e4965b8131195a11377fd0bd787daf`.
 
 When preparing a release, update the `PROJECT_RELEASE_REF` and
 `PROJECT_RELEASE_COMMIT` values in `install.sh` to the new release tag and
