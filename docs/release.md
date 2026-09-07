@@ -17,6 +17,11 @@ The following values must agree with `VERSION`:
 `base-cli` and `base-bash-libs` versions are independent compatibility pins.
 They do not change merely because base-demo publishes a release.
 
+`.release/release-bom.json` is the coordinated release record. It captures the
+exact Base, base-cli, base-bash-libs, and base-demo commits, contract identities,
+supported platforms, required/advisory status, and compatibility result.
+Moving development sources are advisory and do not block a release.
+
 ## Bootstrap provenance
 
 The release path in `install.sh` is pinned to reviewed immutable inputs:
@@ -61,15 +66,19 @@ silently accepted by the release path.
    governed metadata, promote `Unreleased` into a dated version section, and
    update the README badge strip, release links, and bootstrap pins in
    `install.sh`.
-3. Run `bin/base-demo-release-check`, `mise run validate`, and the normal hosted
+3. Generate or update the demo component row with
+   `bin/base-demo-release-bom-row`, update `.release/release-bom.json` from the
+   coordinated release inputs, then run `bin/base-demo-release-check`,
+   `bin/base-demo-release-bom-check`, `mise run validate`, and the normal hosted
    pull-request checks.
 4. After the release PR is merged to `main`, create an annotated tag from the
    clean merge commit: `git tag -a vX.Y.Z -m "base-demo vX.Y.Z"`.
 5. Push the tag. The read-only `verify` job in the `Release Demo` workflow
-   verifies the version identity, requires an annotated tag, and checks that
-   the tag target (`GITHUB_SHA`) is reachable from `origin/main`. Only after
-   those checks pass does the separate `release` job receive `contents: write`
-   and create the GitHub Release from the changelog section.
+   verifies the version identity, BOM identity and required passing rows,
+   requires an annotated tag, and checks that the tag target (`GITHUB_SHA`) is
+   reachable from `origin/main`. Only after those checks pass does the separate
+   `release` job receive `contents: write` and create the GitHub Release from
+   the changelog section, attaching the BOM and its SHA-256 digest.
 6. Treat published tags and releases as immutable. Corrections require a new
    patch release.
 

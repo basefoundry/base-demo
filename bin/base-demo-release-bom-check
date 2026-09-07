@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Check the release BOM identity and required passing rows for base-demo."""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+BOM_PATH = ROOT / ".release" / "release-bom.json"
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+
+
+def fail(message: str) -> None:
+    print(f"release BOM check: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+if not BOM_PATH.is_file():
+    fail(f"missing {BOM_PATH}")
+try:
+    document = json.loads(BOM_PATH.read_text(encoding="utf-8"))
+except (OSError, json.JSONDecodeError) as exc:
+    fail(f"could not read {BOM_PATH}: {exc}")
+if not isinstance(document, dict) or document.get("schema_version") != 1:
+    fail("schema_version must be 1")
+
+version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+release = document.get("release")
+if not isinstance(release, dict):
+    fail("release must be an object")
+if release.get("repository") != "basefoundry/base-demo":
+    fail("release.repository must be basefoundry/base-demo")
+if release.get("version") != version or release.get("tag") != f"v{version}":
+    fail("release version and tag must match VERSION")
+if not isinstance(release.get("commit"), str) or not SHA_RE.fullmatch(release["commit"]):
+    fail("release.commit must be a lowercase full 40-character SHA")
+expected_commit = os.environ.get("BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT")
+if expected_commit and release["commit"] != expected_commit:
+    fail("release.commit must match the tagged GITHUB_SHA")
+
+components = document.get("components")
+if not isinstance(components, list) or not components:
+    fail("components must be a non-empty array")
+required_components = 0
+for index, component in enumerate(components):
+    if not isinstance(component, dict):
+        fail(f"components[{index}] must be an object")
+    commit = component.get("commit")
+    if not isinstance(commit, str) or not SHA_RE.fullmatch(commit):
+        fail(f"components[{index}].commit must be a lowercase full 40-character SHA")
+    if component.get("required") is True:
+        required_components += 1
+        if component.get("source_mode") == "moving" or component.get("result") != "passed":
+            fail(f"required component {component.get('repository', index)!r} is not a passing immutable release")
+        if not isinstance(component.get("evidence"), str) or not component["evidence"]:
+            fail(f"required component {component.get('repository', index)!r} is missing evidence")
+if required_components == 0:
+    fail("at least one required component must be declared")
+
+combinations = document.get("combinations")
+if not isinstance(combinations, list) or not combinations:
+    fail("combinations must be a non-empty array")
+if not any(
+    isinstance(combination, dict)
+    and combination.get("required") is True
+    and combination.get("result") == "passed"
+    and isinstance(combination.get("evidence"), str)
+    and combination["evidence"]
+    for combination in combinations
+):
+    fail("at least one required passing combination with evidence is required")
+
+print(f"release BOM identity is consistent: v{version}")
