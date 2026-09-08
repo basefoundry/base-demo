@@ -24,6 +24,11 @@ jobs:
       - name: Verify reviewed tag provenance
         run: ./bin/base-demo-release-provenance "$GITHUB_REF_NAME" "$GITHUB_SHA"
 
+      - name: Verify ecosystem release BOM
+        env:
+          BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT: ${{ github.sha }}
+        run: ./bin/base-demo-release-bom-check
+
   release:
     needs: verify
     runs-on: ubuntu-latest
@@ -46,8 +51,12 @@ jobs:
             in_release { print }
           ' CHANGELOG.md > "$notes_file"
           test -s "$notes_file"
+          bom_digest="$RUNNER_TEMP/base-demo-release-bom.sha256"
+          sha256sum .release/release-bom.json > "$bom_digest"
           gh release create "$GITHUB_REF_NAME" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --title "base-demo $GITHUB_REF_NAME" \
-            --notes-file "$notes_file"
+            --notes-file "$notes_file" \
+            .release/release-bom.json \
+            "$bom_digest"

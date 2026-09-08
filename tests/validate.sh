@@ -49,6 +49,9 @@ required_files=(
   bin/base-demo-environments
   bin/base-demo-release-check
   bin/base-demo-release-provenance
+  bin/base-demo-release-bom-row
+  bin/base-demo-release-bom-check
+  .release/release-bom.json
   bin/base_demo_environment.py
   services/catalog.json
   infra/compose.yaml

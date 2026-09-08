@@ -76,6 +76,27 @@ resolve_release_commit() {
   [[ "$output" == *"does not match VERSION"* ]]
 }
 
+@test "release BOM check validates the checked-in coordinated record" {
+  run "$TEST_ROOT/bin/base-demo-release-bom-check"
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"release BOM identity is consistent: v0.1.0"* ]]
+}
+
+@test "release BOM row emits immutable demo identity" {
+  output_path="$TEST_TMPDIR/demo-row.json"
+  run "$TEST_ROOT/bin/base-demo-release-bom-row" \
+    --version 0.2.0 \
+    --commit aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+    --platform ubuntu-24.04 \
+    --evidence run://base-demo/validation \
+    --output "$output_path"
+
+  [ "$status" -eq 0 ]
+  run python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["repository"] == "basefoundry/base-demo"; assert d["tag"] == "v0.2.0"; assert d["required"] is True' "$output_path"
+  [ "$status" -eq 0 ]
+}
+
 @test "install release pins resolve refs to their target commits" {
   project_ref="$(sed -n 's/^PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
   project_pin="$(sed -n 's/^PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
