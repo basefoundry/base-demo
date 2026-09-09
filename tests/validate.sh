@@ -1131,7 +1131,7 @@ grep -Fq 'Native Windows support remains out of scope.' README.md || {
   exit 1
 }
 
-grep -Fq 'Ubuntu/Debian under WSL2 uses the same Base Linux path' CONTRIBUTING.md || {
+grep -Fq 'Ubuntu/Debian under WSL2 has a limited read-only/development path' CONTRIBUTING.md || {
   printf 'CONTRIBUTING.md does not document the WSL2 platform boundary.\n' >&2
   exit 1
 }
