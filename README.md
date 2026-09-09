@@ -57,7 +57,10 @@ base-demo setup, activation, build, test, and demo expectations out of scope.
 Base should report `BASE_PLATFORM=linux-debian` with `BASE_HOST_ENV=wsl2`.
 Native Windows support remains out of scope.
 
-For the full Base platform policy, see
+For the coordinated release matrix and the boundary between `base-demo` and
+the standalone component repositories, see the [Base ecosystem platform,
+license, and release policy](https://github.com/basefoundry/base/blob/main/docs/ecosystem-policy.md).
+For the detailed Base Linux policy, see
 [`docs/linux-support.md`](https://github.com/basefoundry/base/blob/main/docs/linux-support.md)
 in the Base repository.
 
@@ -551,5 +554,6 @@ checks remain optional locally so the baseline stays useful on a fresh machine.
 ## License
 
 base-demo is licensed under the MIT License so it can be freely copied as a
-small reference project for Base-managed workflows. See [LICENSE](LICENSE) for
-the full terms.
+small reference project for Base-managed workflows. Base itself is licensed
+under Apache-2.0 starting with v1.9.0; the repositories remain independently
+licensed. See [LICENSE](LICENSE) for the full base-demo terms.

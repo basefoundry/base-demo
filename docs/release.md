@@ -4,6 +4,11 @@
 formal release is `0.1.0`; the repository's `VERSION` file is the authoritative
 identity, and duplicated metadata is checked against it.
 
+`base-demo` releases are independent of Base, `base-cli`, and
+`base-bash-libs` releases. The shared provider, platform, license, and
+release-artifact rules are summarized in the [Base ecosystem platform, license,
+and release policy](https://github.com/basefoundry/base/blob/main/docs/ecosystem-policy.md).
+
 ## Governed identity
 
 The following values must agree with `VERSION`:
@@ -80,7 +85,8 @@ silently accepted by the release path.
    `release` job receive `contents: write` and create the GitHub Release from
    the changelog section, attaching the BOM and its SHA-256 digest.
 6. Treat published tags and releases as immutable. Corrections require a new
-   patch release.
+   patch release; do not retag a published version or replace its release
+   assets.
 
 The provenance helper can be dry-run against a local fixture with
 `bin/base-demo-release-provenance --repo PATH --main-ref REF vX.Y.Z COMMIT`.
