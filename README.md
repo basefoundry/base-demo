@@ -150,6 +150,9 @@ basectl test base-demo
 basectl logs --limit 3
 basectl history --project base-demo --limit 5
 basectl history --project base-demo --limit 5 --report
+basectl config show  # redacted machine-local configuration
+basectl prompt list  # list repo-owned prompts without rendering one
+basectl clean --keep-last 1 --dry-run  # preview cleanup without deleting
 basectl build base-demo
 basectl demo base-demo  # macOS only
 basectl docs --show-url
@@ -259,6 +262,13 @@ The commands above exercise the complete Base project loop:
   to Nix/devenv-style environment concepts without requiring Nix or devenv.
 - `basectl trust status base-demo` shows whether the current manifest is already
   approved for project-owned command execution on this machine.
+- `basectl config show` displays machine-local Base configuration with secret-shaped
+  values redacted. It is read-only and does not edit or sync the config file.
+- `basectl prompt list` inventories repo-owned prompts without rendering a large
+  prompt into the walkthrough output.
+- `basectl clean --keep-last 1 --dry-run` previews removal of old completed Base
+  runtime artifacts while retaining the newest active run. The demo never uses
+  `--yes` and never deletes local state.
 - `basectl run base-demo --list`, `basectl build base-demo --list`, and
   `basectl test base-demo --dry-run` are safe inspection commands before trust is
   granted.

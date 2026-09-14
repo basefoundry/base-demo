@@ -128,7 +128,15 @@ case "$*" in
   config\ show)
     printf '{\n'
     printf '  "workspace": {"root": "%s"}\n' "${BASE_PROJECT_ROOT%/base-demo}"
+    printf '  "api_token": "[REDACTED]"\n'
     printf '}\n'
+    ;;
+  prompt\ list)
+    printf 'product-self-review\tPeriodic Base product self-review\n'
+    ;;
+  clean\ --keep-last\ 1\ --dry-run)
+    printf 'Would remove 0 Base runtime artifact(s).\n'
+    printf 'Retaining active run /tmp/base-demo-test-active\n'
     ;;
   run\ base-demo\ --workspace\ *\ --list)
     printf 'hello       ./src/hello.sh\n'
@@ -323,6 +331,11 @@ EOF
   [[ "$output" == *"uv-info     uv run -- python src/uv-info.py"* ]]
   [[ "$output" == *"Inspection Commands"* ]]
   [[ "$output" == *"workspace"* ]]
+  [[ "$output" == *'"api_token": "[REDACTED]"'* ]]
+  [[ "$output" != *"config-leak-sentinel"* ]]
+  [[ "$output" == *"Maintenance and Prompt Tooling"* ]]
+  [[ "$output" == *"product-self-review"* ]]
+  [[ "$output" == *"Would remove 0 Base runtime artifact(s)."* ]]
   [[ "$output" == *"Inspecting activation and manifest environment values."* ]]
   [[ "$output" == *"Reading the manifest summary command."* ]]
   [[ "$output" == *"worktree-scoped Compose project."* ]]
@@ -402,6 +415,8 @@ EOF
   [ "$(grep -Ec "^basectl doctor base-demo --manifest .+/base_manifest.yaml$" "$state_file")" -eq 2 ]
   grep -Eq "^basectl check --ci base-demo --format json --manifest .+/base_manifest.yaml$" "$state_file"
   grep -Eq "^basectl config show$" "$state_file"
+  grep -Eq "^basectl prompt list$" "$state_file"
+  grep -Eq "^basectl clean --keep-last 1 --dry-run$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ --list$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ hello$" "$state_file"
   grep -Eq "^basectl run base-demo --workspace .+ env$" "$state_file"

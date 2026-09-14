@@ -439,10 +439,34 @@ inspection_step() {
   pause
 }
 
+maintenance_step() {
+  local prompt_output clean_output
+
+  step 10 "Maintenance and Prompt Tooling"
+  printf 'Listing repo-owned prompts without rendering a large self-review document.\n'
+  prompt_output="$(capture_command "$BASE_DEMO_BASECTL" prompt list)"
+  printf '%s\n' "$prompt_output"
+  require_contains "prompt list" "$prompt_output" "product-self-review"
+
+  printf '\nPreviewing runtime cleanup while keeping the operation non-destructive.\n'
+  clean_output="$(capture_command "$BASE_DEMO_BASECTL" clean --keep-last 1 --dry-run)"
+  printf '%s\n' "$clean_output"
+  if [[ "$clean_output" != *"Would remove"* &&
+    "$clean_output" != *"No Base runtime artifacts matched"* ]]; then
+    printf 'ERROR: Expected clean dry-run output to report a preview or no matches.\n' >&2
+    return 1
+  fi
+  if [[ "$clean_output" == *"Removed "* ]]; then
+    printf 'ERROR: Clean walkthrough must never perform deletion.\n' >&2
+    return 1
+  fi
+  pause
+}
+
 representative_environment_step() {
   local check_output start_output validate_output
 
-  step 10 "Representative Environment"
+  step 11 "Representative Environment"
   printf 'Checking representative service health.\n'
   check_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- check)"
   printf '%s\n' "$check_output"
@@ -471,7 +495,7 @@ representative_environment_step() {
 test_step() {
   local output
 
-  step 11 "Test Contract"
+  step 12 "Test Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" test "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE")"
   printf '%s\n' "$output"
   require_contains "test command" "$output" "Repository baseline is present."
@@ -481,7 +505,7 @@ test_step() {
 observability_step() {
   local history_output logs_output report_output
 
-  step 12 "Observability"
+  step 13 "Observability"
   printf 'Showing the recent Base command log index.\n'
   logs_output="$(capture_command "$BASE_DEMO_BASECTL" logs --limit 3)"
   printf '%s\n' "$logs_output"
@@ -506,7 +530,7 @@ observability_step() {
 build_step() {
   local output
 
-  step 13 "Build Targets"
+  step 14 "Build Targets"
   output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --list)"
   printf '%s\n' "$output"
   require_contains "build list" "$output" "info"
@@ -531,7 +555,7 @@ build_step() {
 demo_step() {
   local output
 
-  step 14 "Demo Contract"
+  step 15 "Demo Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" demo "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --dry-run -- --non-interactive)"
   printf '%s\n' "$output"
   require_contains "demo command" "$output" "Would run demo"
@@ -541,7 +565,7 @@ demo_step() {
 export_context_step() {
   local output
 
-  step 15 "AI Context Export"
+  step 16 "AI Context Export"
   output="$(capture_command "$BASE_DEMO_BASECTL" export-context "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --format markdown --print)"
   printf '%s\n' "$output"
   require_contains "export-context" "$output" "$BASE_DEMO_PROJECT"
@@ -552,7 +576,7 @@ export_context_step() {
 docs_step() {
   local output
 
-  step 16 "Documentation Shortcut"
+  step 17 "Documentation Shortcut"
   output="$(capture_command "$BASE_DEMO_BASECTL" docs --show-url)"
   printf '%s\n' "$output"
   require_contains "docs command" "$output" "github.com/basefoundry/base"
@@ -562,6 +586,7 @@ docs_step() {
 closing_summary() {
   printf '\nWalkthrough Summary\n\n'
   printf 'Manifest fields exercised: brewfile, mise, python, health, ide, activate, commands, test, build, demo, and artifacts.\n'
+  printf 'Maintenance coverage: config show (redacted), prompt list, and clean --keep-last 1 --dry-run.\n'
   printf 'Next steps: read docs/representative-environment.md for the environment model.\n'
   printf 'For a deeper application shape, compare this reference repo with banyanlabs.\n'
   printf '\nbase-demo walkthrough complete.\n'
@@ -585,6 +610,7 @@ main() {
   command_discovery_step
   run_step
   inspection_step
+  maintenance_step
   representative_environment_step
   test_step
   observability_step

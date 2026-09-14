@@ -948,6 +948,31 @@ grep -Fq 'basectl trust status base-demo' README.md || {
   exit 1
 }
 
+grep -Fq 'basectl prompt list' README.md || {
+  printf 'README.md does not document the prompt inventory command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl clean --keep-last 1 --dry-run' README.md || {
+  printf 'README.md does not document the non-destructive clean preview.\n' >&2
+  exit 1
+}
+
+grep -Fq 'prompt list' demo/demo.sh || {
+  printf 'demo/demo.sh does not exercise the prompt inventory command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'clean --keep-last 1 --dry-run' demo/demo.sh || {
+  printf 'demo/demo.sh does not exercise the non-destructive clean preview.\n' >&2
+  exit 1
+}
+
+grep -Fq 'maintenance-prompt-safety' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the maintenance and prompt safety contract.\n' >&2
+  exit 1
+}
+
 grep -Fq 'basectl build base-demo --list' README.md || {
   printf 'README.md does not document build target inspection before trust.\n' >&2
   exit 1
