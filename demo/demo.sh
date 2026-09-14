@@ -463,10 +463,50 @@ maintenance_step() {
   pause
 }
 
+update_preview_reason() {
+  local current_branch default_branch tracked_status
+
+  current_branch="$(git -C "$BASE_DEMO_ROOT" symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+  default_branch="$(git -C "$BASE_DEMO_ROOT" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)"
+  default_branch="${default_branch#origin/}"
+
+  if [[ -z "$current_branch" || -z "$default_branch" || "$current_branch" != "$default_branch" ]]; then
+    printf 'this checkout is not provably on its default branch.\n'
+    return 1
+  fi
+
+  if ! tracked_status="$(git -C "$BASE_DEMO_ROOT" status --porcelain --untracked-files=no --ignore-submodules=none 2>/dev/null)"; then
+    printf 'tracked worktree state could not be inspected.\n'
+    return 1
+  fi
+  if [[ -n "$tracked_status" ]]; then
+    printf 'tracked files are modified in this checkout.\n'
+    return 1
+  fi
+}
+
+update_step() {
+  local reason
+
+  step 11 "Update Preview"
+  printf 'Base update is restricted to a clean checkout on the repository default branch.\n'
+  printf 'The walkthrough previews the operation only; it never pulls or runs setup.\n'
+
+  if ! reason="$(update_preview_reason)"; then
+    printf 'Skipping update preview: %s\n' "$reason"
+    printf 'Run this step from a clean default-branch checkout to inspect the update plan.\n'
+    pause
+    return 0
+  fi
+
+  run_command "$BASE_DEMO_BASECTL" update "$BASE_DEMO_PROJECT" --dry-run
+  pause
+}
+
 representative_environment_step() {
   local check_output start_output validate_output
 
-  step 11 "Representative Environment"
+  step 12 "Representative Environment"
   printf 'Checking representative service health.\n'
   check_output="$(capture_command "$BASE_DEMO_BASECTL" run "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" services -- check)"
   printf '%s\n' "$check_output"
@@ -495,7 +535,7 @@ representative_environment_step() {
 test_step() {
   local output
 
-  step 12 "Test Contract"
+  step 13 "Test Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" test "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE")"
   printf '%s\n' "$output"
   require_contains "test command" "$output" "Repository baseline is present."
@@ -505,7 +545,7 @@ test_step() {
 observability_step() {
   local history_output logs_output report_output
 
-  step 13 "Observability"
+  step 14 "Observability"
   printf 'Showing the recent Base command log index.\n'
   logs_output="$(capture_command "$BASE_DEMO_BASECTL" logs --limit 3)"
   printf '%s\n' "$logs_output"
@@ -530,7 +570,7 @@ observability_step() {
 build_step() {
   local output
 
-  step 14 "Build Targets"
+  step 15 "Build Targets"
   output="$(capture_command "$BASE_DEMO_BASECTL" build "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --list)"
   printf '%s\n' "$output"
   require_contains "build list" "$output" "info"
@@ -555,7 +595,7 @@ build_step() {
 demo_step() {
   local output
 
-  step 15 "Demo Contract"
+  step 16 "Demo Contract"
   output="$(capture_command "$BASE_DEMO_BASECTL" demo "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --dry-run -- --non-interactive)"
   printf '%s\n' "$output"
   require_contains "demo command" "$output" "Would run demo"
@@ -565,7 +605,7 @@ demo_step() {
 export_context_step() {
   local output
 
-  step 16 "AI Context Export"
+  step 17 "AI Context Export"
   output="$(capture_command "$BASE_DEMO_BASECTL" export-context "$BASE_DEMO_PROJECT" --workspace "$BASE_DEMO_WORKSPACE" --format markdown --print)"
   printf '%s\n' "$output"
   require_contains "export-context" "$output" "$BASE_DEMO_PROJECT"
@@ -576,7 +616,7 @@ export_context_step() {
 docs_step() {
   local output
 
-  step 17 "Documentation Shortcut"
+  step 18 "Documentation Shortcut"
   output="$(capture_command "$BASE_DEMO_BASECTL" docs --show-url)"
   printf '%s\n' "$output"
   require_contains "docs command" "$output" "github.com/basefoundry/base"
@@ -611,6 +651,7 @@ main() {
   run_step
   inspection_step
   maintenance_step
+  update_step
   representative_environment_step
   test_step
   observability_step
@@ -621,4 +662,6 @@ main() {
   closing_summary
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

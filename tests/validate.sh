@@ -115,6 +115,7 @@ required_files=(
   lib/python/base_demo_cli/tests/test_cli.py
   demo/demo.sh
   tests/demo_test.bats
+  tests/update_demo_test.bats
   tests/install_test.bats
   tests/services_test.bats
   tests/environments_test.bats
@@ -970,6 +971,26 @@ grep -Fq 'clean --keep-last 1 --dry-run' demo/demo.sh || {
 
 grep -Fq 'maintenance-prompt-safety' docs/contracts.md || {
   printf 'docs/contracts.md does not register the maintenance and prompt safety contract.\n' >&2
+  exit 1
+}
+
+grep -Fq 'basectl update base-demo --dry-run' README.md || {
+  printf 'README.md does not document the branch-safe update preview.\n' >&2
+  exit 1
+}
+
+grep -Fq 'update_preview_reason()' demo/demo.sh || {
+  printf 'demo/demo.sh does not define the update preview safety check.\n' >&2
+  exit 1
+}
+
+grep -Fq 'update "$BASE_DEMO_PROJECT" --dry-run' demo/demo.sh || {
+  printf 'demo/demo.sh does not invoke the update preview command.\n' >&2
+  exit 1
+}
+
+grep -Fq 'update-preview-boundary' docs/contracts.md || {
+  printf 'docs/contracts.md does not register the update preview boundary.\n' >&2
   exit 1
 }
 

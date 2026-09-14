@@ -138,6 +138,10 @@ case "$*" in
     printf 'Would remove 0 Base runtime artifact(s).\n'
     printf 'Retaining active run /tmp/base-demo-test-active\n'
     ;;
+  update\ base-demo\ --dry-run)
+    printf '[DRY-RUN] Would update project '\''base-demo'\'' repository.\n'
+    printf '[DRY-RUN] Would run '\''basectl setup base-demo'\'' if the Git update changes the repository.\n'
+    ;;
   run\ base-demo\ --workspace\ *\ --list)
     printf 'hello       ./src/hello.sh\n'
     printf 'env         ./src/env.sh\n'
