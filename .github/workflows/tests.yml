@@ -72,8 +72,8 @@ jobs:
           tests/native_services_test.bats
           tests/demo_console_test.bats
 
-      # Pin the published Base v1.8.0 release used by the coordinated
-      # base-bash-libs v2.0.0 cutover.
+      # Pin the published Base v1.8.0 release and base-bash-libs v2.1.0
+      # post-GA contract used by this compatibility job.
       - name: Check out Base
         run: |
           git init ../base
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: b4243765726c133499feeabdc50154f99c0fec12
+          ref: 36fec50c446dcea8c521a1ba3e7fee2394f169c0
           path: .dependencies/base-bash-libs
 
       - name: Set up Base
@@ -233,7 +233,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: b4243765726c133499feeabdc50154f99c0fec12
+          ref: 36fec50c446dcea8c521a1ba3e7fee2394f169c0
           path: .dependencies/base-bash-libs
 
       - name: Set up Base with the source provider
@@ -344,7 +344,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: basefoundry/base-bash-libs
-          ref: b4243765726c133499feeabdc50154f99c0fec12
+          ref: 36fec50c446dcea8c521a1ba3e7fee2394f169c0
           path: .dependencies/base-bash-libs
 
       - name: Set up Base on Ubuntu
