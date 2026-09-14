@@ -346,10 +346,15 @@ if grep -Fq '591e34a8fed6ce9cbe27f483f852bec81153f3eb' .github/workflows/tests.y
 fi
 
 base_bash_libs_pin_count="$(
-  grep -Fc 'ref: b4243765726c133499feeabdc50154f99c0fec12' .github/workflows/tests.yml || true
+  grep -Fc 'ref: 36fec50c446dcea8c521a1ba3e7fee2394f169c0' .github/workflows/tests.yml || true
 )"
 if [[ "$base_bash_libs_pin_count" -ne 3 ]]; then
-  printf '.github/workflows/tests.yml must pin every base-bash-libs checkout to the immutable v2.0.0 GA commit.\n' >&2
+  printf '.github/workflows/tests.yml must pin every base-bash-libs checkout to the immutable v2.1.0 release commit.\n' >&2
+  exit 1
+fi
+
+if grep -Fq 'ref: b4243765726c133499feeabdc50154f99c0fec12' .github/workflows/tests.yml; then
+  printf '.github/workflows/tests.yml must not retain the superseded v2.0.0 base-bash-libs pin.\n' >&2
   exit 1
 fi
 
@@ -450,8 +455,8 @@ grep -Fq 'git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3
   exit 1
 }
 
-grep -Fq 'ref: b4243765726c133499feeabdc50154f99c0fec12' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not use the v2.0.0 GA base-bash-libs source required by the Base v1.8.0 release.\n' >&2
+grep -Fq 'ref: 36fec50c446dcea8c521a1ba3e7fee2394f169c0' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not use the v2.1.0 base-bash-libs source required by this compatibility job.\n' >&2
   exit 1
 }
 
