@@ -55,7 +55,7 @@ jobs:
         run: ./tests/validate.sh
 
       - name: Run demo script tests
-        run: bats tests/demo_test.bats
+        run: bats tests/demo_test.bats tests/update_demo_test.bats
 
       - name: Run installer tests
         run: bats tests/install_test.bats

@@ -153,6 +153,7 @@ basectl history --project base-demo --limit 5 --report
 basectl config show  # redacted machine-local configuration
 basectl prompt list  # list repo-owned prompts without rendering one
 basectl clean --keep-last 1 --dry-run  # preview cleanup without deleting
+basectl update base-demo --dry-run  # clean default branch only; no pull
 basectl build base-demo
 basectl demo base-demo  # macOS only
 basectl docs --show-url
@@ -269,6 +270,10 @@ The commands above exercise the complete Base project loop:
 - `basectl clean --keep-last 1 --dry-run` previews removal of old completed Base
   runtime artifacts while retaining the newest active run. The demo never uses
   `--yes` and never deletes local state.
+- `basectl update base-demo --dry-run` previews a Git update without pulling or
+  running setup. Base permits updates only from a clean default branch; the
+  walkthrough reports an explicit safe skip for detached, feature-branch, or
+  tracked-dirty checkouts such as CI pull-request worktrees.
 - `basectl run base-demo --list`, `basectl build base-demo --list`, and
   `basectl test base-demo --dry-run` are safe inspection commands before trust is
   granted.
