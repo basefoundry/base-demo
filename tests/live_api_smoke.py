@@ -7,6 +7,7 @@ import os
 import signal
 import socket
 import subprocess
+import sys
 import tempfile
 import time
 import urllib.error
@@ -16,7 +17,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-READINESS_TIMEOUT_SECONDS = 15.0
+READINESS_TIMEOUT_SECONDS = 30.0
 REQUEST_TIMEOUT_SECONDS = 3.0
 POLL_INTERVAL_SECONDS = 0.1
 HTTP_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -38,7 +39,7 @@ SERVICES = (
     Service(
         name="python-api",
         runtime="python",
-        command=("python3", "services/python-api/server.py"),
+        command=("{python_executable}", "-u", "services/python-api/server.py"),
     ),
     Service(
         name="java-gradle-api",
@@ -173,6 +174,14 @@ def run_service(service: Service, command: tuple[str, ...], log_path: Path) -> N
     port = free_loopback_port()
     environment = os.environ.copy()
     environment["PORT"] = str(port)
+    if service.runtime == "python":
+        # Keep the child interpreter independent from any runner or caller
+        # virtual-environment routing.  In particular, macOS Python launchers
+        # can inherit __PYVENV_LAUNCHER__ and redirect a child unexpectedly.
+        for variable in ("PYTHONHOME", "PYTHONPATH", "PYTHONSTARTUP", "__PYVENV_LAUNCHER__"):
+            environment.pop(variable, None)
+        environment["PYTHONNOUSERSITE"] = "1"
+        environment["PYTHONUNBUFFERED"] = "1"
     with log_path.open("w", encoding="utf-8") as log_handle:
         try:
             process = subprocess.Popen(
@@ -201,7 +210,12 @@ def run_service(service: Service, command: tuple[str, ...], log_path: Path) -> N
                 if status == 200:
                     break
             else:
-                raise SmokeFailure(f"{service.name} did not become ready within {READINESS_TIMEOUT_SECONDS:g}s")
+                command_description = " ".join(command)
+                process_status = process.poll()
+                raise SmokeFailure(
+                    f"{service.name} did not become ready within {READINESS_TIMEOUT_SECONDS:g}s "
+                    f"(command: {command_description}, process status: {process_status})"
+                )
 
             assert_response(service, port, "/healthz", 200, {"service": service.name, "status": "ok"})
             assert_response(
@@ -229,7 +243,14 @@ def main() -> int:
         go_binary = temporary_root / "go-api"
         build_go_binary(go_binary)
         for service in SERVICES:
-            command = tuple(go_binary.as_posix() if item == "{go_binary}" else item for item in service.command)
+            command = tuple(
+                go_binary.as_posix()
+                if item == "{go_binary}"
+                else sys.executable
+                if item == "{python_executable}"
+                else item
+                for item in service.command
+            )
             log_path = temporary_root / f"{service.name}.log"
             try:
                 run_service(service, command, log_path)

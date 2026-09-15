@@ -232,6 +232,13 @@ The default validation path should remain stable. Heavy checks can be skipped
 with a clear message when Docker or a language toolchain is unavailable, but the
 repo shape and command contracts should always be validated.
 
+The hosted full representative-environment lane opts into
+`BASE_DEMO_FULL_VALIDATION=1`. It provisions and verifies Go and Java before
+running the live Go, Python, Gradle, and Maven HTTP contracts; missing
+toolchains are a nonzero prerequisite failure in that lane. The default local
+lane keeps the smaller boundary above, and the live smoke harness uses isolated
+loopback ports without starting Docker Compose.
+
 CI runs the representative BATS suites, validates all environment files, checks
 the service catalog through Base, and exercises service startup with
 `BASE_DEMO_SERVICES_DRY_RUN=1`. That gives the main demo and CI the same

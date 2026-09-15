@@ -125,6 +125,14 @@ and Node 22.22.0 toolchains; Node supplies the pinned npm 10.9.4 release.
 Use `mise run frontend-install` from the repository root to reconcile only the
 frontend dependencies.
 
+The default local `./tests/validate.sh` keeps the repository-local lane useful
+on machines without every language toolchain and reports explicit skips for
+missing Go or Java. The hosted full representative-environment lane sets
+`BASE_DEMO_FULL_VALIDATION=1`, provisions Go and Java, fails closed when either
+toolchain is unavailable, and requires live HTTP execution markers for all four
+API services. That smoke lane uses loopback listeners and does not require
+Docker Compose.
+
 ```bash
 basectl projects list
 basectl setup base-demo  # macOS only
