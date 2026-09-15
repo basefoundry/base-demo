@@ -5,12 +5,23 @@ from __future__ import annotations
 
 import json
 import os
-from wsgiref.simple_server import make_server
+from socketserver import TCPServer
+from wsgiref.simple_server import WSGIServer, make_server
 
 
 SERVICE_NAME = "python-api"
 RUNTIME_NAME = "python"
 DEFAULT_PORT = 8020
+
+
+class LocalWSGIServer(WSGIServer):
+    """Bind the loopback demo server without a reverse-DNS lookup."""
+
+    def server_bind(self) -> None:
+        TCPServer.server_bind(self)
+        self.server_name = "127.0.0.1"
+        self.server_port = self.server_address[1]
+        self.setup_environ()
 
 
 def json_response(payload: dict[str, object], status: str = "200 OK") -> tuple[str, list[tuple[str, str]], bytes]:
@@ -48,7 +59,9 @@ def port() -> int:
 
 def main() -> int:
     listen_port = port()
-    with make_server("127.0.0.1", listen_port, application) as server:
+    with make_server(
+        "127.0.0.1", listen_port, application, server_class=LocalWSGIServer
+    ) as server:
         print(f"{SERVICE_NAME} listening on http://127.0.0.1:{listen_port}", flush=True)
         server.serve_forever()
     return 0

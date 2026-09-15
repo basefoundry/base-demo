@@ -23,6 +23,7 @@ jobs:
       BASE_SETUP_NOTIFY: "false"
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
       BASE_DEMO_ENV: baseline
+      BASE_DEMO_FULL_VALIDATION: "1"
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -51,6 +52,14 @@ jobs:
       - name: Install Bash and BATS
         run: brew install bash bats-core
 
+      - name: Install full-lane Go and Java toolchains
+        run: |
+          brew install go openjdk@17
+          echo "$(brew --prefix openjdk@17)/bin" >> "$GITHUB_PATH"
+          export PATH="$(brew --prefix openjdk@17)/bin:$PATH"
+          go version
+          javac -version
+
       - name: Validate repository baseline
         run: ./tests/validate.sh
 
@@ -71,6 +80,7 @@ jobs:
           tests/java_services_test.bats
           tests/native_services_test.bats
           tests/demo_console_test.bats
+          tests/full_validation_prerequisites_test.bats
 
       # Pin the published Base v1.8.0 release and base-bash-libs v2.1.0
       # post-GA contract used by this compatibility job.

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 host_os="$(uname -s 2>/dev/null || printf 'unknown')"
+full_validation="${BASE_DEMO_FULL_VALIDATION:-0}"
 case "$host_os" in
   Darwin)
     ;;
@@ -125,6 +126,8 @@ required_files=(
   tests/go_api_test.bats
   tests/live_api_smoke.py
   tests/live_api_smoke.sh
+  tests/full_validation_prerequisites.sh
+  tests/full_validation_prerequisites_test.bats
   tests/python_api_test.py
   tests/python_api_test.bats
   tests/java_services_test.bats
@@ -145,7 +148,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments bin/base-demo-release-check bin/base-demo-release-provenance src/hello.sh src/env.sh src/manifest.sh src/build-info.sh src/uv-info.py services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
+for executable in tests/validate.sh tests/full_validation_prerequisites.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments bin/base-demo-release-check bin/base-demo-release-provenance src/hello.sh src/env.sh src/manifest.sh src/build-info.sh src/uv-info.py services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -646,7 +649,9 @@ grep -Fq 'compose_project=base-demo-dev-' demo/demo.sh || {
   exit 1
 }
 
-if command -v go >/dev/null 2>&1; then
+if [[ "$full_validation" == "1" ]]; then
+  ./tests/full_validation_prerequisites.sh || exit 1
+elif command -v go >/dev/null 2>&1; then
   (cd services/go-api && CGO_ENABLED=0 go test ./...) || exit 1
 else
   printf 'Skipping go-api tests because go is not available.\n'
@@ -671,14 +676,28 @@ for service in java-gradle-api java-maven-api; do
   }
 done
 
-if command -v javac >/dev/null 2>&1; then
+if [[ "$full_validation" == "1" ]]; then
+  : # The strict prerequisite check above owns the full-lane toolchain gate.
+elif command -v javac >/dev/null 2>&1; then
   services/java-gradle-api/build.sh || exit 1
   services/java-maven-api/build.sh || exit 1
 else
   printf 'Skipping Java service builds because javac is not available.\n'
 fi
 
-if command -v go >/dev/null 2>&1 && command -v javac >/dev/null 2>&1; then
+if [[ "$full_validation" == "1" ]]; then
+  live_api_output="$(./tests/live_api_smoke.sh)" || {
+    printf '%s\n' "$live_api_output"
+    exit 1
+  }
+  printf '%s\n' "$live_api_output"
+  for service in go-api python-api java-gradle-api java-maven-api; do
+    grep -Fq "$service: live HTTP contract passed" <<<"$live_api_output" || {
+      printf 'Full validation did not produce a live HTTP execution marker for %s.\n' "$service" >&2
+      exit 1
+    }
+  done
+elif command -v go >/dev/null 2>&1 && command -v javac >/dev/null 2>&1; then
   ./tests/live_api_smoke.sh || exit 1
 else
   printf 'Skipping live API smoke tests because go or javac is not available.\n'
