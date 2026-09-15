@@ -83,6 +83,8 @@ describe("Base Demo Console", () => {
     expect(screen.getByText("optional")).toHaveClass("state-optional");
     expect(screen.getByText("cataloged")).toHaveClass("state-cataloged");
     expect(screen.getByRole("columnheader", { name: "Name" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Catalog role" })).toBeInTheDocument();
+    expect(screen.getByText(/Catalog role describes whether a service is required/)).toBeInTheDocument();
     expect(screen.getAllByRole("cell")).toHaveLength(15);
   });
 

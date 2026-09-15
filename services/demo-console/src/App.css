@@ -117,6 +117,14 @@ h1 {
   background: #ffffff;
 }
 
+.catalog-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5eaed;
+  color: #52636d;
+  font-size: 0.84rem;
+}
+
 .service-table {
   width: 100%;
   min-width: 860px;
