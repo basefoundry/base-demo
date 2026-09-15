@@ -15,8 +15,8 @@ import unittest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = REPO_ROOT / ".github" / "workflows" / "project-intake.yml"
-BASE_TEMPLATE_COMMIT = "39d57ed3ace710621d9dd26af74c5f83b98fc3ae"
-BASE_TEMPLATE_SHA256 = "3289a01a0533415f1f9e153051461f12c7d33f8f2cdfe6d7865baa77f1046d25"
+BASE_TEMPLATE_COMMIT = "42d3ad955d78f8a67c07b0fb659603cab2056d2a"
+BASE_TEMPLATE_SHA256 = "bd2701a4f02327ed966b9ce1d96c989832086a0b6bb11ab9129667d9e6d47065"
 
 
 def project_intake_run_command() -> str:
@@ -210,7 +210,8 @@ JSON
     if [[ "${PROJECT_INTAKE_ITEM_EXISTS:-1}" == "1" ||
           ( -f "${PROJECT_INTAKE_STATE:?}/rest-item-added" &&
             "${PROJECT_INTAKE_ITEM_NEVER_VISIBLE:-0}" != "1" &&
-            ( "${PROJECT_INTAKE_DELAYED_ITEM_VISIBILITY:-0}" != "1" || "$count" != "2" ) ) ]]; then
+            ( "${PROJECT_INTAKE_DELAYED_ITEM_VISIBILITY:-0}" != "1" || "$count" != "2" ) ) ||
+          ( -f "${PROJECT_INTAKE_STATE:?}/rest-item-duplicate" && "$count" -ge 3 ) ]]; then
       if [[ "${PROJECT_INTAKE_CROSS_REPO_DECOY:-0}" == "1" ]]; then
         printf '%s\n' '[{"id":202,"content":{"id":9999,"number":273,"title":"Project Intake test issue"}},{"id":101,"content":{"id":2730,"number":273,"title":"Project Intake test issue"}}]'
       else
@@ -221,6 +222,11 @@ JSON
     fi
     ;;
   api\ --method\ POST\ orgs/basefoundry/projectsV2/9/items*)
+    if [[ "${PROJECT_INTAKE_REST_DUPLICATE_ADD:-0}" == "1" ]]; then
+      : > "${PROJECT_INTAKE_STATE:?}/rest-item-duplicate"
+      printf '%s\n' 'Content already exists in this project (HTTP 422)' >&2
+      exit 1
+    fi
     : > "${PROJECT_INTAKE_STATE:?}/rest-item-added"
     if [[ "${PROJECT_INTAKE_REST_ADD_RESPONSE:-nested}" == "top-level" ]]; then
       printf '%s\n' '{"id":101}'
@@ -352,18 +358,30 @@ class ProjectIntakeTests(unittest.TestCase):
         self.assertFalse((state / "priority").exists())
         self.assertFalse((state / "area").exists())
 
-    def test_rest_add_accepts_live_response_and_retries_visibility(self) -> None:
+    def test_rest_add_accepts_live_response_and_reads_by_item_id(self) -> None:
         result, state = self.run_scenario(
             PROJECT_INTAKE_GRAPHQL_FAILURE="quota",
             PROJECT_INTAKE_ITEM_EXISTS="0",
             PROJECT_INTAKE_REST_ADD_RESPONSE="top-level",
-            PROJECT_INTAKE_DELAYED_ITEM_VISIBILITY="1",
         )
         self.assertEqual(result.returncode, 0, result.stderr)
+        gh_log = (state / "gh.log").read_text(encoding="utf-8")
+        self.assertEqual(gh_log.count("--method POST"), 1)
+        self.assertIn("items/101", gh_log)
+
+    def test_rest_duplicate_add_recovers_existing_item(self) -> None:
+        result, state = self.run_scenario(
+            PROJECT_INTAKE_GRAPHQL_FAILURE="quota",
+            PROJECT_INTAKE_ITEM_EXISTS="0",
+            PROJECT_INTAKE_REST_DUPLICATE_ADD="1",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("already exists during Project Intake", result.stderr)
         self.assertIn("not visible after it was added", result.stderr)
         self.assertEqual((state / "sleep.log").read_text(encoding="utf-8"), "1\n")
         gh_log = (state / "gh.log").read_text(encoding="utf-8")
         self.assertEqual(gh_log.count("--method POST"), 1)
+        self.assertIn("items/101", gh_log)
 
 
 if __name__ == "__main__":
