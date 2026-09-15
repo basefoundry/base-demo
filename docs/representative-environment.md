@@ -94,6 +94,11 @@ The status view should answer the practical local questions:
 - where logs live, or how to find them
 - when available, since when it has been running
 
+The demo console's `Catalog role` column is static catalog metadata. It says
+whether an entry is `required`, `optional`, or merely `cataloged`; it does not
+probe the service or report whether it is currently healthy. The configured
+health check is shown separately as a catalog endpoint or check description.
+
 ## Infrastructure Scope
 
 Postgres, MySQL, and Redis should be representative dependencies, not a

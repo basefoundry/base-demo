@@ -109,6 +109,9 @@ export default function App() {
       )}
 
       <section className="service-panel" aria-label="Service catalog">
+        <p className="catalog-note">
+          Catalog role describes whether a service is required, optional, or cataloged; it does not report live health.
+        </p>
         <table className="service-table">
           <caption className="sr-only">Service catalog</caption>
           <colgroup>
@@ -126,7 +129,7 @@ export default function App() {
               <th scope="col">Runtime</th>
               <th scope="col">Port</th>
               <th scope="col">Health</th>
-              <th scope="col">State</th>
+              <th scope="col">Catalog role</th>
             </tr>
           </thead>
           <tbody>
