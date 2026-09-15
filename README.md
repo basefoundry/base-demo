@@ -24,6 +24,11 @@ Binding promises between the manifest, demo, services, installer, CI, and docs
 are tracked in [Contracts](docs/contracts.md). Update that registry whenever a
 new invariant becomes part of the reference project.
 
+The release-aware view of demonstrated, intentionally omitted, and upstream-
+blocked Base capabilities is maintained in the [Base capability and evidence
+matrix](docs/base-capability-matrix.md). Use it during Base release reviews and
+when deciding whether a new base-demo scenario has executable evidence.
+
 The external tooling direction is tracked in
 [Tooling Test Bed](docs/tooling-testbed.md). That matrix separates active
 baseline tools from optional wrappers, reference-only examples, and future Base
