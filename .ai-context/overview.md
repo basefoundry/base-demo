@@ -52,6 +52,10 @@ as reference-only shell/dotfile examples, and treats
 workspace-manager examples. Future docker-service work remains blocked until
 Base publishes that contract.
 
+The [Base capability and evidence matrix](../docs/base-capability-matrix.md)
+is the release-review index for demonstrated contracts, intentional omissions,
+and capabilities blocked on a Base or future-release contract.
+
 GitHub workflow hygiene is documented in `AGENTS.md` and README. Use `basectl
 gh issue readiness` before agentic implementation work and `basectl gh branch
 stale` during branch cleanup when `gh` is authenticated; neither command is part
@@ -102,6 +106,7 @@ change stream, and its three existing validation job IDs remain stable.
 | `tests/validate.sh` | Baseline validation invoked by the declared mise test task |
 | `docs/representative-environment.md` | Direction for the multi-language representative environment |
 | `docs/tooling-testbed.md` | Local matrix for active, optional, reference-only, and future external tool examples |
+| `docs/base-capability-matrix.md` | Release-aware Base capability status and executable evidence |
 
 ## Quick Loop
 

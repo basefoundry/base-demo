@@ -9,6 +9,11 @@ Update this file when adding a new durable invariant, expanding the
 representative environment, or changing demo behavior that other docs or tests
 depend on.
 
+The release-aware capability inventory lives in the [Base capability and
+evidence matrix](base-capability-matrix.md). This registry records durable
+contracts; the matrix records the current Base release boundary, executable
+evidence, and intentionally deferred capabilities.
+
 ## Contract Registry
 
 | Contract | Promise | Source of truth | Enforced by | Failure mode | Area |

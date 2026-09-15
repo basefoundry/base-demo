@@ -23,6 +23,7 @@ required_files=(
   install.sh
   workspace.yaml.example
   docs/contracts.md
+  docs/base-capability-matrix.md
   docs/release.md
   docs/representative-environment.md
   docs/tooling-testbed.md
@@ -129,6 +130,7 @@ required_files=(
   tests/java_services_test.bats
   tests/native_services_test.bats
   tests/demo_console_test.bats
+  tests/validate_capability_matrix.py
   tests/release_test.bats
   .github/workflows/tests.yml
   .github/workflows/release.yml
@@ -162,6 +164,11 @@ fi
 
 if ! python3 tests/project_intake_test.py; then
   printf 'base-demo Project Intake conformance tests failed.\n' >&2
+  exit 1
+fi
+
+if ! python3 tests/validate_capability_matrix.py; then
+  printf 'base-demo capability matrix validation failed.\n' >&2
   exit 1
 fi
 
