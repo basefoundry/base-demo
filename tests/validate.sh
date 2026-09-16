@@ -53,6 +53,7 @@ required_files=(
   bin/base-demo-release-provenance
   bin/base-demo-release-bom-row
   bin/base-demo-release-bom-check
+  bin/base-demo-release-finalize
   .release/release-bom.json
   bin/base_demo_environment.py
   services/catalog.json
@@ -148,7 +149,7 @@ for file in "${required_files[@]}"; do
   }
 done
 
-for executable in tests/validate.sh tests/full_validation_prerequisites.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments bin/base-demo-release-check bin/base-demo-release-provenance src/hello.sh src/env.sh src/manifest.sh src/build-info.sh src/uv-info.py services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
+for executable in tests/validate.sh tests/full_validation_prerequisites.sh install.sh .base/activate.sh bin/base-demo-python-info bin/base-demo-services bin/base-demo-environments bin/base-demo-release-check bin/base-demo-release-provenance bin/base-demo-release-finalize src/hello.sh src/env.sh src/manifest.sh src/build-info.sh src/uv-info.py services/go-api/build.sh services/python-api/server.py services/python-api/build.sh services/python-api/test.sh services/java-gradle-api/build.sh services/java-gradle-api/test.sh services/java-gradle-api/run.sh services/java-maven-api/build.sh services/java-maven-api/test.sh services/java-maven-api/run.sh services/c-service/build.sh services/c-service/test.sh services/c-service/run.sh services/cpp-service/build.sh services/cpp-service/test.sh services/cpp-service/run.sh services/demo-console/build.sh services/demo-console/test.sh services/demo-console/run.sh demo/demo.sh; do
   [[ -x "$executable" ]] || {
     printf 'Required file is not executable: %s\n' "$executable" >&2
     exit 1
@@ -207,6 +208,41 @@ grep -Fq 'needs: verify' .github/workflows/release.yml || {
 
 grep -Fq 'contents: write' .github/workflows/release.yml || {
   printf '.github/workflows/release.yml release job does not declare write permission.\n' >&2
+  exit 1
+}
+
+grep -Fq './bin/base-demo-release-finalize --commit "$GITHUB_SHA" --output-dir "$RUNNER_TEMP/base-demo-release-assets"' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml does not finalize BOM and installer assets from the reviewed tag target.\n' >&2
+  exit 1
+}
+
+grep -Fq 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml does not upload verified release assets between jobs.\n' >&2
+  exit 1
+}
+
+grep -Fq 'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml does not publish the verified release artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq 'BASE_DEMO_RELEASE_BOM_PATH: ${{ runner.temp }}/base-demo-release-assets/release-bom.json' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml does not verify the finalized BOM artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq -- '--verify-dir "$RUNNER_TEMP/base-demo-release-assets"' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml does not recheck the downloaded artifact before publication.\n' >&2
+  exit 1
+}
+
+grep -Fq '"$RUNNER_TEMP/base-demo-release-assets/install.sh"' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml does not publish the finalized installer artifact.\n' >&2
+  exit 1
+}
+
+grep -Fq '"$RUNNER_TEMP/base-demo-release-assets/release-bom.sha256"' .github/workflows/release.yml || {
+  printf '.github/workflows/release.yml does not publish the finalized BOM checksum.\n' >&2
   exit 1
 }
 

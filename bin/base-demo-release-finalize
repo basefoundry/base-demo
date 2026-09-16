@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+"""Finalize self-referential base-demo release artifacts after tagging."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import stat
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+
+
+def fail(message: str) -> None:
+    print(f"release finalizer: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def build_assets(repo: Path, commit: str) -> tuple[str, bytes, bytes, int]:
+    if not SHA_RE.fullmatch(commit):
+        fail("--commit must be a full lowercase 40-character SHA")
+
+    try:
+        version = (repo / "VERSION").read_text(encoding="utf-8").strip()
+    except OSError as exc:
+        fail(f"could not read VERSION: {exc}")
+    if not re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", version):
+        fail(f"VERSION is not a stable SemVer value: {version!r}")
+    tag = f"v{version}"
+
+    bom_path = repo / ".release" / "release-bom.json"
+    try:
+        bom_bytes = bom_path.read_bytes()
+        bom = json.loads(bom_bytes)
+    except (OSError, json.JSONDecodeError) as exc:
+        fail(f"could not read prepared BOM {bom_path}: {exc}")
+    if not isinstance(bom, dict):
+        fail("prepared BOM must be a JSON object")
+
+    release = bom.get("release")
+    if not isinstance(release, dict):
+        fail("prepared BOM release must be an object")
+    if release.get("repository") != "basefoundry/base-demo":
+        fail("prepared BOM release.repository must be basefoundry/base-demo")
+    if release.get("version") != version or release.get("tag") != tag:
+        fail("prepared BOM release version and tag must match VERSION")
+    if not isinstance(release.get("commit"), str) or not SHA_RE.fullmatch(release["commit"]):
+        fail("prepared BOM release.commit must be a full lowercase 40-character SHA")
+
+    components = bom.get("components")
+    if not isinstance(components, list):
+        fail("prepared BOM components must be an array")
+    self_rows = [
+        component
+        for component in components
+        if isinstance(component, dict)
+        and component.get("repository") == "basefoundry/base-demo"
+    ]
+    if len(self_rows) != 1:
+        fail("prepared BOM must contain exactly one basefoundry/base-demo component")
+    self_row = self_rows[0]
+    if self_row.get("version") != version or self_row.get("tag") != tag:
+        fail("prepared BOM demo component version and tag must match VERSION")
+    if not isinstance(self_row.get("commit"), str) or not SHA_RE.fullmatch(self_row["commit"]):
+        fail("prepared BOM demo component commit must be a full lowercase 40-character SHA")
+
+    release["commit"] = commit
+    self_row["commit"] = commit
+    finalized_bom = (json.dumps(bom, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+
+    installer_path = repo / "install.sh"
+    try:
+        installer_bytes = installer_path.read_bytes()
+        installer_mode = stat.S_IMODE(installer_path.stat().st_mode)
+        installer = installer_bytes.decode("utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        fail(f"could not read UTF-8 installer {installer_path}: {exc}")
+
+    ref_pattern = re.compile(
+        r'^PROJECT_RELEASE_REF="\$\{PROJECT_RELEASE_REF:-[^}]+\}"$',
+        re.MULTILINE,
+    )
+    commit_pattern = re.compile(
+        r'^PROJECT_RELEASE_COMMIT="\$\{PROJECT_RELEASE_COMMIT:-[0-9a-f]{40}\}"$',
+        re.MULTILINE,
+    )
+    if len(ref_pattern.findall(installer)) != 1 or len(commit_pattern.findall(installer)) != 1:
+        fail("installer must contain exactly one governed demo release ref and commit pin")
+    installer, ref_count = ref_pattern.subn(
+        f'PROJECT_RELEASE_REF="${{PROJECT_RELEASE_REF:-{tag}}}"', installer
+    )
+    installer, commit_count = commit_pattern.subn(
+        f'PROJECT_RELEASE_COMMIT="${{PROJECT_RELEASE_COMMIT:-{commit}}}"', installer
+    )
+    if ref_count != 1 or commit_count != 1:
+        fail("could not bind installer pins to the finalized tag identity")
+
+    return tag, finalized_bom, installer.encode("utf-8"), installer_mode
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def write_assets(output_dir: Path, assets: dict[str, bytes], installer_mode: int) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if any(output_dir.iterdir()):
+        fail(f"output directory is not empty: {output_dir}")
+    for name, content in assets.items():
+        target = output_dir / name
+        try:
+            with target.open("xb") as stream:
+                stream.write(content)
+        except OSError as exc:
+            fail(f"could not write {target}: {exc}")
+        if name == "install.sh":
+            target.chmod(installer_mode)
+
+
+def verify_assets(output_dir: Path, expected: dict[str, bytes]) -> None:
+    names = set(expected)
+    try:
+        actual_names = {path.name for path in output_dir.iterdir()}
+    except OSError as exc:
+        fail(f"could not list finalized artifact directory {output_dir}: {exc}")
+    if actual_names != names:
+        fail(f"artifact directory entries differ from expected: {sorted(actual_names)!r}")
+
+    for name, expected_bytes in expected.items():
+        try:
+            actual_bytes = (output_dir / name).read_bytes()
+        except OSError as exc:
+            fail(f"could not read finalized artifact {output_dir / name}: {exc}")
+        if actual_bytes != expected_bytes:
+            fail(f"finalized {name} does not match the reviewed tag inputs")
+
+    for name, checksum_name in (
+        ("release-bom.json", "release-bom.sha256"),
+        ("install.sh", "install.sh.sha256"),
+    ):
+        checksum_content = f"{digest(expected[name])}  {name}\n".encode("ascii")
+        try:
+            actual_checksum = (output_dir / checksum_name).read_bytes()
+        except OSError as exc:
+            fail(f"could not read {output_dir / checksum_name}: {exc}")
+        if actual_checksum != checksum_content:
+            fail(f"{checksum_name} does not match {name}")
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="base-demo-release-finalize")
+    parser.add_argument("--repo", type=Path, default=ROOT, help="prepared repository root")
+    parser.add_argument("--commit", required=True, help="reviewed annotated-tag target commit")
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--output-dir", type=Path, help="write finalized release assets here")
+    mode.add_argument("--verify-dir", type=Path, help="verify previously generated release assets")
+    args = parser.parse_args()
+
+    repo = args.repo.resolve()
+    tag, bom, installer, installer_mode = build_assets(repo, args.commit)
+    assets = {
+        "release-bom.json": bom,
+        "install.sh": installer,
+        "release-bom.sha256": f"{digest(bom)}  release-bom.json\n".encode("ascii"),
+        "install.sh.sha256": f"{digest(installer)}  install.sh\n".encode("ascii"),
+    }
+
+    if args.output_dir is not None:
+        output_dir = args.output_dir.resolve()
+        if output_dir == repo or repo in output_dir.parents:
+            fail("output directory must be outside the prepared repository")
+        write_assets(output_dir, assets, installer_mode)
+        print(f"finalized release assets prepared for {tag} at {args.commit}")
+        return 0
+
+    verify_assets(args.verify_dir.resolve(), assets)
+    print(f"finalized release assets verified for {tag} at {args.commit}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

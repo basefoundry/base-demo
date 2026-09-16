@@ -97,6 +97,87 @@ resolve_release_commit() {
   [ "$status" -eq 0 ]
 }
 
+@test "release finalizer binds the BOM and installer to the reviewed tag target" {
+  mkdir -p "$TEST_REPO/.release"
+  cp "$TEST_ROOT/VERSION" "$TEST_REPO/VERSION"
+  cp "$TEST_ROOT/install.sh" "$TEST_REPO/install.sh"
+  cp "$TEST_ROOT/.release/release-bom.json" "$TEST_REPO/.release/release-bom.json"
+  original_installer_sha="$(shasum -a 256 "$TEST_REPO/install.sh" | awk '{print $1}')"
+  original_bom_sha="$(shasum -a 256 "$TEST_REPO/.release/release-bom.json" | awk '{print $1}')"
+  git -C "$TEST_REPO" add VERSION install.sh .release/release-bom.json
+  git -C "$TEST_REPO" commit -q -m "prepare release inputs"
+  target_commit="$(git -C "$TEST_REPO" rev-parse HEAD)"
+  git -C "$TEST_REPO" tag -a v0.1.0 -m "base-demo v0.1.0" "$target_commit"
+  output_dir="$TEST_TMPDIR/finalized"
+
+  run "$TEST_ROOT/bin/base-demo-release-provenance" \
+    --repo "$TEST_REPO" \
+    --main-ref main \
+    v0.1.0 \
+    "$target_commit"
+
+  [ "$status" -eq 0 ]
+  run "$TEST_ROOT/bin/base-demo-release-finalize" \
+    --repo "$TEST_REPO" \
+    --commit "$target_commit" \
+    --output-dir "$output_dir"
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"v0.1.0"* ]]
+  run python3 -c '
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    document = json.load(handle)
+assert document["release"]["commit"] == sys.argv[2]
+rows = [
+    row for row in document["components"]
+    if row["repository"] == "basefoundry/base-demo"
+]
+assert len(rows) == 1 and rows[0]["commit"] == sys.argv[2]
+' "$output_dir/release-bom.json" "$target_commit"
+  [ "$status" -eq 0 ]
+  grep -Fq 'PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-v0.1.0}"' "$output_dir/install.sh"
+  grep -Fq "PROJECT_RELEASE_COMMIT=\"\${PROJECT_RELEASE_COMMIT:-$target_commit}\"" "$output_dir/install.sh"
+  [ -x "$output_dir/install.sh" ]
+  [ "$(shasum -a 256 "$TEST_REPO/install.sh" | awk '{print $1}')" = "$original_installer_sha" ]
+  [ "$(shasum -a 256 "$TEST_REPO/.release/release-bom.json" | awk '{print $1}')" = "$original_bom_sha" ]
+
+  run env \
+    BASE_DEMO_RELEASE_BOM_PATH="$output_dir/release-bom.json" \
+    BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT="$target_commit" \
+    "$TEST_ROOT/bin/base-demo-release-bom-check"
+
+  [ "$status" -eq 0 ]
+  run bash -c 'cd "$1" && shasum -a 256 -c release-bom.sha256 install.sh.sha256' _ "$output_dir"
+  [ "$status" -eq 0 ]
+  run "$TEST_ROOT/bin/base-demo-release-finalize" \
+    --repo "$TEST_REPO" \
+    --commit "$target_commit" \
+    --verify-dir "$output_dir"
+  [ "$status" -eq 0 ] || { printf 'unexpected verifier output: %s\n' "$output"; false; }
+
+  printf '# modified after verification\n' >> "$output_dir/install.sh"
+  run "$TEST_ROOT/bin/base-demo-release-finalize" \
+    --repo "$TEST_REPO" \
+    --commit "$target_commit" \
+    --verify-dir "$output_dir"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"does not match the reviewed tag inputs"* ]]
+}
+
+@test "release finalizer rejects an invalid target without producing assets" {
+  run "$TEST_ROOT/bin/base-demo-release-finalize" \
+    --repo "$TEST_ROOT" \
+    --commit eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeez \
+    --output-dir "$TEST_TMPDIR/invalid"
+
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"full lowercase 40-character SHA"* ]]
+  [ ! -e "$TEST_TMPDIR/invalid/release-bom.json" ]
+}
+
 @test "install release pins resolve refs to their target commits" {
   project_ref="$(sed -n 's/^PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
   project_pin="$(sed -n 's/^PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"

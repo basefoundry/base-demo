@@ -25,7 +25,12 @@ They do not change merely because base-demo publishes a release.
 `.release/release-bom.json` is the coordinated release record. It captures the
 exact Base, base-cli, base-bash-libs, and base-demo commits, contract identities,
 supported platforms, required/advisory status, and compatibility result.
-Moving development sources are advisory and do not block a release.
+Moving development sources are advisory and do not block a release. In a release
+PR, this tracked file is the prepared input: its base-demo self-commit values
+cannot identify the eventual merge commit because editing them would change
+that commit. The tag workflow finalizes both self-commit values from the
+annotated tag target into an external BOM asset; it does not rewrite the reviewed
+source tree or retag a release.
 
 ## Bootstrap provenance
 
@@ -37,11 +42,13 @@ The release path in `install.sh` is pinned to reviewed immutable inputs:
 - base-demo checkout: release ref `v0.1.0` and commit
   `b8ac2ae490e4965b8131195a11377fd0bd787daf`.
 
-When preparing a release, update the `PROJECT_RELEASE_REF` and
-`PROJECT_RELEASE_COMMIT` values in `install.sh` to the new release tag and
-reviewed merge commit. Update the Base release ref, commit, installer URL, and
-checksum together whenever the supported Base release changes. Verify the
-installer content with:
+When preparing a release, update `PROJECT_RELEASE_REF` in the reviewed
+`install.sh` source to the new release tag. Keep `PROJECT_RELEASE_COMMIT` as a
+valid full commit pin; the tag workflow replaces it in the external installer
+asset with the reviewed tag target. Do not try to embed the future merge SHA in
+the commit that must have that identity. Update the Base release ref, commit,
+installer URL, and checksum together whenever the supported Base release
+changes. Verify the Base installer content with:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/basefoundry/base/<base-ref>/install.sh \
@@ -75,15 +82,16 @@ silently accepted by the release path.
    `bin/base-demo-release-bom-row`, update `.release/release-bom.json` from the
    coordinated release inputs, then run `bin/base-demo-release-check`,
    `bin/base-demo-release-bom-check`, `mise run validate`, and the normal hosted
-   pull-request checks.
+   pull-request checks. Do not try to pin the final merge SHA in this commit.
 4. After the release PR is merged to `main`, create an annotated tag from the
    clean merge commit: `git tag -a vX.Y.Z -m "base-demo vX.Y.Z"`.
 5. Push the tag. The read-only `verify` job in the `Release Demo` workflow
-   verifies the version identity, BOM identity and required passing rows,
-   requires an annotated tag, and checks that the tag target (`GITHUB_SHA`) is
-   reachable from `origin/main`. Only after those checks pass does the separate
-   `release` job receive `contents: write` and create the GitHub Release from
-   the changelog section, attaching the BOM and its SHA-256 digest.
+   requires an annotated tag and verifies its reviewed ancestry, then generates
+   an external BOM and installer pinned to the exact tag target. It checks both
+   files and their SHA-256 manifests and uploads that verified artifact for the
+   separate `release` job. The write-enabled job downloads and rechecks the same
+   artifact before attaching `release-bom.json`, `release-bom.sha256`,
+   `install.sh`, and `install.sh.sha256` to the GitHub Release.
 6. Treat published tags and releases as immutable. Corrections require a new
    patch release; do not retag a published version or replace its release
    assets.
