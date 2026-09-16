@@ -150,6 +150,13 @@ assert len(rows) == 1 and rows[0]["commit"] == sys.argv[2]
     "$TEST_ROOT/bin/base-demo-release-bom-check"
 
   [ "$status" -eq 0 ]
+  run env \
+    BASE_DEMO_RELEASE_BOM_PATH="$output_dir/release-bom.json" \
+    BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT=0000000000000000000000000000000000000000 \
+    "$TEST_ROOT/bin/base-demo-release-bom-check"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"must match the tagged GITHUB_SHA"* ]]
+
   run bash -c 'cd "$1" && shasum -a 256 -c release-bom.sha256 install.sh.sha256' _ "$output_dir"
   [ "$status" -eq 0 ]
   run "$TEST_ROOT/bin/base-demo-release-finalize" \
