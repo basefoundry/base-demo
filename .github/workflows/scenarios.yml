@@ -49,7 +49,8 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install fixture interpreter dependencies
-        run: python -m pip install ./.dependencies/base-cli click PyYAML tomli
+        # Match both exact Base revisions' lib/base/default_manifest.yaml.
+        run: python -m pip install ./.dependencies/base-cli click==8.4.1 PyYAML==6.0.3 tomli==2.4.1
       - name: Install supported Bash for Base
         run: brew install bash
       - name: Verify isolated trust and consent contracts
