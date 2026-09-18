@@ -166,6 +166,11 @@ if ! bats tests/release_test.bats; then
   exit 1
 fi
 
+if ! bash tests/public_install_test.sh; then
+  printf 'The exact public bootstrap input failed its contract tests.\n' >&2
+  exit 1
+fi
+
 if ! python3 tests/project_intake_test.py; then
   printf 'base-demo Project Intake conformance tests failed.\n' >&2
   exit 1

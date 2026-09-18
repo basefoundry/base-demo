@@ -12,6 +12,10 @@ promotes this section into a dated version heading before tagging.
 
 ### Changed
 
+- Corrected the public bootstrap to a checksum-verified, immutable source
+  installer, with explicit historical-release limitations and contract tests
+  against the actual downloaded script.
+
 - Align the locked project dependency and source-compatibility CI checkout
   with the released `base-cli` `0.4.3` provider.
 
