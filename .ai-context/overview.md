@@ -8,7 +8,10 @@ release is `0.1.0`; the top README uses Base's tests/platform/version badge
 ordering and links the matching release and policy, `bin/base-demo-release-check`
 verifies Python, uv, frontend, README, and changelog metadata, and
 `.github/workflows/release.yml` publishes only from an explicit matching
-`vX.Y.Z` tag.
+`vX.Y.Z` tag. Because a tracked commit cannot contain its own final commit SHA,
+the tag workflow generates the final BOM and installer outside the checkout,
+binds both to the annotated tag target, checks their SHA-256 manifests, and
+publishes those exact verified assets after the read-only validation job passes.
 
 It includes the Base project shape plus a reduced-scale representative
 environment: a `base_manifest.yaml` that declares every current Base contract,

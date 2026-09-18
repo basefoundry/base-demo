@@ -24,10 +24,26 @@ jobs:
       - name: Verify reviewed tag provenance
         run: ./bin/base-demo-release-provenance "$GITHUB_REF_NAME" "$GITHUB_SHA"
 
-      - name: Verify ecosystem release BOM
+      - name: Finalize release BOM and installer assets
+        run: ./bin/base-demo-release-finalize --commit "$GITHUB_SHA" --output-dir "$RUNNER_TEMP/base-demo-release-assets"
+
+      - name: Verify finalized ecosystem release BOM
         env:
+          BASE_DEMO_RELEASE_BOM_PATH: ${{ runner.temp }}/base-demo-release-assets/release-bom.json
           BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT: ${{ github.sha }}
         run: ./bin/base-demo-release-bom-check
+
+      - name: Verify finalized asset checksums
+        working-directory: ${{ runner.temp }}/base-demo-release-assets
+        run: sha256sum -c release-bom.sha256 install.sh.sha256
+
+      - name: Upload verified release assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: base-demo-release-assets
+          path: ${{ runner.temp }}/base-demo-release-assets/
+          if-no-files-found: error
+          retention-days: 1
 
   release:
     needs: verify
@@ -38,6 +54,24 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+
+      - name: Download verified release assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: base-demo-release-assets
+          path: ${{ runner.temp }}/base-demo-release-assets
+
+      - name: Recheck the exact assets before publication
+        env:
+          BASE_DEMO_RELEASE_BOM_PATH: ${{ runner.temp }}/base-demo-release-assets/release-bom.json
+          BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT: ${{ github.sha }}
+        run: |
+          ./bin/base-demo-release-check "$GITHUB_REF_NAME"
+          ./bin/base-demo-release-provenance "$GITHUB_REF_NAME" "$GITHUB_SHA"
+          ./bin/base-demo-release-finalize \
+            --commit "$GITHUB_SHA" \
+            --verify-dir "$RUNNER_TEMP/base-demo-release-assets"
+          ./bin/base-demo-release-bom-check
 
       - name: Create GitHub Release
         env:
@@ -51,12 +85,12 @@ jobs:
             in_release { print }
           ' CHANGELOG.md > "$notes_file"
           test -s "$notes_file"
-          bom_digest="$RUNNER_TEMP/base-demo-release-bom.sha256"
-          sha256sum .release/release-bom.json > "$bom_digest"
           gh release create "$GITHUB_REF_NAME" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --title "base-demo $GITHUB_REF_NAME" \
             --notes-file "$notes_file" \
-            .release/release-bom.json \
-            "$bom_digest"
+            "$RUNNER_TEMP/base-demo-release-assets/release-bom.json" \
+            "$RUNNER_TEMP/base-demo-release-assets/release-bom.sha256" \
+            "$RUNNER_TEMP/base-demo-release-assets/install.sh" \
+            "$RUNNER_TEMP/base-demo-release-assets/install.sh.sha256"
