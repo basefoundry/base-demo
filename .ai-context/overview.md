@@ -25,7 +25,7 @@ binds both to the annotated tag target, checks their SHA-256 manifests, and
 publishes those exact verified assets after the read-only validation job passes.
 
 It includes the Base project shape plus a reduced-scale representative
-environment: a `base_manifest.yaml` that declares every current Base contract,
+environment: a `base_manifest.yaml` that declares a curated representative subset of Base contracts,
 runnable commands, a Python CLI that uses `base_cli.App`, an interactive demo
 script, validation tests, multiple language services, common build tools, one
 Dockerized service, one React/Vite UI, local databases and cache through
@@ -128,6 +128,11 @@ change stream, and its three existing validation job IDs remain stable.
 `tests/scenarios/workspace.py` is the isolated multi-peer consumer fixture.
 Stable 1.9 covers reports; exact-candidate 1.10 covers selection, aggregate
 failure/skip, aliases, undeclared inventory and checkout-bound next actions.
+Start at `docs/first-success.md`: evaluator, adopting-project maintainer and
+demo contributor have separate prerequisites, completion criteria and handoff
+artifacts. The full README command map is a reference, not an unattended setup
+script. Current source uses `.release/supported-dependencies.json`; the interim
+public bootstrap still consumes historical Base 1.8/demo 0.1 releases.
 
 ```bash
 basectl setup base-demo
