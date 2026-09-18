@@ -71,19 +71,38 @@ in the Base repository.
 
 ## Quick Start
 
-The versioned release installer is the reproducible bootstrap path. Download
-the script from the desired base-demo release, inspect it if required by your
-environment, and run it from the release checkout:
+Until v0.2.0 publishes verified installer assets, use this interim, immutable
+bootstrap script from reviewed source commit `96f8e6d0c016aaf73e1a8c448ac92c9222a5aced`.
+It installs **Base v1.8.0 and base-demo v0.1.0**, not current `main`.
+Run this macOS quick start in a temporary directory; inspect the script before
+execution if required by your environment:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/basefoundry/base-demo/v0.1.0/install.sh -o install.sh
-bash install.sh
+bootstrap_dir="$(mktemp -d)"
+(
+  cd "$bootstrap_dir" || exit 1
+  curl -fsSL https://raw.githubusercontent.com/basefoundry/base-demo/96f8e6d0c016aaf73e1a8c448ac92c9222a5aced/install.sh -o install.sh &&
+  printf '%s  install.sh\n' dc8728510651c8b59fcc4a99dbf12e7e7c152858a99b745de90cdb7210e85d82 | shasum -a 256 -c - &&
+  RUN_UPDATE_PROFILE=false bash install.sh
+)
 ```
 
-The release path pins and verifies its Base dependency and pins the base-demo
-checkout. It never pulls, resets, detaches, or switches an existing checkout.
-Contributors with peer checkouts under one workspace should opt into the local
-developer path explicitly:
+The checksum gates execution. This reviewed script verifies its Base installer
+and both checkout commits. Fresh installs use `~/work`; clean existing checkouts
+at those exact commits are reused, while dirty or divergent checkouts fail
+without being pulled, reset, detached, or switched. This command opts out of
+shell-profile updates; setup still installs dependencies and project tools.
+An existing developer workspace should use the developer route below instead
+of deleting or resetting its checkouts to make this release route pass.
+
+The historical **v0.1.0/install.sh does not provide these guarantees**: it uses
+a moving Base installer, permits an absent checksum, and can pull an existing
+checkout. Do not substitute that old script for the checksum-verified input
+above. [Release preparation #303](https://github.com/basefoundry/base-demo/issues/303)
+tracks replacing this interim URL with the verified v0.2.0 release asset.
+
+Contributors with current source peer checkouts under one workspace should opt
+into the local developer path explicitly (from the current base-demo checkout):
 
 ```bash
 ./install.sh --dev

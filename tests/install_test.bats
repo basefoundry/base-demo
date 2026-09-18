@@ -3,6 +3,7 @@
 setup() {
   TEST_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd -P)"
   TEST_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/base-demo-install-test.XXXXXX")"
+  TEST_BOOTSTRAP="${BASE_DEMO_TEST_BOOTSTRAP:-$TEST_ROOT/install.sh}"
   TEST_FAKE_BIN="$TEST_TMPDIR/bin"
   TEST_INSTALLER="$TEST_TMPDIR/base-install.sh"
   TEST_MARKER="$TEST_TMPDIR/installer-executed"
@@ -146,7 +147,7 @@ run_installer() {
     BASE_RELEASE_COMMIT="$TEST_BASE_COMMIT" \
     PROJECT_RELEASE_COMMIT="$TEST_PROJECT_COMMIT" \
     RUN_UPDATE_PROFILE=false \
-    "$TEST_ROOT/install.sh" "$@"
+    "$TEST_BOOTSTRAP" "$@"
 }
 
 installer_sha256() {
@@ -190,6 +191,17 @@ installer_sha256() {
   [ -f "$TEST_MARKER" ]
 }
 
+@test "install.sh reuses matching existing checkouts without fetching or switching" {
+  mkdir -p "$TEST_TMPDIR/work/base/.git" "$TEST_TMPDIR/work/base/bin" "$TEST_TMPDIR/work/base-demo/.git"
+  printf 'name: base-demo\n' > "$TEST_TMPDIR/work/base-demo/base_manifest.yaml"
+  printf '#!/usr/bin/env bash\nprintf "basectl fixture\\n"\n' > "$TEST_TMPDIR/work/base/bin/basectl"
+  chmod +x "$TEST_TMPDIR/work/base/bin/basectl"
+  run run_installer "$(installer_sha256)"
+  [ "$status" -eq 0 ]
+  [ ! -f "$TEST_MARKER" ]
+  ! grep -Eq '(^| )(pull|clone|fetch|checkout|switch|reset)( |$)' "$TEST_GIT_LOG"
+}
+
 @test "install.sh refuses to move an existing checkout that is not at the release pin" {
   mkdir -p "$TEST_TMPDIR/work/base/.git" "$TEST_TMPDIR/work/base-demo/.git"
   printf '%s\n' "unexpected" > "$TEST_TMPDIR/work/base/.git/placeholder"
@@ -206,7 +218,7 @@ installer_sha256() {
     BASE_RELEASE_COMMIT="$TEST_BASE_COMMIT" \
     PROJECT_RELEASE_COMMIT="$TEST_PROJECT_COMMIT" \
     RUN_UPDATE_PROFILE=false \
-    "$TEST_ROOT/install.sh"
+    "$TEST_BOOTSTRAP"
 
   [ "$status" -ne 0 ]
   [[ "$output" == *"expected pinned release commit '$TEST_BASE_COMMIT'"* ]]
@@ -231,7 +243,7 @@ installer_sha256() {
     BASE_RELEASE_COMMIT="$TEST_BASE_COMMIT" \
     PROJECT_RELEASE_COMMIT="$TEST_PROJECT_COMMIT" \
     RUN_UPDATE_PROFILE=false \
-    "$TEST_ROOT/install.sh"
+    "$TEST_BOOTSTRAP"
 
   [ "$status" -ne 0 ]
   [[ "$output" == *"has local changes"* ]]
@@ -257,7 +269,7 @@ EOF
     WORKSPACE_DIR="$TEST_TMPDIR/work" \
     BASE_INSTALL_SHA256="" \
     RUN_UPDATE_PROFILE=false \
-    "$TEST_ROOT/install.sh" --dev
+    "$TEST_BOOTSTRAP" --dev
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"Mode: developer"* ]]
@@ -289,7 +301,7 @@ EOF
     BASE_DEMO_DEV_MODE=1 \
     BASE_INSTALL_SHA256="" \
     RUN_UPDATE_PROFILE=false \
-    "$TEST_ROOT/install.sh"
+    "$TEST_BOOTSTRAP"
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"Mode: developer"* ]]
