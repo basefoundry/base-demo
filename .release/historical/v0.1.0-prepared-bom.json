@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "release": {
+    "repository": "basefoundry/base-demo",
+    "version": "0.1.0",
+    "tag": "v0.1.0",
+    "commit": "b8ac2ae490e4965b8131195a11377fd0bd787daf"
+  },
+  "components": [
+    {
+      "repository": "basefoundry/base-demo",
+      "version": "0.1.0",
+      "tag": "v0.1.0",
+      "commit": "b8ac2ae490e4965b8131195a11377fd0bd787daf",
+      "source_mode": "release",
+      "api_schema_version": "base-demo-release@0.1.0",
+      "platforms": ["macos-14", "ubuntu-24.04"],
+      "required": true,
+      "result": "passed",
+      "evidence": "release://basefoundry/base-demo/v0.1.0"
+    },
+    {
+      "repository": "basefoundry/base",
+      "version": "1.8.0",
+      "tag": "v1.8.0",
+      "commit": "26b9af5dee16efcb47e652513ce734b3ae9bc920",
+      "source_mode": "release",
+      "api_schema_version": "manifest-1",
+      "platforms": ["macos-14", "ubuntu-24.04"],
+      "required": true,
+      "result": "passed",
+      "evidence": "release://basefoundry/base/v1.8.0"
+    },
+    {
+      "repository": "basefoundry/base-cli",
+      "version": "0.4.3",
+      "tag": "v0.4.3",
+      "commit": "8a93d22156ba75a99965f7c355f867acba630069",
+      "source_mode": "release",
+      "api_schema_version": "base-cli-api@0.4.3",
+      "platforms": ["python-3.12"],
+      "required": true,
+      "result": "passed",
+      "evidence": "release://basefoundry/base-cli/v0.4.3"
+    },
+    {
+      "repository": "basefoundry/base-bash-libs",
+      "version": "2.0.0",
+      "tag": "v2.0.0",
+      "commit": "b4243765726c133499feeabdc50154f99c0fec12",
+      "source_mode": "release",
+      "api_schema_version": "base-bash-libs-api@2.0.0",
+      "platforms": ["macos-14", "ubuntu-24.04"],
+      "required": true,
+      "result": "passed",
+      "evidence": "release://basefoundry/base-bash-libs/v2.0.0"
+    }
+  ],
+  "combinations": [
+    {
+      "name": "base-demo-v0.1.0-release-stack",
+      "participants": [
+        "basefoundry/base-demo",
+        "basefoundry/base",
+        "basefoundry/base-cli",
+        "basefoundry/base-bash-libs"
+      ],
+      "platform": "ubuntu-24.04",
+      "required": true,
+      "result": "passed",
+      "evidence": "release://basefoundry/base-demo/v0.1.0/compatibility"
+    }
+  ]
+}

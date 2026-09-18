@@ -12,6 +12,8 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    outputs:
+      compatibility_run: ${{ steps.compatibility.outputs.run_id }}
     permissions:
       contents: read
       actions: read
@@ -26,8 +28,20 @@ jobs:
       - name: Verify reviewed tag provenance
         run: ./bin/base-demo-release-provenance "$GITHUB_REF_NAME" "$GITHUB_SHA"
 
+      - name: Resolve exact-commit compatibility evidence
+        id: compatibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_id="$(gh run list --workflow tests.yml --commit "$GITHUB_SHA" --event push --status success --json databaseId --jq '.[0].databaseId // empty')"
+          [[ "$run_id" =~ ^[1-9][0-9]*$ ]] || { echo 'No passing exact-commit compatibility run; wait for main CI.' >&2; exit 1; }
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+
       - name: Finalize release BOM and installer assets
-        run: ./bin/base-demo-release-finalize --commit "$GITHUB_SHA" --output-dir "$RUNNER_TEMP/base-demo-release-assets"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMPATIBILITY_RUN: ${{ steps.compatibility.outputs.run_id }}
+        run: ./bin/base-demo-release-finalize --commit "$GITHUB_SHA" --evidence-run "$COMPATIBILITY_RUN" --output-dir "$RUNNER_TEMP/base-demo-release-assets"
 
       - name: Verify finalized ecosystem release BOM
         env:
@@ -68,6 +82,7 @@ jobs:
       - name: Recheck the exact assets before publication
         env:
           GH_TOKEN: ${{ github.token }}
+          COMPATIBILITY_RUN: ${{ needs.verify.outputs.compatibility_run }}
           BASE_DEMO_RELEASE_BOM_PATH: ${{ runner.temp }}/base-demo-release-assets/release-bom.json
           BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT: ${{ github.sha }}
         run: |
@@ -75,6 +90,7 @@ jobs:
           ./bin/base-demo-release-provenance "$GITHUB_REF_NAME" "$GITHUB_SHA"
           ./bin/base-demo-release-finalize \
             --commit "$GITHUB_SHA" \
+            --evidence-run "$COMPATIBILITY_RUN" \
             --verify-dir "$RUNNER_TEMP/base-demo-release-assets"
           ./bin/base-demo-release-bom-check
 

@@ -12,6 +12,10 @@ promotes this section into a dated version heading before tagging.
 
 ### Changed
 
+- Aligned current source with the supported Base 1.9.0, base-cli 0.4.3 and
+  base-bash-libs 2.1.0 input contract, with exact macOS/Ubuntu CI revisions and
+  live final-candidate evidence binding outside the tracked tree.
+
 - Made release BOM publication fail closed on incomplete participants, stale
   pins, inconsistent platforms, and missing exact-commit hosted evidence.
 

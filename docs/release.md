@@ -75,16 +75,16 @@ The current source `install.sh` release path is pinned to reviewed immutable
 inputs. These guarantees do **not** apply to the historical v0.1.0 installer.
 The README temporarily downloads the checksum-verified script from commit
 `96f8e6d0c016aaf73e1a8c448ac92c9222a5aced`; it still installs the older release
-checkouts listed below, not that source commit as the demo checkout.
+Base v1.8.0/demo v0.1.0 checkouts, not the current supported input selection
+or that source commit as the demo checkout.
 Before closing [#303](https://github.com/basefoundry/base-demo/issues/303), replace
 the README's interim script URL and digest with the new verified release asset,
 update the stated consumed versions, and rerun `bash tests/public_install_test.sh`.
 
 The consumed inputs are:
 
-- Base installer: the versioned `v1.8.0` URL, SHA-256
-  `492dd06eee86223c780f011b545cdef8e11964489c8a2d54c9da426f55ed9980`, and
-  Base commit `26b9af5dee16efcb47e652513ce734b3ae9bc920`;
+- Base installer: the version, full commit and SHA-256 selected by
+  `.release/supported-dependencies.json`, materialized in current `install.sh`;
 - base-demo checkout: release ref `v0.1.0` and commit
   `b8ac2ae490e4965b8131195a11377fd0bd787daf`.
 

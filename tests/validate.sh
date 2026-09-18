@@ -167,6 +167,7 @@ if ! bats tests/release_test.bats; then
 fi
 
 python3 tests/release_bom_test.py || exit 1
+python3 tests/dependency_inputs_test.py || exit 1
 
 if ! bash tests/public_install_test.sh; then
   printf 'The exact public bootstrap input failed its contract tests.\n' >&2
@@ -218,7 +219,7 @@ grep -Fq 'contents: write' .github/workflows/release.yml || {
   exit 1
 }
 
-grep -Fq './bin/base-demo-release-finalize --commit "$GITHUB_SHA" --output-dir "$RUNNER_TEMP/base-demo-release-assets"' .github/workflows/release.yml || {
+grep -Fq './bin/base-demo-release-finalize --commit "$GITHUB_SHA" --evidence-run "$COMPATIBILITY_RUN" --output-dir "$RUNNER_TEMP/base-demo-release-assets"' .github/workflows/release.yml || {
   printf '.github/workflows/release.yml does not finalize BOM and installer assets from the reviewed tag target.\n' >&2
   exit 1
 }
@@ -387,10 +388,10 @@ grep -Fq 'POLICY_CONTEXT: base/issue-branch-policy' .github/workflows/issue-bran
 }
 
 base_release_pin_count="$(
-  grep -Fc 'git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3ae9bc920' .github/workflows/tests.yml || true
+  grep -Fc 'git -C ../base fetch --depth 1 origin "${{ steps.dependencies.outputs.base_commit }}"' .github/workflows/tests.yml || true
 )"
 if [[ "$base_release_pin_count" -ne 3 ]]; then
-  printf '.github/workflows/tests.yml must pin every Base checkout to the immutable v1.8.0 release commit.\n' >&2
+  printf '.github/workflows/tests.yml must pin every Base checkout to the supported immutable release commit.\n' >&2
   exit 1
 fi
 
@@ -400,7 +401,7 @@ if grep -Fq '591e34a8fed6ce9cbe27f483f852bec81153f3eb' .github/workflows/tests.y
 fi
 
 base_bash_libs_pin_count="$(
-  grep -Fc 'ref: 36fec50c446dcea8c521a1ba3e7fee2394f169c0' .github/workflows/tests.yml || true
+  grep -Fc 'ref: ${{ steps.dependencies.outputs.base_bash_libs_commit }}' .github/workflows/tests.yml || true
 )"
 if [[ "$base_bash_libs_pin_count" -ne 3 ]]; then
   printf '.github/workflows/tests.yml must pin every base-bash-libs checkout to the immutable v2.1.0 release commit.\n' >&2
@@ -499,17 +500,17 @@ grep -Fq 'BASE_CLI_SOURCE_DIR: ${{ github.workspace }}/../base-cli/lib/python' .
   exit 1
 }
 
-grep -Fq 'git clone --depth 1 --branch v0.4.3 https://github.com/basefoundry/base-cli.git ../base-cli' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not pin the source compatibility checkout to base-cli v0.4.3.\n' >&2
+grep -Fq 'git -C ../base-cli fetch --depth 1 origin "${{ steps.dependencies.outputs.base_cli_commit }}"' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the source compatibility checkout to the supported base-cli commit.\n' >&2
   exit 1
 }
 
-grep -Fq 'git -C ../base fetch --depth 1 origin 26b9af5dee16efcb47e652513ce734b3ae9bc920' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not pin the source compatibility job to the Base v1.8.0 release commit.\n' >&2
+grep -Fq 'git -C ../base fetch --depth 1 origin "${{ steps.dependencies.outputs.base_commit }}"' .github/workflows/tests.yml || {
+  printf '.github/workflows/tests.yml does not pin the source compatibility job to the supported Base release commit.\n' >&2
   exit 1
 }
 
-grep -Fq 'ref: 36fec50c446dcea8c521a1ba3e7fee2394f169c0' .github/workflows/tests.yml || {
+grep -Fq 'ref: ${{ steps.dependencies.outputs.base_bash_libs_commit }}' .github/workflows/tests.yml || {
   printf '.github/workflows/tests.yml does not use the v2.1.0 base-bash-libs source required by this compatibility job.\n' >&2
   exit 1
 }
@@ -958,7 +959,7 @@ for environment_contract_doc in \
   }
 done
 
-grep -Fq 'base-cli==0.4.3' .ai-context/overview.md || {
+grep -Fq 'supported-dependencies.json' .ai-context/overview.md || {
   printf '.ai-context/overview.md does not match the locked base-cli version.\n' >&2
   exit 1
 }
@@ -1696,7 +1697,7 @@ grep -Fq 'requires-python = ">=3.13,<3.14"' pyproject.toml || {
   exit 1
 }
 
-grep -Fq 'dependencies = ["base-cli==0.4.3", "click", "PyYAML"]' pyproject.toml || {
+python3 bin/base-demo-dependencies --check || {
   printf 'pyproject.toml does not declare the Base CLI runtime dependencies.\n' >&2
   exit 1
 }

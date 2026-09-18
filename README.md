@@ -204,9 +204,16 @@ task ci-check
 Those wrappers delegate to `basectl`; installing `just` or Task is not required
 for setup, validation, CI, or the baseline demo.
 
+Current source CI and installer inputs select Base v1.9.0, base-cli v0.4.3, and
+base-bash-libs v2.1.0 through `.release/supported-dependencies.json`. This differs
+from the historical-release quick start above. CI verifies exact commits on
+macOS 14 and Ubuntu 24.04. The v1.10 candidate lane is separately invoked and
+never replaces these stable pins. See [dependency inputs](docs/dependency-inputs.md).
+
 ## Python CLI Provider Policy
 
-`base-demo` declares `base-cli==0.4.3` in `pyproject.toml` and `uv.lock`. That
+`base-demo` declares the version selected in [supported inputs](.release/supported-dependencies.json)
+in `pyproject.toml` and `uv.lock`. That
 released package is the default provider for the project-owned uv environment,
 local `uv sync --locked`, and the normal wheel-based CI path. Keeping the
 published dependency locked makes the reference project reproducible for new
@@ -423,7 +430,7 @@ read-only inspection because those models are non-operational.
   language taxonomy, activation source, commands, mise test task, and Brewfile
   location using current Base contracts.
 - `pyproject.toml` and `uv.lock` declare the dependency-manager-owned Python
-  project environment. Its declared runtime dependencies are `base-cli==0.4.3`,
+  project environment. Its declared runtime dependencies are the supported `base-cli` pin,
   Click, and PyYAML, which the Base-backed Python CLI requires; uv owns the
   environment while Base's Python runtime remains the command wrapper.
   If an older Base-managed environment exists at `~/.base.d/base-demo/.venv`,

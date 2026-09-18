@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Read and verify supported dependency inputs, separately from run evidence."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "lib/release_contract"))
+from dependency_inputs import validate_inputs
+
+
+def git(*args):
+    return subprocess.check_output(["git", *args], text=True, timeout=60).strip()
+
+
+def check(root, rows):
+    installer = (root / "install.sh").read_text()
+    bindings = {
+        "BASE_RELEASE_REF": (":-", "v" + rows["base"]["version"]),
+        "BASE_RELEASE_COMMIT": (":-", rows["base"]["commit"]),
+        "BASE_INSTALL_SHA256": ("-", rows["base"]["installer_sha256"]),
+    }
+    for name, (operator, value) in bindings.items():
+        if installer.count(f'{name}="${{{name}{operator}{value}}}"') != 1:
+            raise ValueError(f"installer {name} does not match supported inputs")
+    version = rows["base-cli"]["version"]
+    if (root / "pyproject.toml").read_text().count(f'"base-cli=={version}"') != 1:
+        raise ValueError("project base-cli requirement does not match supported inputs")
+    lock = (root / "uv.lock").read_text()
+    if len(re.findall(r'(?m)^name = "base-cli"\nversion = "' + re.escape(version) + '"$', lock)) != 1:
+        raise ValueError("uv.lock base-cli version does not match supported inputs; run uv lock")
+    bom = json.loads((root / ".release/release-bom.json").read_text())
+    for name, pin in rows.items():
+        matches = [r for r in bom["components"] if r.get("repository") == "basefoundry/" + name]
+        if len(matches) != 1 or any(matches[0].get(key) != pin[key] for key in ("version", "commit")):
+            raise ValueError(f"prepared BOM {name} does not match supported inputs")
+        if matches[0].get("tag") != "v" + pin["version"]:
+            raise ValueError(f"prepared BOM {name} tag does not match supported inputs")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, default=ROOT)
+    parser.add_argument("--get", choices=[f"{n}.{k}" for n in ("base", "base-cli", "base-bash-libs")
+                                        for k in ("version", "commit")] + ["base.installer_sha256"])
+    parser.add_argument("--github-output", action="store_true")
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument("--verify-refs", action="store_true")
+    parser.add_argument("--base", type=Path)
+    parser.add_argument("--libs", type=Path)
+    parser.add_argument("--cli", type=Path)
+    args = parser.parse_args()
+    try:
+        document = json.loads((args.repo / ".release/supported-dependencies.json").read_text())
+        rows = validate_inputs(document)
+        if args.check:
+            check(args.repo, rows)
+        if args.verify_refs:
+            for name, row in rows.items():
+                tag = "refs/tags/v" + row["version"]
+                refs = dict(line.split()[::-1] for line in git(
+                    "ls-remote", f"https://github.com/basefoundry/{name}.git", tag, tag + "^{}"
+                ).splitlines())
+                if refs.get(tag + "^{}", refs.get(tag)) != row["commit"]:
+                    raise ValueError(f"{name} tag does not resolve to supported commit")
+        for name, checkout in (("base", args.base), ("base-bash-libs", args.libs), ("base-cli", args.cli)):
+            if checkout is not None and git("-C", str(checkout), "rev-parse", "HEAD") != rows[name]["commit"]:
+                raise ValueError(f"resolved {name} checkout differs from supported inputs")
+        if args.get:
+            component, key = args.get.split(".")
+            print(rows[component][key])
+        elif args.github_output:
+            for name, row in rows.items():
+                for key, value in row.items():
+                    print(f"{name.replace('-', '_')}_{key}={value}")
+        else:
+            print(json.dumps(document, sort_keys=True))
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as exc:
+        print(f"dependency inputs: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "components": {
+    "base": {
+      "version": "1.9.0",
+      "commit": "ac8d294421e1bfc14afa8c6a2a12f1affb5268ee",
+      "installer_sha256": "f0522bf20b13e2f487767324f4688f1b1ed33b1c1bc1158a404f0e428ea3e993"
+    },
+    "base-cli": {
+      "version": "0.4.3",
+      "commit": "8a93d22156ba75a99965f7c355f867acba630069"
+    },
+    "base-bash-libs": {
+      "version": "2.1.0",
+      "commit": "36fec50c446dcea8c521a1ba3e7fee2394f169c0"
+    }
+  }
+}

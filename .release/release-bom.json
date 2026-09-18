@@ -14,22 +14,28 @@
       "commit": "b8ac2ae490e4965b8131195a11377fd0bd787daf",
       "source_mode": "release",
       "api_schema_version": "base-demo-release@0.1.0",
-      "platforms": ["macos-14", "ubuntu-24.04"],
+      "platforms": [
+        "macos-14",
+        "ubuntu-24.04"
+      ],
       "required": true,
-      "result": "passed",
-      "evidence": "release://basefoundry/base-demo/v0.1.0"
+      "result": "not_tested",
+      "evidence": "pending: exact candidate compatibility run required"
     },
     {
       "repository": "basefoundry/base",
-      "version": "1.8.0",
-      "tag": "v1.8.0",
-      "commit": "26b9af5dee16efcb47e652513ce734b3ae9bc920",
+      "version": "1.9.0",
+      "tag": "v1.9.0",
+      "commit": "ac8d294421e1bfc14afa8c6a2a12f1affb5268ee",
       "source_mode": "release",
       "api_schema_version": "manifest-1",
-      "platforms": ["macos-14", "ubuntu-24.04"],
+      "platforms": [
+        "macos-14",
+        "ubuntu-24.04"
+      ],
       "required": true,
-      "result": "passed",
-      "evidence": "release://basefoundry/base/v1.8.0"
+      "result": "not_tested",
+      "evidence": "pending: exact candidate compatibility run required"
     },
     {
       "repository": "basefoundry/base-cli",
@@ -38,27 +44,46 @@
       "commit": "8a93d22156ba75a99965f7c355f867acba630069",
       "source_mode": "release",
       "api_schema_version": "base-cli-api@0.4.3",
-      "platforms": ["python-3.12"],
+      "platforms": [
+        "macos-14",
+        "ubuntu-24.04"
+      ],
       "required": true,
-      "result": "passed",
-      "evidence": "release://basefoundry/base-cli/v0.4.3"
+      "result": "not_tested",
+      "evidence": "pending: exact candidate compatibility run required"
     },
     {
       "repository": "basefoundry/base-bash-libs",
-      "version": "2.0.0",
-      "tag": "v2.0.0",
-      "commit": "b4243765726c133499feeabdc50154f99c0fec12",
+      "version": "2.1.0",
+      "tag": "v2.1.0",
+      "commit": "36fec50c446dcea8c521a1ba3e7fee2394f169c0",
       "source_mode": "release",
-      "api_schema_version": "base-bash-libs-api@2.0.0",
-      "platforms": ["macos-14", "ubuntu-24.04"],
+      "api_schema_version": "base-bash-libs-api@2.1.0",
+      "platforms": [
+        "macos-14",
+        "ubuntu-24.04"
+      ],
       "required": true,
-      "result": "passed",
-      "evidence": "release://basefoundry/base-bash-libs/v2.0.0"
+      "result": "not_tested",
+      "evidence": "pending: exact candidate compatibility run required"
     }
   ],
   "combinations": [
     {
-      "name": "base-demo-v0.1.0-release-stack",
+      "name": "demo-release-stack-macos-14",
+      "participants": [
+        "basefoundry/base-demo",
+        "basefoundry/base",
+        "basefoundry/base-cli",
+        "basefoundry/base-bash-libs"
+      ],
+      "platform": "macos-14",
+      "required": true,
+      "result": "not_tested",
+      "evidence": "pending: exact candidate compatibility run required"
+    },
+    {
+      "name": "demo-release-stack-ubuntu-24.04",
       "participants": [
         "basefoundry/base-demo",
         "basefoundry/base",
@@ -67,8 +92,8 @@
       ],
       "platform": "ubuntu-24.04",
       "required": true,
-      "result": "passed",
-      "evidence": "release://basefoundry/base-demo/v0.1.0/compatibility"
+      "result": "not_tested",
+      "evidence": "pending: exact candidate compatibility run required"
     }
   ]
 }
