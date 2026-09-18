@@ -125,6 +125,10 @@ change stream, and its three existing validation job IDs remain stable.
 
 ## Quick Loop
 
+`tests/scenarios/workspace.py` is the isolated multi-peer consumer fixture.
+Stable 1.9 covers reports; exact-candidate 1.10 covers selection, aggregate
+failure/skip, aliases, undeclared inventory and checkout-bound next actions.
+
 ```bash
 basectl setup base-demo
 basectl activate base-demo

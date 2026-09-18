@@ -29,6 +29,8 @@ blocked Base capabilities is maintained in the [Base capability and evidence
 matrix](docs/base-capability-matrix.md). Use it during Base release reviews and
 when deciding whether a new base-demo scenario has executable evidence.
 
+The [workspace scenarios](docs/workspace-scenarios.md) prove selected execution,
+failure aggregation and checkout-bound recovery in disposable peers.
 The [isolated trust and consent scenarios](docs/trust-scenarios.md) demonstrate
 denial, approval, invalidation and revocation without changing your trust store
 or IDE settings. They explicitly separate Base v1.9 behavior from the stronger
