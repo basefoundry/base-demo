@@ -50,6 +50,8 @@ jobs:
           python-version: '3.13'
       - name: Install fixture interpreter dependencies
         run: python -m pip install ./.dependencies/base-cli PyYAML tomli
+      - name: Install supported Bash for Base
+        run: brew install bash
       - name: Verify isolated trust and consent contracts
         env:
           BASE_SCENARIO_COMMIT: ${{ matrix.base }}
