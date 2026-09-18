@@ -29,6 +29,11 @@ blocked Base capabilities is maintained in the [Base capability and evidence
 matrix](docs/base-capability-matrix.md). Use it during Base release reviews and
 when deciding whether a new base-demo scenario has executable evidence.
 
+The [isolated trust and consent scenarios](docs/trust-scenarios.md) demonstrate
+denial, approval, invalidation and revocation without changing your trust store
+or IDE settings. They explicitly separate Base v1.9 behavior from the stronger
+implemented v1.10 candidate contracts.
+
 The external tooling direction is tracked in
 [Tooling Test Bed](docs/tooling-testbed.md). That matrix separates active
 baseline tools from optional wrappers, reference-only examples, and future Base
