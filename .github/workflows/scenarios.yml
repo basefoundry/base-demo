@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   trust:
-    name: Trust scenarios (${{ matrix.lane }})
+    name: Trust and workspace scenarios (${{ matrix.lane }})
     runs-on: macos-14
     timeout-minutes: 15
     strategy:
@@ -59,6 +59,15 @@ jobs:
           BASE_SCENARIO_OPTIONS: ${{ matrix.options }}
         run: |
           python tests/scenarios/trust.py \
+            --base .dependencies/base --base-commit "$BASE_SCENARIO_COMMIT" \
+            --base-cli .dependencies/base-cli --bash-libs .dependencies/base-bash-libs \
+            --python "$(command -v python)" $BASE_SCENARIO_OPTIONS
+      - name: Verify isolated workspace contracts
+        env:
+          BASE_SCENARIO_COMMIT: ${{ matrix.base }}
+          BASE_SCENARIO_OPTIONS: ${{ matrix.options }}
+        run: |
+          python tests/scenarios/workspace.py \
             --base .dependencies/base --base-commit "$BASE_SCENARIO_COMMIT" \
             --base-cli .dependencies/base-cli --bash-libs .dependencies/base-bash-libs \
             --python "$(command -v python)" $BASE_SCENARIO_OPTIONS
