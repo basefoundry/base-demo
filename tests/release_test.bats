@@ -76,11 +76,11 @@ resolve_release_commit() {
   [[ "$output" == *"does not match VERSION"* ]]
 }
 
-@test "release BOM check validates the checked-in coordinated record" {
+@test "release BOM gate does not certify the historical prepared record" {
   run "$TEST_ROOT/bin/base-demo-release-bom-check"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"release BOM identity is consistent: v0.1.0"* ]]
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"release BOM check:"* ]]
 }
 
 @test "release BOM row emits immutable demo identity" {
@@ -149,13 +149,10 @@ assert len(rows) == 1 and rows[0]["commit"] == sys.argv[2]
     BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT="$target_commit" \
     "$TEST_ROOT/bin/base-demo-release-bom-check"
 
-  [ "$status" -eq 0 ]
-  run env \
-    BASE_DEMO_RELEASE_BOM_PATH="$output_dir/release-bom.json" \
-    BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT=0000000000000000000000000000000000000000 \
-    "$TEST_ROOT/bin/base-demo-release-bom-check"
+  # Finalizing identity does not turn historical release:// placeholders into
+  # fresh passing evidence. The positive finalized gate lives in the Python suite.
   [ "$status" -ne 0 ]
-  [[ "$output" == *"must match the tagged GITHUB_SHA"* ]]
+  [[ "$output" == *"release BOM check:"* ]]
 
   run bash -c 'cd "$1" && shasum -a 256 -c release-bom.sha256 install.sh.sha256' _ "$output_dir"
   [ "$status" -eq 0 ]

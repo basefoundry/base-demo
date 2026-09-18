@@ -34,6 +34,43 @@ source tree or retag a release.
 
 ## Bootstrap provenance
 
+`bin/base-demo-release-bom-check` is a strict publication check, not an input
+preparation check. It runs Base's governed validator plus the demo policy in
+`lib/release_contract/`. It requires all four immutable participants, supported
+dependency-input identity, coherent platforms, and passing required combinations
+for **both macos-14 and ubuntu-24.04**. Duplicate rows/participants, scalar type
+errors, unknown source modes, stale pins, and any failed required row fail closed.
+
+Evidence must name a concrete
+`https://github.com/basefoundry/base-demo/actions/runs/<id>` run. The checker uses
+authenticated, read-only `gh api` calls to verify the repository, exact release
+commit, trusted `tests.yml` push/manual workflow, completed successful result,
+unique passing platform job on its exact runner label, and passing
+`validate-base-cli-source` job. It also retrieves the supported-input JSON at
+that exact commit and compares it with the release input. Component evidence
+must point to a verified combination run. A syntactically valid URL alone is
+not proof; unavailable or mismatched GitHub evidence blocks publication.
+
+The trust root is the reviewed workflow at the reviewed commit: CI must consume
+the structured pins and assert resolved inputs. This verifies repository-owned
+compatibility evidence, not a third-party or cryptographic build attestation.
+macOS proves the full demo; Ubuntu retains its documented setup/read-only scope.
+
+The historical checked-in v0.1.0 BOM is not fresh compatibility evidence and is
+intentionally rejected. Do not rewrite published history or mark new rows passed
+just to satisfy this gate. #293 supplies coherent supported inputs and #303
+binds actual final-candidate evidence. Tests use isolated synthetic records and
+mock server responses; those fixtures are never release proof.
+
+The default inputs are `.release/release-bom.json` and
+`.release/supported-dependencies.json`. Artifact inspection can use
+`BASE_DEMO_RELEASE_BOM_PATH` and `BASE_DEMO_RELEASE_INPUTS_PATH`;
+`BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT` binds the result to the reviewed target.
+There is no offline bypass for publication. GitHub Actions grants only read
+access to Actions evidence during verification.
+
+### Installer inputs
+
 The current source `install.sh` release path is pinned to reviewed immutable
 inputs. These guarantees do **not** apply to the historical v0.1.0 installer.
 The README temporarily downloads the checksum-verified script from commit
