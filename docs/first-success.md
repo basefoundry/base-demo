@@ -31,13 +31,13 @@ scenario guides; their success is not stable-release evidence.
 source checkout. No project build or service startup is needed for this path.
 
 ```bash
-basectl run --list
-basectl test --dry-run
+basectl run base-demo --list --workspace "$(dirname "$PWD")"
+basectl test base-demo --dry-run --workspace "$(dirname "$PWD")"
 basectl trust status base-demo --workspace "$(dirname "$PWD")"
 # Inspect base_manifest.yaml and src/hello.sh before approving this checkout.
 basectl trust allow base-demo --workspace "$(dirname "$PWD")"
-BASE_DEMO_ENV=baseline basectl run hello
-basectl export-context --format markdown --print
+BASE_DEMO_ENV=baseline basectl run base-demo hello --workspace "$(dirname "$PWD")"
+basectl export-context base-demo --workspace "$(dirname "$PWD")" --format markdown --print
 ```
 
 **Done:** the command prints `hello from base-demo`, `BASE_PROJECT=base-demo`
