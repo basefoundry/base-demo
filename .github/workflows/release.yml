@@ -7,12 +7,14 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -29,6 +31,7 @@ jobs:
 
       - name: Verify finalized ecosystem release BOM
         env:
+          GH_TOKEN: ${{ github.token }}
           BASE_DEMO_RELEASE_BOM_PATH: ${{ runner.temp }}/base-demo-release-assets/release-bom.json
           BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT: ${{ github.sha }}
         run: ./bin/base-demo-release-bom-check
@@ -50,6 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -63,6 +67,7 @@ jobs:
 
       - name: Recheck the exact assets before publication
         env:
+          GH_TOKEN: ${{ github.token }}
           BASE_DEMO_RELEASE_BOM_PATH: ${{ runner.temp }}/base-demo-release-assets/release-bom.json
           BASE_DEMO_RELEASE_BOM_EXPECTED_COMMIT: ${{ github.sha }}
         run: |

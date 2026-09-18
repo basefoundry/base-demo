@@ -12,6 +12,9 @@ promotes this section into a dated version heading before tagging.
 
 ### Changed
 
+- Made release BOM publication fail closed on incomplete participants, stale
+  pins, inconsistent platforms, and missing exact-commit hosted evidence.
+
 - Corrected the public bootstrap to a checksum-verified, immutable source
   installer, with explicit historical-release limitations and contract tests
   against the actual downloaded script.

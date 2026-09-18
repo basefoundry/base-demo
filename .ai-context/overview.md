@@ -1,5 +1,10 @@
 # base-demo Overview
 
+The release BOM gate reuses Base's governed contract and requires both platform
+jobs plus source-provider evidence at the exact release commit. Static pins and
+historical release:// records are not passing compatibility proof; see
+`docs/release.md` for the read-only GitHub evidence and supported-input contract.
+
 `base-demo` is the public reference project and representative environment for
 Base-managed repositories.
 
