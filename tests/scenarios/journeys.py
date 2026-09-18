@@ -17,16 +17,17 @@ def main():
         shutil.copy2(source / "src/hello.sh", root / "src/hello.sh")
         (root / ".ai-context").mkdir()
         (root / ".ai-context/overview.md").write_text("# Disposable evaluator handoff\n")
-        fixture.run("run", "--list", cwd=root)
-        fixture.run("test", "--dry-run", cwd=root)
+        workspace = ("--workspace", fixture.workspace)
+        fixture.run("run", "base-demo", "--list", *workspace, cwd=root)
+        fixture.run("test", "base-demo", "--dry-run", *workspace, cwd=root)
         fixture.run("trust", "status", "base-demo", "--workspace", fixture.workspace, cwd=root)
-        fixture.run("run", "hello", cwd=root, expected=1)
+        fixture.run("run", "base-demo", "hello", *workspace, cwd=root, expected=1)
         fixture.run("trust", "allow", "base-demo", "--workspace", fixture.workspace, cwd=root)
         fixture.env["BASE_DEMO_ENV"] = "baseline"
-        output = fixture.run("run", "hello", cwd=root).stdout
+        output = fixture.run("run", "base-demo", "hello", *workspace, cwd=root).stdout
         for expected in ("hello from base-demo", "BASE_PROJECT=base-demo", "BASE_DEMO_ENV=baseline"):
             assert expected in output
-        handoff = fixture.run("export-context", "--format", "markdown", "--print", cwd=root).stdout
+        handoff = fixture.run("export-context", "base-demo", *workspace, "--format", "markdown", "--print", cwd=root).stdout
         assert "Disposable evaluator handoff" in handoff
         fixture.no_ide_settings()
         print("PASS: evaluator inspection, safe denial/recovery, actual hello script and context handoff")
