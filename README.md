@@ -8,6 +8,18 @@
 
 Reference Base-managed project and representative demo environment.
 
+## Start with your goal
+
+- **Evaluate Base:** [inspect, run one command, and export a handoff](docs/first-success.md#evaluate-base).
+- **Adopt Base in your project:** [map one real validation command](docs/first-success.md#adopt-base-in-a-project).
+- **Contribute to this demo:** [validate an issue-backed change](docs/first-success.md#contribute-to-base-demo).
+
+Each path states prerequisites, a completion check, and one safe recovery.
+This demo is a **curated representative subset**, not every Base contract.
+Current-source paths use the [supported inputs](.release/supported-dependencies.json);
+the historical-release Quick Start below installs older versions until v0.2.0
+publication. Neither path implies native Windows or a full Linux demo.
+
 This repository is the public reference project for Base-managed repositories.
 It demonstrates Base on a compact but credible project shape: small enough to
 inspect in one sitting, but substantial enough to represent the tools and
@@ -158,6 +170,12 @@ missing Go or Java. The hosted full representative-environment lane sets
 toolchain is unavailable, and requires live HTTP execution markers for all four
 API services. That smoke lane uses loopback listeners and does not require
 Docker Compose.
+
+## Complete command reference
+
+Use this inventory after a [first-success path](docs/first-success.md), not as
+an unattended script. Review the manifest before the explicit trust command;
+setup, approval and command execution can change local state.
 
 ```bash
 basectl projects list
