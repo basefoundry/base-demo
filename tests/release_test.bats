@@ -2,6 +2,7 @@
 
 setup() {
   TEST_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd -P)"
+  TEST_TAG="v$(< "$TEST_ROOT/VERSION")"
   TEST_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/base-demo-release-test.XXXXXX")"
   TEST_REPO="$TEST_TMPDIR/repo"
   mkdir -p "$TEST_REPO"
@@ -107,13 +108,13 @@ resolve_release_commit() {
   git -C "$TEST_REPO" add VERSION install.sh .release/release-bom.json
   git -C "$TEST_REPO" commit -q -m "prepare release inputs"
   target_commit="$(git -C "$TEST_REPO" rev-parse HEAD)"
-  git -C "$TEST_REPO" tag -a v0.1.0 -m "base-demo v0.1.0" "$target_commit"
+  git -C "$TEST_REPO" tag -a "$TEST_TAG" -m "base-demo $TEST_TAG" "$target_commit"
   output_dir="$TEST_TMPDIR/finalized"
 
   run "$TEST_ROOT/bin/base-demo-release-provenance" \
     --repo "$TEST_REPO" \
     --main-ref main \
-    v0.1.0 \
+    "$TEST_TAG" \
     "$target_commit"
 
   [ "$status" -eq 0 ]
@@ -123,7 +124,7 @@ resolve_release_commit() {
     --output-dir "$output_dir"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"v0.1.0"* ]]
+  [[ "$output" == *"$TEST_TAG"* ]]
   run python3 -c '
 import json
 import sys
@@ -138,7 +139,7 @@ rows = [
 assert len(rows) == 1 and rows[0]["commit"] == sys.argv[2]
 ' "$output_dir/release-bom.json" "$target_commit"
   [ "$status" -eq 0 ]
-  grep -Fq 'PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-v0.1.0}"' "$output_dir/install.sh"
+  grep -Fq "PROJECT_RELEASE_REF=\"\${PROJECT_RELEASE_REF:-$TEST_TAG}\"" "$output_dir/install.sh"
   grep -Fq "PROJECT_RELEASE_COMMIT=\"\${PROJECT_RELEASE_COMMIT:-$target_commit}\"" "$output_dir/install.sh"
   [ -x "$output_dir/install.sh" ]
   [ "$(shasum -a 256 "$TEST_REPO/install.sh" | awk '{print $1}')" = "$original_installer_sha" ]
@@ -182,7 +183,7 @@ assert len(rows) == 1 and rows[0]["commit"] == sys.argv[2]
   [ ! -e "$TEST_TMPDIR/invalid/release-bom.json" ]
 }
 
-@test "install release pins resolve refs to their target commits" {
+@test "prepared installer self pin matches BOM while released Base ref resolves exactly" {
   project_ref="$(sed -n 's/^PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
   project_pin="$(sed -n 's/^PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
   base_ref="$(sed -n 's/^BASE_RELEASE_REF="${BASE_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
@@ -193,9 +194,21 @@ assert len(rows) == 1 and rows[0]["commit"] == sys.argv[2]
   [ -n "$base_ref" ]
   [ -n "$base_pin" ]
 
-  run resolve_release_commit "$TEST_ROOT" "${PROJECT_REPO_URL:-https://github.com/basefoundry/base-demo.git}" "$project_ref"
+  # The next demo tag does not exist during its version PR, and the tracked
+  # self pin cannot name its own eventual merge SHA. Do not demand a published
+  # tag here. Finalized artifact identity is checked by provenance + live BOM
+  # evidence after merge; this test only checks the prepared input contract.
+  run python3 -c '
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+bom = json.loads((root / ".release/release-bom.json").read_text())
+tag = "v" + (root / "VERSION").read_text().strip()
+assert sys.argv[2] == tag == bom["release"]["tag"]
+assert sys.argv[3] == bom["release"]["commit"]
+rows = [r for r in bom["components"] if r["repository"] == "basefoundry/base-demo"]
+assert len(rows) == 1 and rows[0]["tag"] == tag and rows[0]["commit"] == sys.argv[3]
+' "$TEST_ROOT" "$project_ref" "$project_pin"
   [ "$status" -eq 0 ]
-  [ "$output" = "$project_pin" ]
 
   run resolve_release_commit "$TEST_ROOT/../base" "${BASE_REPO_URL:-https://github.com/basefoundry/base.git}" "$base_ref"
   [ "$status" -eq 0 ]

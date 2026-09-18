@@ -119,6 +119,10 @@ silently accepted by the release path.
 
 ## Release procedure
 
+For the current train, use the [v0.2.0 owner handoff](v0.2.0-readiness.md).
+Implementation/merge authority does not grant tag/publication authority or
+waive the minor-release bake and independent-review decision.
+
 1. Keep post-release work under `## [Unreleased]` in `CHANGELOG.md`.
 2. In a release PR, choose the next SemVer version, update `VERSION` and all
    governed metadata, promote `Unreleased` into a dated version section, and
@@ -127,8 +131,12 @@ silently accepted by the release path.
 3. Generate or update the demo component row with
    `bin/base-demo-release-bom-row`, update `.release/release-bom.json` from the
    coordinated release inputs, then run `bin/base-demo-release-check`,
-   `bin/base-demo-release-bom-check`, `mise run validate`, and the normal hosted
-   pull-request checks. Do not try to pin the final merge SHA in this commit.
+   `bin/base-demo-dependencies --check`, `mise run validate`, and the normal
+   hosted pull-request checks. The prepared `not_tested` BOM is not publication
+   proof and must fail the strict BOM gate. After merge, bind a successful
+   exact-commit compatibility run with `base-demo-release-finalize --evidence-run`
+   and check the resulting external BOM as shown in the owner handoff. Do not
+   try to pin the final merge SHA in this commit.
 4. After the release PR is merged to `main`, create an annotated tag from the
    clean merge commit: `git tag -a vX.Y.Z -m "base-demo vX.Y.Z"`.
 5. Push the tag. The read-only `verify` job in the `Release Demo` workflow

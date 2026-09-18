@@ -10,6 +10,7 @@ setup() {
   TEST_GIT_LOG="$TEST_TMPDIR/git.log"
   TEST_BASE_COMMIT="$(sed -n 's/^BASE_RELEASE_COMMIT="${BASE_RELEASE_COMMIT:-\([^}]*\)}"$/\1/p' "$TEST_BOOTSTRAP")"
   TEST_PROJECT_COMMIT="$(sed -n 's/^PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-\([^}]*\)}"$/\1/p' "$TEST_BOOTSTRAP")"
+  TEST_PROJECT_REF="$(sed -n 's/^PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_BOOTSTRAP")"
   TEST_BASE_REF="$(sed -n 's/^BASE_RELEASE_REF="${BASE_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_BOOTSTRAP")"
 
   mkdir -p "$TEST_FAKE_BIN"
@@ -185,10 +186,10 @@ installer_sha256() {
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"Installing pinned Base release '$TEST_BASE_REF'"* ]]
-  [[ "$output" == *"Cloning pinned base-demo release 'v0.1.0'"* ]]
+  [[ "$output" == *"Cloning pinned base-demo release '$TEST_PROJECT_REF'"* ]]
   [[ "$output" == *"Verified pinned Base commit $TEST_BASE_COMMIT"* ]]
   [[ "$output" == *"Verified pinned base-demo commit $TEST_PROJECT_COMMIT"* ]]
-  grep -Fq -- "clone --depth 1 --branch v0.1.0 https://github.com/basefoundry/base-demo.git" "$TEST_GIT_LOG"
+  grep -Fq -- "clone --depth 1 --branch $TEST_PROJECT_REF https://github.com/basefoundry/base-demo.git" "$TEST_GIT_LOG"
   [ -f "$TEST_MARKER" ]
 }
 

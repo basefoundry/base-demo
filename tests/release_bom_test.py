@@ -155,6 +155,26 @@ class BomTests(unittest.TestCase):
                     build(root, "a" * 40, "123")
             self.assertEqual(path.read_bytes(), original)
 
+    def test_next_version_can_be_prepared_without_certifying_or_publishing_it(self):
+        build = runpy.run_path(str(ROOT / "bin/base-demo-release-finalize"))["build_assets"]
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / ".release").mkdir()
+            (root / "VERSION").write_text("0.2.0\n")
+            (root / "install.sh").write_bytes((ROOT / "install.sh").read_bytes())
+            self.bom["release"].update(version="0.2.0", tag="v0.2.0")
+            self.bom["components"][0].update(version="0.2.0", tag="v0.2.0")
+            for row in self.bom["components"] + self.bom["combinations"]:
+                row.update(result="not_tested", evidence="pending")
+            (root / ".release/release-bom.json").write_text(json.dumps(self.bom))
+            tag, content, installer, _ = build(root, "a" * 40)
+            self.assertEqual(tag, "v0.2.0")
+            self.assertIn(b'PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-v0.2.0}"', installer)
+            self.assertTrue(all(r["result"] == "not_tested" for r in json.loads(content)["components"]))
+            with self.assertRaises(ValueError):
+                demo_bom.check(json.loads(content), self.inputs, "0.2.0", "a" * 40)
+            self.assertFalse((root / ".git").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
