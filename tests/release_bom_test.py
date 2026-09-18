@@ -2,6 +2,7 @@
 import base64
 import copy
 import json
+import runpy
 from pathlib import Path
 import subprocess
 import sys
@@ -132,6 +133,27 @@ class BomTests(unittest.TestCase):
                             "--commit", "a" * 40, "--output-dir", str(output)], check=True, capture_output=True)
             self.bom = json.loads((output / "release-bom.json").read_text())
             self.check()
+
+    def test_finalizer_binds_only_verified_evidence(self):
+        build = runpy.run_path(str(ROOT / "bin/base-demo-release-finalize"))["build_assets"]
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / ".release").mkdir()
+            (root / "VERSION").write_text("0.1.0\n")
+            (root / "install.sh").write_bytes((ROOT / "install.sh").read_bytes())
+            for row in self.bom["components"] + self.bom["combinations"]:
+                row.update(result="not_tested", evidence="pending")
+            path = root / ".release/release-bom.json"
+            path.write_text(json.dumps(self.bom))
+            original = path.read_bytes()
+            (root / ".release/supported-dependencies.json").write_text(json.dumps(self.inputs))
+            with patch.object(demo_bom, "api", side_effect=self.api):
+                _, content, _, _ = build(root, "a" * 40, "123")
+                self.assertTrue(all(r["result"] == "passed" for r in json.loads(content)["components"]))
+                self.run["conclusion"] = "failure"
+                with self.assertRaises(SystemExit):
+                    build(root, "a" * 40, "123")
+            self.assertEqual(path.read_bytes(), original)
 
 
 if __name__ == "__main__":

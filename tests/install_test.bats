@@ -8,8 +8,9 @@ setup() {
   TEST_INSTALLER="$TEST_TMPDIR/base-install.sh"
   TEST_MARKER="$TEST_TMPDIR/installer-executed"
   TEST_GIT_LOG="$TEST_TMPDIR/git.log"
-  TEST_BASE_COMMIT="26b9af5dee16efcb47e652513ce734b3ae9bc920"
-  TEST_PROJECT_COMMIT="b8ac2ae490e4965b8131195a11377fd0bd787daf"
+  TEST_BASE_COMMIT="$(sed -n 's/^BASE_RELEASE_COMMIT="${BASE_RELEASE_COMMIT:-\([^}]*\)}"$/\1/p' "$TEST_BOOTSTRAP")"
+  TEST_PROJECT_COMMIT="$(sed -n 's/^PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-\([^}]*\)}"$/\1/p' "$TEST_BOOTSTRAP")"
+  TEST_BASE_REF="$(sed -n 's/^BASE_RELEASE_REF="${BASE_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_BOOTSTRAP")"
 
   mkdir -p "$TEST_FAKE_BIN"
   write_fake_curl
@@ -183,7 +184,7 @@ installer_sha256() {
   run run_installer "$(installer_sha256)"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Installing pinned Base release 'v1.8.0'"* ]]
+  [[ "$output" == *"Installing pinned Base release '$TEST_BASE_REF'"* ]]
   [[ "$output" == *"Cloning pinned base-demo release 'v0.1.0'"* ]]
   [[ "$output" == *"Verified pinned Base commit $TEST_BASE_COMMIT"* ]]
   [[ "$output" == *"Verified pinned base-demo commit $TEST_PROJECT_COMMIT"* ]]

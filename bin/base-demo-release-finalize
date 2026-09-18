@@ -13,6 +13,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "lib/release_contract"))
+from demo_bom import check
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -21,7 +23,7 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
-def build_assets(repo: Path, commit: str) -> tuple[str, bytes, bytes, int]:
+def build_assets(repo: Path, commit: str, evidence_run: str | None = None) -> tuple[str, bytes, bytes, int]:
     if not SHA_RE.fullmatch(commit):
         fail("--commit must be a full lowercase 40-character SHA")
 
@@ -71,6 +73,20 @@ def build_assets(repo: Path, commit: str) -> tuple[str, bytes, bytes, int]:
 
     release["commit"] = commit
     self_row["commit"] = commit
+    if evidence_run is not None:
+        if not re.fullmatch(r"[1-9][0-9]*", evidence_run):
+            fail("--evidence-run must be a positive Actions run ID")
+        try:
+            inputs = json.loads((repo / ".release/supported-dependencies.json").read_text())
+            for row in bom["components"] + bom["combinations"]:
+                if row.get("required") is True:
+                    row["result"] = "passed"
+                    row["evidence"] = f"https://github.com/basefoundry/base-demo/actions/runs/{evidence_run}"
+            # This is only an in-memory candidate until server-owned evidence
+            # has been verified. Failed or unavailable proof writes no assets.
+            check(bom, inputs, version, commit)
+        except (OSError, ValueError, KeyError) as exc:
+            fail(f"could not bind compatibility evidence: {exc}")
     finalized_bom = (json.dumps(bom, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
 
     installer_path = repo / "install.sh"
@@ -155,13 +171,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog="base-demo-release-finalize")
     parser.add_argument("--repo", type=Path, default=ROOT, help="prepared repository root")
     parser.add_argument("--commit", required=True, help="reviewed annotated-tag target commit")
+    parser.add_argument("--evidence-run", help="successful exact-commit compatibility run to verify and bind")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--output-dir", type=Path, help="write finalized release assets here")
     mode.add_argument("--verify-dir", type=Path, help="verify previously generated release assets")
     args = parser.parse_args()
 
     repo = args.repo.resolve()
-    tag, bom, installer, installer_mode = build_assets(repo, args.commit)
+    tag, bom, installer, installer_mode = build_assets(repo, args.commit, args.evidence_run)
     assets = {
         "release-bom.json": bom,
         "install.sh": installer,
