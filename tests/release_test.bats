@@ -182,7 +182,7 @@ assert len(rows) == 1 and rows[0]["commit"] == sys.argv[2]
   [ ! -e "$TEST_TMPDIR/invalid/release-bom.json" ]
 }
 
-@test "install release pins resolve refs to their target commits" {
+@test "prepared installer self pin matches BOM while released Base ref resolves exactly" {
   project_ref="$(sed -n 's/^PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
   project_pin="$(sed -n 's/^PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
   base_ref="$(sed -n 's/^BASE_RELEASE_REF="${BASE_RELEASE_REF:-\([^}]*\)}"$/\1/p' "$TEST_ROOT/install.sh")"
@@ -193,9 +193,21 @@ assert len(rows) == 1 and rows[0]["commit"] == sys.argv[2]
   [ -n "$base_ref" ]
   [ -n "$base_pin" ]
 
-  run resolve_release_commit "$TEST_ROOT" "${PROJECT_REPO_URL:-https://github.com/basefoundry/base-demo.git}" "$project_ref"
+  # The next demo tag does not exist during its version PR, and the tracked
+  # self pin cannot name its own eventual merge SHA. Do not demand a published
+  # tag here. Finalized artifact identity is checked by provenance + live BOM
+  # evidence after merge; this test only checks the prepared input contract.
+  run python3 -c '
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+bom = json.loads((root / ".release/release-bom.json").read_text())
+tag = "v" + (root / "VERSION").read_text().strip()
+assert sys.argv[2] == tag == bom["release"]["tag"]
+assert sys.argv[3] == bom["release"]["commit"]
+rows = [r for r in bom["components"] if r["repository"] == "basefoundry/base-demo"]
+assert len(rows) == 1 and rows[0]["tag"] == tag and rows[0]["commit"] == sys.argv[3]
+' "$TEST_ROOT" "$project_ref" "$project_pin"
   [ "$status" -eq 0 ]
-  [ "$output" = "$project_pin" ]
 
   run resolve_release_commit "$TEST_ROOT/../base" "${BASE_REPO_URL:-https://github.com/basefoundry/base.git}" "$base_ref"
   [ "$status" -eq 0 ]
