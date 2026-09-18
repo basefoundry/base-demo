@@ -1,0 +1,61 @@
+name: Isolated Base scenarios
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scenarios-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trust:
+    name: Trust scenarios (${{ matrix.lane }})
+    runs-on: macos-14
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lane: stable-v1.9
+            base: ac8d294421e1bfc14afa8c6a2a12f1affb5268ee
+            options: ""
+          - lane: advisory-v1.10-candidate
+            base: 5f316aeddc3680b92bd209fcfe652eac020d02d0
+            options: --candidate
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: basefoundry/base
+          ref: ${{ matrix.base }}
+          path: .dependencies/base
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: basefoundry/base-cli
+          ref: 8a93d22156ba75a99965f7c355f867acba630069
+          path: .dependencies/base-cli
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: basefoundry/base-bash-libs
+          ref: 36fec50c446dcea8c521a1ba3e7fee2394f169c0
+          path: .dependencies/base-bash-libs
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Install fixture interpreter dependencies
+        run: python -m pip install ./.dependencies/base-cli PyYAML tomli
+      - name: Verify isolated trust and consent contracts
+        env:
+          BASE_SCENARIO_COMMIT: ${{ matrix.base }}
+          BASE_SCENARIO_OPTIONS: ${{ matrix.options }}
+        run: |
+          python tests/scenarios/trust.py \
+            --base .dependencies/base --base-commit "$BASE_SCENARIO_COMMIT" \
+            --base-cli .dependencies/base-cli --bash-libs .dependencies/base-bash-libs \
+            --python "$(command -v python)" $BASE_SCENARIO_OPTIONS

@@ -1,5 +1,11 @@
 # base-demo Overview
 
+Disposable trust scenarios live in `tests/scenarios/trust.py` and
+`docs/trust-scenarios.md`. The stable v1.9 lane does not claim full historical
+revocation or static runtime inspection; those assertions use a separately
+pinned v1.10 candidate. Fixture homes and IDE delegate spies prevent learner
+state mutation. Scenario success does not certify host readiness.
+
 The release BOM gate reuses Base's governed contract and requires both platform
 jobs plus source-provider evidence at the exact release commit. Static pins and
 historical release:// records are not passing compatibility proof; see

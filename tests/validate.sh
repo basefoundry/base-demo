@@ -168,6 +168,7 @@ fi
 
 python3 tests/release_bom_test.py || exit 1
 python3 tests/dependency_inputs_test.py || exit 1
+python3 tests/scenario_harness_test.py || exit 1
 
 if ! bash tests/public_install_test.sh; then
   printf 'The exact public bootstrap input failed its contract tests.\n' >&2
