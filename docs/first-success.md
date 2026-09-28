@@ -16,8 +16,8 @@ Need Base first? Follow the canonical [adopter golden path](https://github.com/b
 for install and consent decisions, then select the stable inputs above. That
 document is pinned for reference, not an instruction to substitute its candidate
 for the stable runtime. The README's checksum-verified [Quick Start](../README.md#quick-start)
-is a separate historical Base 1.8/demo 0.1 route until v0.2.0 is published; do not
-mix its results with current-source evidence or reset a divergent checkout.
+is the published Base 1.9/demo 0.2 release route; do not mix its results with
+moving-source development evidence or reset a divergent checkout.
 
 Ubuntu/Debian (including WSL2 on its native filesystem) supports Base setup and
 the CI-safe read-only project-health path, not the full demo loop. Native Windows
