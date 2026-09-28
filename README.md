@@ -17,8 +17,8 @@ Reference Base-managed project and representative demo environment.
 Each path states prerequisites, a completion check, and one safe recovery.
 This demo is a **curated representative subset**, not every Base contract.
 Current-source paths use the [supported inputs](.release/supported-dependencies.json);
-the historical-release Quick Start below installs older versions until v0.2.0
-publication. Neither path implies native Windows or a full Linux demo.
+the release Quick Start below installs the verified v0.2.0 assets. Neither path
+implies native Windows or a full Linux demo.
 
 This repository is the public reference project for Base-managed repositories.
 It demonstrates Base on a compact but credible project shape: small enough to
@@ -90,35 +90,33 @@ in the Base repository.
 
 ## Quick Start
 
-Until v0.2.0 publishes verified installer assets, use this interim, immutable
-bootstrap script from reviewed source commit `96f8e6d0c016aaf73e1a8c448ac92c9222a5aced`.
-It installs **Base v1.8.0 and base-demo v0.1.0**, not current `main`.
-Run this macOS quick start in a temporary directory; inspect the script before
-execution if required by your environment:
+Use the verified v0.2.0 release asset. It installs **Base v1.9.0 and
+base-demo v0.2.0** at the exact commits recorded in the release BOM. Run this
+macOS quick start in a temporary directory; inspect the script before execution
+if required by your environment:
 
 ```bash
 bootstrap_dir="$(mktemp -d)"
 (
   cd "$bootstrap_dir" || exit 1
-  curl -fsSL https://raw.githubusercontent.com/basefoundry/base-demo/96f8e6d0c016aaf73e1a8c448ac92c9222a5aced/install.sh -o install.sh &&
-  printf '%s  install.sh\n' dc8728510651c8b59fcc4a99dbf12e7e7c152858a99b745de90cdb7210e85d82 | shasum -a 256 -c - &&
+  curl -fsSL https://github.com/basefoundry/base-demo/releases/download/v0.2.0/install.sh -o install.sh &&
+  printf '%s  install.sh\n' fab41851d0f7b3f0d533cc7fbc336cde851332e8cb4382a100fe1aeebbde593d | shasum -a 256 -c - &&
   RUN_UPDATE_PROFILE=false bash install.sh
 )
 ```
 
-The checksum gates execution. This reviewed script verifies its Base installer
+The checksum gates execution. This reviewed release asset verifies its Base installer
 and both checkout commits. Fresh installs use `~/work`; clean existing checkouts
 at those exact commits are reused, while dirty or divergent checkouts fail
 without being pulled, reset, detached, or switched. This command opts out of
 shell-profile updates; setup still installs dependencies and project tools.
-An existing developer workspace should use the developer route below instead
-of deleting or resetting its checkouts to make this release route pass.
+An existing developer workspace should use the developer route below instead of
+deleting or resetting its checkouts to make this release route pass.
 
 The historical **v0.1.0/install.sh does not provide these guarantees**: it uses
 a moving Base installer, permits an absent checksum, and can pull an existing
-checkout. Do not substitute that old script for the checksum-verified input
-above. [Release preparation #303](https://github.com/basefoundry/base-demo/issues/303)
-tracks replacing this interim URL with the verified v0.2.0 release asset.
+checkout. Do not substitute that old script for the checksum-verified v0.2.0
+asset above.
 
 Contributors with current source peer checkouts under one workspace should opt
 into the local developer path explicitly (from the current base-demo checkout):

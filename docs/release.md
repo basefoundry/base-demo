@@ -73,20 +73,17 @@ access to Actions evidence during verification.
 
 The current source `install.sh` release path is pinned to reviewed immutable
 inputs. These guarantees do **not** apply to the historical v0.1.0 installer.
-The README temporarily downloads the checksum-verified script from commit
-`96f8e6d0c016aaf73e1a8c448ac92c9222a5aced`; it still installs the older release
-Base v1.8.0/demo v0.1.0 checkouts, not the current supported input selection
-or that source commit as the demo checkout.
-Before closing [#303](https://github.com/basefoundry/base-demo/issues/303), replace
-the README's interim script URL and digest with the new verified release asset,
-update the stated consumed versions, and rerun `bash tests/public_install_test.sh`.
+The README downloads the checksum-verified `v0.2.0` release asset. It installs
+the supported Base v1.9.0 and base-demo v0.2.0 checkouts recorded below. The
+release asset is finalized from the annotated tag target, so its self-commit
+pin is the exact immutable v0.2.0 commit.
 
 The consumed inputs are:
 
 - Base installer: the version, full commit and SHA-256 selected by
   `.release/supported-dependencies.json`, materialized in current `install.sh`;
-- base-demo checkout: release ref `v0.1.0` and commit
-  `b8ac2ae490e4965b8131195a11377fd0bd787daf`.
+- base-demo checkout: release ref `v0.2.0` and commit
+  `c5709ed8dfa623539e9c326554712490e14f1774`.
 
 When preparing a release, update `PROJECT_RELEASE_REF` in the reviewed
 `install.sh` source to the new release tag. Keep `PROJECT_RELEASE_COMMIT` as a

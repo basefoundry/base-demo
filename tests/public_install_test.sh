@@ -13,7 +13,10 @@ from pathlib import Path
 
 section = Path(sys.argv[1]).read_text().split('## Quick Start\n', 1)[1]
 block = section.split('```bash\n', 1)[1].split('```', 1)[0]
-urls = re.findall(r'curl -fsSL (https://raw\.githubusercontent\.com/basefoundry/base-demo/[0-9a-f]{40}/install\.sh) -o install\.sh', block)
+urls = re.findall(
+    r'curl -fsSL (https://github\.com/basefoundry/base-demo/releases/download/v[0-9]+\.[0-9]+\.[0-9]+/install\.sh) -o install\.sh',
+    block,
+)
 digests = re.findall(r"printf '%s  install.sh\\n' ([0-9a-f]{64}) \| shasum -a 256 -c -", block)
 if len(urls) != 1 or len(digests) != 1:
     sys.exit('public bootstrap must have one exact-commit URL and SHA-256 gate')
