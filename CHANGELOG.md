@@ -10,6 +10,8 @@ and versions are tracked in the repo-root `VERSION` file.
 Changes after the latest published release belong here. The release workflow
 promotes this section into a dated version heading before tagging.
 
+## [0.2.0] - 2026-09-28
+
 ### Changed
 
 - Aligned current source with the supported Base 1.9.0, base-cli 0.4.3 and
