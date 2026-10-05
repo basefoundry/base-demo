@@ -2,8 +2,10 @@
 
 This compact scenario creates disposable healthy, failing, untrusted, no-test,
 missing-required and undeclared peers. It uses the same isolated HOME, cache,
-provider checks and cleanup as the [trust scenario](trust-scenarios.md). No
-clone, setup, repository initialization or learner-state mutation is performed.
+provider checks and cleanup as the [trust scenario](trust-scenarios.md). It does
+not clone or set up learner repositories or mutate learner state. Candidate
+coverage also creates local Git fixtures to exercise update preflight safety;
+those repositories are disposable and never leave the fixture directory.
 Generated recovery commands are inspected; only a reviewed fixture-local trust
 command is executed. Expected failures are assertions, not repair requests.
 
@@ -43,6 +45,10 @@ The candidate asserts:
   1; successful selection exits 0. `--fail-fast` skips later selected peers.
 - Two selected aliases of one manifest are rejected (exit 2); selecting one
   alias runs the intended checkout once.
+- `workspace update --dry-run --format json` rejects a dirty checkout, a
+  manifest path nested inside an ancestor Git checkout, and a default branch
+  tracking the wrong upstream branch. The assertions verify the structured
+  preflight classification and that no checkout changes are made.
 
 Each completed assertion group prints `PASS`; fixtures are removed on success
 or exception. There is no second application stack and no host-readiness claim.

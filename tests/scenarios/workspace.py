@@ -3,8 +3,74 @@ from __future__ import annotations
 
 import json
 import shlex
+import subprocess
 
 from fixture import Fixture, arguments
+
+
+def run_git(*args, cwd=None):
+    return subprocess.run(
+        ["git", *map(str, args)],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def create_bare_remote(root):
+    root.parent.mkdir(parents=True, exist_ok=True)
+    run_git("init", "--bare", "--initial-branch=main", root)
+
+
+def create_git_checkout(root, remote=None):
+    root.parent.mkdir(parents=True, exist_ok=True)
+    run_git("init", "--initial-branch=main", root)
+    run_git("config", "user.name", "Base Demo Scenario", cwd=root)
+    run_git("config", "user.email", "scenario@example.com", cwd=root)
+    (root / "README.md").write_text("scenario\n")
+    run_git("add", "README.md", cwd=root)
+    run_git("commit", "-m", "initial", cwd=root)
+    if remote is not None:
+        run_git("remote", "add", "origin", remote, cwd=root)
+        run_git("push", "--set-upstream", "origin", "main", cwd=root)
+
+
+def write_update_manifest(path, repository):
+    path.write_text(
+        "schema_version: 1\n"
+        "workspace:\n"
+        "  name: update-safety\n"
+        "repos:\n"
+        f"  - name: {repository}\n"
+        "    default_branch: main\n"
+    )
+    return path
+
+
+def run_update(fixture, workspace, manifest):
+    result = fixture.run(
+        "workspace",
+        "update",
+        "--workspace",
+        workspace,
+        "--manifest",
+        manifest,
+        "--dry-run",
+        "--format",
+        "json",
+        expected=1,
+    )
+    return json.loads(result.stdout)
+
+
+def assert_preflight(payload, repository, issue):
+    report = next(item for item in payload["repositories"] if item["repository"] == repository)
+    assert report["action"] == "skip"
+    assert report["status"] == "skipped"
+    assert report["preflight"] == [issue]
+    assert report["fatal"]
+    assert payload["counts"] == {"planned": 0, "updated": 0, "unchanged": 0, "skipped": 1, "failed": 1}
 
 
 def main():
@@ -83,6 +149,61 @@ def main():
         for name in ("healthy", "failing"):
             fixture.run("trust", "allow", name, "--workspace", fixture.workspace)
         print("PASS: ordered recovery actions bind the reviewed checkout and reject stale manifest evidence")
+
+        update_root = fixture.root / "workspace-update-fixtures"
+        update_root.mkdir()
+
+        dirty_workspace = update_root / "dirty-workspace"
+        dirty_workspace.mkdir()
+        dirty_remote = update_root / "dirty-origin.git"
+        create_bare_remote(dirty_remote)
+        dirty_checkout = dirty_workspace / "dirty"
+        create_git_checkout(dirty_checkout, dirty_remote)
+        (dirty_checkout / "local-change").write_text("must survive\n")
+        dirty_head = run_git("rev-parse", "HEAD", cwd=dirty_checkout).stdout.strip()
+        dirty_payload = run_update(
+            fixture,
+            dirty_workspace,
+            write_update_manifest(update_root / "dirty-workspace.yaml", "dirty"),
+        )
+        assert_preflight(dirty_payload, "dirty", "dirty")
+        assert run_git("rev-parse", "HEAD", cwd=dirty_checkout).stdout.strip() == dirty_head
+        assert (dirty_checkout / "local-change").read_text() == "must survive\n"
+
+        ancestor_workspace = update_root / "ancestor-workspace"
+        ancestor_workspace.mkdir()
+        create_git_checkout(ancestor_workspace)
+        (ancestor_workspace / "nested").mkdir()
+        ancestor_payload = run_update(
+            fixture,
+            ancestor_workspace,
+            write_update_manifest(update_root / "ancestor-workspace.yaml", "nested"),
+        )
+        assert_preflight(ancestor_payload, "nested", "checkout_root_mismatch")
+
+        mismatch_workspace = update_root / "mismatch-workspace"
+        mismatch_workspace.mkdir()
+        mismatch_remote = update_root / "mismatch-origin.git"
+        mismatch_seed = update_root / "mismatch-seed"
+        create_bare_remote(mismatch_remote)
+        create_git_checkout(mismatch_seed, mismatch_remote)
+        run_git("switch", "-c", "feature", cwd=mismatch_seed)
+        (mismatch_seed / "feature.txt").write_text("feature\n")
+        run_git("add", "feature.txt", cwd=mismatch_seed)
+        run_git("commit", "-m", "feature", cwd=mismatch_seed)
+        run_git("push", "--set-upstream", "origin", "feature", cwd=mismatch_seed)
+        mismatch_checkout = mismatch_workspace / "mismatched"
+        run_git("clone", "--branch", "main", mismatch_remote, mismatch_checkout)
+        run_git("branch", "--set-upstream-to=origin/feature", "main", cwd=mismatch_checkout)
+        mismatch_head = run_git("rev-parse", "HEAD", cwd=mismatch_checkout).stdout.strip()
+        mismatch_payload = run_update(
+            fixture,
+            mismatch_workspace,
+            write_update_manifest(update_root / "mismatch-workspace.yaml", "mismatched"),
+        )
+        assert_preflight(mismatch_payload, "mismatched", "upstream_mismatch")
+        assert run_git("rev-parse", "HEAD", cwd=mismatch_checkout).stdout.strip() == mismatch_head
+        print("PASS: workspace update dry-run rejects dirty, ancestor and mismatched-upstream checkouts without changing them")
 
         # Selection is a filter, not an execution-order override. Put the
         # failing peer first in declaration order for the fail-fast example.
