@@ -1,5 +1,6 @@
 """The selection record and its materialized consumers must never drift."""
 import json
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -50,6 +51,23 @@ class InputsTests(unittest.TestCase):
         self.assertEqual(output["base_version"], "1.9.0")
         self.assertEqual(output["base_cli_version"], "0.4.3")
         self.assertEqual(len(output["base_commit"]), 40)
+
+    def test_advisory_candidate_pin_matches_documented_references(self):
+        workflow = (ROOT / ".github/workflows/scenarios.yml").read_text()
+        match = re.search(
+            r"- lane: advisory-v1\.10-candidate\s+base: ([0-9a-f]{40})",
+            workflow,
+        )
+        self.assertIsNotNone(match)
+        candidate = match.group(1)
+        self.assertNotEqual(candidate, "5f316aeddc3680b92bd209fcfe652eac020d02d0")
+        for filename in (
+            "docs/trust-scenarios.md",
+            "docs/workspace-scenarios.md",
+            "docs/first-success.md",
+        ):
+            with self.subTest(filename=filename):
+                self.assertIn(candidate, (ROOT / filename).read_text())
 
 
 if __name__ == "__main__":
