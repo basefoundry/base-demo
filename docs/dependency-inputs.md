@@ -50,9 +50,12 @@ No successful run, wrong input, failed job, or unavailable GitHub lookup means
 no publication. Finalizing without `--evidence-run` remains useful for identity
 fixtures but does not certify the artifacts for publication.
 
-The README interim installer remains deliberately pinned to older reviewed
-script bytes, which consume Base 1.8.0 and demo 0.1.0. Current source inputs do
-not change that historical script. #303 owns the new public release-asset URL.
+The published README installer is pinned to the reviewed v0.2.0 release asset,
+which consumes Base 1.9.0 and demo v0.2.0. The stable source inputs remain
+unchanged while Base v1.10.0 is still a candidate. Refreshing the advisory
+candidate source revision is tracked by #324; it must not be mistaken for a
+stable dependency update or a final release asset. #303 owns the public
+release-asset URL.
 
 ## Candidate boundary
 
