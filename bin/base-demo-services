@@ -744,8 +744,15 @@ def check_service(
             return CheckResult(False, "command:<invalid command>", "command:<invalid command>")
         label = f"command:{shlex.join(command)}"
         try:
-            result = subprocess.run(command, cwd=root, check=False, capture_output=True, text=True, timeout=3.0)
-        except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired) as exc:
+            result = subprocess.run(
+                command,
+                cwd=root,
+                check=False,
+                capture_output=True,
+                text=False,
+                timeout=3.0,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
             return CheckResult(False, label, f"{label} ({exc})")
         return CheckResult(result.returncode == 0, label, label)
 
