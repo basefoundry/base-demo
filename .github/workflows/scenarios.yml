@@ -26,7 +26,7 @@ jobs:
             base: ac8d294421e1bfc14afa8c6a2a12f1affb5268ee
             options: ""
           - lane: advisory-v1.10-candidate
-            base: 5f316aeddc3680b92bd209fcfe652eac020d02d0
+            base: 06715fed19aceff27844aba546ba2a0b4c594ac7
             options: --candidate
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5

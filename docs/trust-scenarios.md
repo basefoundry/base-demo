@@ -31,7 +31,7 @@ inspection are demonstrated only against the implemented v1.10 candidate.
 The stable lane prints this boundary and does not invoke candidate-only flags.
 
 The separate advisory lane uses exact Base commit
-`5f316aeddc3680b92bd209fcfe652eac020d02d0`. Run the same command with that
+`06715fed19aceff27844aba546ba2a0b4c594ac7`. Run the same command with that
 checkout/commit and add `--candidate`. A published v1.10 release is not required,
 but a moving branch is not an acceptable substitute for the recorded revision.
 Both lanes run in [isolated scenario CI](../.github/workflows/scenarios.yml).
@@ -62,4 +62,4 @@ that the host is ready. Local temporary paths are redacted from assertion
 diagnostics. `tests/scenario_harness_test.py` verifies cleanup and redaction.
 
 For the authoritative boundaries, see Base's
-[command-trust policy](https://github.com/basefoundry/base/blob/5f316aeddc3680b92bd209fcfe652eac020d02d0/docs/manifest-command-trust.md).
+[command-trust policy](https://github.com/basefoundry/base/blob/06715fed19aceff27844aba546ba2a0b4c594ac7/docs/manifest-command-trust.md).

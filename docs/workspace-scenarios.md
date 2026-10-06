@@ -23,7 +23,7 @@ workspace identity, missing-peer reporting and read-only behavior. It prints
 an explicit supported-version boundary without invoking newer flags.
 
 For the implemented 1.10 candidate, select its checkout and exact commit
-`5f316aeddc3680b92bd209fcfe652eac020d02d0`, and add `--candidate`.
+`06715fed19aceff27844aba546ba2a0b4c594ac7`, and add `--candidate`.
 [Scenario CI](../.github/workflows/scenarios.yml) runs both lanes. This is
 advisory candidate evidence, not a stable-release compatibility claim.
 
@@ -46,5 +46,5 @@ The candidate asserts:
 
 Each completed assertion group prints `PASS`; fixtures are removed on success
 or exception. There is no second application stack and no host-readiness claim.
-See the exact candidate's [workspace contract](https://github.com/basefoundry/base/blob/5f316aeddc3680b92bd209fcfe652eac020d02d0/docs/workspace-manifest.md)
+See the exact candidate's [workspace contract](https://github.com/basefoundry/base/blob/06715fed19aceff27844aba546ba2a0b4c594ac7/docs/workspace-manifest.md)
 for the authoritative API.
