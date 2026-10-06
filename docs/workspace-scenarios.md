@@ -24,6 +24,10 @@ Base 1.9 checks the existing status, onboarding and agent-brief reports, their
 workspace identity, missing-peer reporting and read-only behavior. It prints
 an explicit supported-version boundary without invoking newer flags.
 
+The candidate update fixtures use `git init --initial-branch` and `git switch`;
+local runs therefore require Git 2.28 or newer, matching the hosted runner
+toolchain.
+
 For the implemented 1.10 candidate, select its checkout and exact commit
 `06715fed19aceff27844aba546ba2a0b4c594ac7`, and add `--candidate`.
 [Scenario CI](../.github/workflows/scenarios.yml) runs both lanes. This is
