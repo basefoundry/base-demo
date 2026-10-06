@@ -2,8 +2,10 @@
 
 This compact scenario creates disposable healthy, failing, untrusted, no-test,
 missing-required and undeclared peers. It uses the same isolated HOME, cache,
-provider checks and cleanup as the [trust scenario](trust-scenarios.md). No
-clone, setup, repository initialization or learner-state mutation is performed.
+provider checks and cleanup as the [trust scenario](trust-scenarios.md). It does
+not clone or set up learner repositories or mutate learner state. Candidate
+coverage also creates local Git fixtures to exercise update preflight safety;
+those repositories are disposable and never leave the fixture directory.
 Generated recovery commands are inspected; only a reviewed fixture-local trust
 command is executed. Expected failures are assertions, not repair requests.
 
@@ -21,6 +23,10 @@ python3 tests/scenarios/workspace.py \
 Base 1.9 checks the existing status, onboarding and agent-brief reports, their
 workspace identity, missing-peer reporting and read-only behavior. It prints
 an explicit supported-version boundary without invoking newer flags.
+
+The candidate update fixtures use `git init --initial-branch` and `git switch`;
+local runs therefore require Git 2.28 or newer, matching the hosted runner
+toolchain.
 
 For the implemented 1.10 candidate, select its checkout and exact commit
 `06715fed19aceff27844aba546ba2a0b4c594ac7`, and add `--candidate`.
@@ -43,6 +49,10 @@ The candidate asserts:
   1; successful selection exits 0. `--fail-fast` skips later selected peers.
 - Two selected aliases of one manifest are rejected (exit 2); selecting one
   alias runs the intended checkout once.
+- `workspace update --dry-run --format json` rejects a dirty checkout, a
+  manifest path nested inside an ancestor Git checkout, and a default branch
+  tracking the wrong upstream branch. The assertions verify the structured
+  preflight classification and that no checkout changes are made.
 
 Each completed assertion group prints `PASS`; fixtures are removed on success
 or exception. There is no second application stack and no host-readiness claim.
