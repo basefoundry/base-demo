@@ -462,6 +462,51 @@ PY
   done
 }
 
+@test "services rejects process checks without a process lifecycle" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+
+  cat > "$catalog" <<'EOF'
+{
+  "services": [
+    {
+      "name": "missing-process-lifecycle",
+      "kind": "service",
+      "runtime": "test",
+      "required": true,
+      "check": {"type": "process"}
+    }
+  ]
+}
+EOF
+
+  run "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" status
+
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"ERROR: service catalog.services[0].check.type process requires service catalog.services[0].lifecycle.type process"* ]]
+  [[ "$output" != *"Traceback"* ]]
+}
+
+@test "the catalog validator rejects process checks through its direct API" {
+  run python3 - "$TEST_ROOT" <<'PY'
+import sys
+
+sys.path.insert(0, sys.argv[1] + "/bin")
+from base_demo_environment import validate_service_catalog
+
+try:
+    validate_service_catalog({"services": [{"name": "invalid", "check": {"type": "process"}}]})
+except ValueError as exc:
+    assert str(exc) == (
+        "service catalog.services[0].check.type process requires "
+        "service catalog.services[0].lifecycle.type process"
+    )
+else:
+    raise AssertionError("process check without lifecycle was accepted")
+PY
+
+  [ "$status" -eq 0 ]
+}
+
 @test "services status shows catalog entries" {
   run "$TEST_ROOT/bin/base-demo-services" status
 

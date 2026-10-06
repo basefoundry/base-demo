@@ -696,6 +696,8 @@ def check_service(
             return CheckResult(False, label, f"process:{state_status.kind}")
 
     if check_type == "process":
+        if lifecycle.get("type") != "process":
+            return CheckResult(False, "process", "process:missing lifecycle")
         return CheckResult(True, "process", "process:running")
 
     if check_type == "none":
