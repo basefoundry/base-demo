@@ -60,14 +60,20 @@ class InputsTests(unittest.TestCase):
         )
         self.assertIsNotNone(match)
         candidate = match.group(1)
-        self.assertNotEqual(candidate, "5f316aeddc3680b92bd209fcfe652eac020d02d0")
+        stable = json.loads(
+            (ROOT / ".release/supported-dependencies.json").read_text()
+        )["components"]["base"]["commit"]
+        documented = set()
         for filename in (
             "docs/trust-scenarios.md",
             "docs/workspace-scenarios.md",
             "docs/first-success.md",
         ):
             with self.subTest(filename=filename):
-                self.assertIn(candidate, (ROOT / filename).read_text())
+                text = (ROOT / filename).read_text()
+                self.assertIn(candidate, text)
+                documented.update(re.findall(r"\b[0-9a-f]{40}\b", text))
+        self.assertEqual(documented, {stable, candidate})
 
 
 if __name__ == "__main__":
