@@ -634,6 +634,68 @@ EOF
   [[ "$output" == *"missing-http skip optional http:<missing health_url>"* ]]
 }
 
+@test "services health isolates command execution and decoding failures" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local bad_command="$TEST_TMPDIR/no-shebang"
+  local byte_command="$TEST_TMPDIR/invalid-bytes.py"
+
+  printf 'exit 0\n' > "$bad_command"
+  chmod +x "$bad_command"
+  cat > "$byte_command" <<'PY'
+#!/usr/bin/env python3
+import sys
+
+sys.stdout.buffer.write(b"\xff\n")
+raise SystemExit(7)
+PY
+  chmod +x "$byte_command"
+
+  python3 - "$catalog" "$bad_command" "$byte_command" <<'PY'
+import json
+import sys
+
+catalog, bad_command, byte_command = sys.argv[1:]
+with open(catalog, "w", encoding="utf-8") as handle:
+    json.dump(
+        {
+            "services": [
+                {
+                    "name": "bad-command",
+                    "kind": "service",
+                    "runtime": "test",
+                    "required": True,
+                    "check": {"type": "command", "command": [bad_command]},
+                },
+                {
+                    "name": "invalid-bytes",
+                    "kind": "service",
+                    "runtime": "test",
+                    "required": False,
+                    "check": {"type": "command", "command": [byte_command]},
+                },
+                {
+                    "name": "later-service",
+                    "kind": "service",
+                    "runtime": "test",
+                    "required": False,
+                    "check": {"type": "none"},
+                },
+            ]
+        },
+        handle,
+    )
+PY
+
+  run "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" check
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"bad-command fail command:"* ]]
+  [[ "$output" == *"invalid-bytes skip optional command:"* ]]
+  [[ "$output" == *"later-service ok"* ]]
+  [[ "$output" != *"Traceback"* ]]
+  [[ "$output" != *"UnicodeDecodeError"* ]]
+}
+
 @test "services validates the complete lifecycle plan before Compose mutation" {
   local catalog="$TEST_TMPDIR/catalog.json"
   local fake_bin="$TEST_TMPDIR/bin"
