@@ -10,6 +10,12 @@ and versions are tracked in the repo-root `VERSION` file.
 Changes after the latest published release belong here. The release workflow
 promotes this section into a dated version heading before tagging.
 
+### Changed
+
+- Clarified that the demo's Python dependencies remain owned by uv and
+  documented the review-gated Base-managed uninstall preview and verification
+  commands.
+
 ## [0.2.0] - 2026-09-28
 
 ### Changed
