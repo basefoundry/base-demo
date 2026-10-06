@@ -115,6 +115,7 @@ def validate_service_catalog(payload: Any) -> list[dict[str, Any]]:
             )
 
         check = service.get("check")
+        check_type: str | None = None
         if check is not None:
             if not isinstance(check, dict):
                 raise ValueError(f"{location}.check must be an object")
@@ -154,6 +155,14 @@ def validate_service_catalog(payload: Any) -> list[dict[str, Any]]:
                         f"{location}.lifecycle.readiness_timeout_seconds "
                         "must be a positive finite number"
                     )
+
+        if check_type == "process" and not (
+            isinstance(lifecycle, dict) and lifecycle.get("type") == "process"
+        ):
+            raise ValueError(
+                f"{location}.check.type process requires "
+                f"{location}.lifecycle.type process"
+            )
 
     return services
 
