@@ -8,10 +8,12 @@ evidence that this repository does not execute.
 Current Base release: `1.9.0`  
 Planned Base release: `1.10.0`
 
-The repository's CI still exercises the immutable Base `v1.8.0` compatibility
-pin. That is recorded as a gap below until the compatibility train updates the
-pin and adds the release-specific evidence. A moving local Base checkout is
-useful for development, but does not by itself establish released compatibility.
+The stable CI lane exercises the immutable Base `v1.9.0` compatibility pin. A
+separate advisory lane exercises the exact Base `v1.10.0` candidate commit; it
+is useful release evidence, but does not establish released compatibility until
+Base publishes `v1.10.0` and the final downstream BOM is verified. A moving
+local Base checkout is useful for development, but does not by itself establish
+either claim.
 
 ## Capability matrix
 
@@ -22,16 +24,16 @@ useful for development, but does not by itself establish released compatibility.
 | Workspace onboarding, agent handoff, and AI context | `1.9.0` | Workspace onboarding and agent-brief JSON are checked in [`.github/workflows/tests.yml`](../.github/workflows/tests.yml); the project context is indexed by [`.ai-context/overview.md`](../.ai-context/overview.md) | Workspace paths must be inside the configured workspace; WSL2 follows the Linux boundary | Demonstrated | Base + base-demo | Add a row when a new handoff artifact becomes user-facing. |
 | Representative build, test, service, environment, and non-interactive demo loop | `1.9.0` | The manifest targets in [`base_manifest.yaml`](../base_manifest.yaml), baseline gate in [`tests/validate.sh`](../tests/validate.sh), and focused suites in [`tests/services_test.bats`](../tests/services_test.bats), [`tests/environments_test.bats`](../tests/environments_test.bats), and [`tests/demo_test.bats`](../tests/demo_test.bats) | Full project loop is macOS; Ubuntu/Debian validates Base setup and project health only | Demonstrated | base-demo | Add executable evidence before calling a new service or command demonstrated. |
 | Linux and WSL2 read-only support boundary | `1.9.0` | The supported commands and explicit native-Windows boundary are in [`README.md`](../README.md) and [`docs/contracts.md`](contracts.md); CI's Ubuntu path is in [`.github/workflows/tests.yml`](../.github/workflows/tests.yml) | Ubuntu/Debian and WSL2 use setup, dev-profile, check, and doctor/read-only paths; native Windows is excluded | Demonstrated | Base + base-demo | Keep platform claims tied to a hosted or repository-local check. |
-| Base `1.9.0` released-compatibility pin and full Go/live-HTTP evidence | `1.9.0` | Structured pins in [supported inputs](../.release/supported-dependencies.json), verified by `bin/base-demo-dependencies`; full-language and live-HTTP gates run in [`.github/workflows/tests.yml`](../.github/workflows/tests.yml) | Exact macOS 14 full demo and Ubuntu 24.04 setup/read-only scope; no Linux full-demo claim | Demonstrated | Base + base-demo | Bind final-candidate runs during #303; later dependency changes require fresh proof. |
+| Base `1.9.0` released-compatibility pin and full Go/live-HTTP evidence | `1.9.0` | Structured pins in [supported inputs](../.release/supported-dependencies.json), verified by `bin/base-demo-dependencies`; full-language and live-HTTP gates run in [`.github/workflows/tests.yml`](../.github/workflows/tests.yml) | Exact macOS 14 full demo and Ubuntu 24.04 setup/read-only scope; no Linux full-demo claim | Demonstrated | Base + base-demo | Keep the stable pin unchanged until the final v1.10.0 release BOM is verified; candidate refresh is tracked by #324. |
 | Workspace inventory, selected tests and targeted recovery | `1.9.0` reports; exact `1.10.0` candidate | `tests/scenarios/workspace.py` and [workspace scenario guide](workspace-scenarios.md), run by isolated scenario CI | macOS fixture lane; selection and expanded recovery require the exact candidate | Demonstrated | Base + base-demo | Refresh candidate evidence before release; do not claim stable 1.10 support. |
 | Trust lifecycle and separate runtime/IDE consent | `1.9.0` baseline; exact `1.10.0` candidate | `tests/scenarios/trust.py` and [trust scenario guide](trust-scenarios.md), executed by [isolated scenario CI](../.github/workflows/scenarios.yml) | macOS fixture lane; full historical revocation and runtime inspection require the pinned candidate | Demonstrated | Base + base-demo | Refresh exact candidate evidence before release; do not attribute candidate-only guarantees to v1.9.0. |
 | Optional `test.requirements` and uninstall guidance | `1.9.0` | The manifest test entry and contributor setup guidance are [`base_manifest.yaml`](../base_manifest.yaml) and [`README.md`](../README.md) | Optional metadata is not required for the baseline demo contract | Intentionally omitted | base-demo | Revisit when Base publishes a stable user-facing contract and a concrete scenario. |
 | Native Windows support | `1.11.0` (planned) | The current non-goal is recorded in [`README.md`](../README.md); the staged Base work is tracked by [base-demo#302](https://github.com/basefoundry/base-demo/issues/302) and Base [#2215](https://github.com/basefoundry/base/issues/2215) | Native Windows is not shipped; Git Bash and WSL2 do not count as native Windows evidence | Blocked upstream | Base + base-demo | Wait for the PowerShell-first Base contract and hosted Windows evidence. |
 | First-class Base Docker-service contract | Future | The existing Compose fixture is documented in [`docs/tooling-testbed.md`](tooling-testbed.md) and [`infra/compose.yaml`](../infra/compose.yaml); adoption remains tracked by [base-demo#163](https://github.com/basefoundry/base-demo/issues/163) and Base [#124](https://github.com/basefoundry/base/issues/124) | Compose is a repository fixture; it does not establish a Base Docker-service contract | Blocked upstream | Base + base-demo | Do not make the future Base command a required demo dependency before Base publishes it. |
 
-The matrix intentionally leaves release-process, BOM, and dependency alignment
-implementation out of this train. Those lanes remain separately tracked and
-must not be inferred from the capability statuses above.
+The matrix intentionally does not treat the advisory candidate lane as a stable
+release or final BOM. Release publication and final evidence binding remain
+separately tracked and must not be inferred from the capability statuses above.
 
 ## Release review checklist
 
