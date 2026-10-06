@@ -4,7 +4,7 @@
 ![Platform: macOS + Ubuntu/Debian](https://img.shields.io/badge/platform-macOS%20%2B%20Ubuntu%2FDebian-lightgrey)
 ![Version](https://img.shields.io/badge/version-0.2.0-blue)
 
-[Current release: v0.2.0](https://github.com/basefoundry/base-demo/releases/tag/v0.2.0) · [Release policy](docs/release.md) · [CI required checks](docs/ci-required-checks.md)
+[Current release: v0.2.0](https://github.com/basefoundry/base-demo/releases/tag/v0.2.0) · [Release policy](docs/release.md)
 
 Reference Base-managed project and representative demo environment.
 
@@ -35,6 +35,9 @@ Base orchestration remains the point.
 Binding promises between the manifest, demo, services, installer, CI, and docs
 are tracked in [Contracts](docs/contracts.md). Update that registry whenever a
 new invariant becomes part of the reference project.
+
+Maintainers can use the [CI required-checks runbook](docs/ci-required-checks.md)
+when reviewing branch protection and required workflow contexts.
 
 The release-aware view of demonstrated, intentionally omitted, and upstream-
 blocked Base capabilities is maintained in the [Base capability and evidence
