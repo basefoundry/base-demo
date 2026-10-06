@@ -4,7 +4,7 @@
 ![Platform: macOS + Ubuntu/Debian](https://img.shields.io/badge/platform-macOS%20%2B%20Ubuntu%2FDebian-lightgrey)
 ![Version](https://img.shields.io/badge/version-0.2.0-blue)
 
-[Current release: v0.2.0](https://github.com/basefoundry/base-demo/releases/tag/v0.2.0) · [Release policy](docs/release.md)
+[Current release: v0.2.0](https://github.com/basefoundry/base-demo/releases/tag/v0.2.0) · [Release policy](docs/release.md) · [CI required checks](docs/ci-required-checks.md)
 
 Reference Base-managed project and representative demo environment.
 
