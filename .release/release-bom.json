@@ -20,7 +20,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     },
     {
       "repository": "basefoundry/base",
@@ -35,7 +35,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     },
     {
       "repository": "basefoundry/base-cli",
@@ -50,13 +50,13 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     },
     {
       "repository": "basefoundry/base-bash-libs",
-      "version": "2.1.0",
-      "tag": "v2.1.0",
-      "commit": "36fec50c446dcea8c521a1ba3e7fee2394f169c0",
+      "version": "2.2.2",
+      "tag": "v2.2.2",
+      "commit": "1333c0e7e4c3004663cda635e04965cb9d76511d",
       "source_mode": "release",
       "api_schema_version": "base-bash-libs-api@2.1.0",
       "platforms": [
@@ -65,7 +65,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     }
   ],
   "combinations": [
@@ -80,7 +80,7 @@
       "platform": "macos-14",
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     },
     {
       "name": "demo-release-stack-ubuntu-24.04",
@@ -93,7 +93,7 @@
       "platform": "ubuntu-24.04",
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     }
   ]
 }
