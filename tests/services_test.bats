@@ -1020,3 +1020,80 @@ EOF
   wait "$UNRELATED_PID" 2>/dev/null || true
   UNRELATED_PID=""
 }
+
+@test "services command timeouts terminate owned descendants" {
+  local catalog="$TEST_TMPDIR/catalog.json"
+  local command="$TEST_TMPDIR/timeout-command.py"
+  local detached_marker="$TEST_TMPDIR/detached-marker"
+  local inherited_marker="$TEST_TMPDIR/inherited-marker"
+
+  cat > "$command" <<'PY'
+#!/usr/bin/env python3
+import pathlib
+import subprocess
+import sys
+import time
+
+marker, mode = sys.argv[1:]
+child = [
+    sys.executable,
+    "-c",
+    "import pathlib,sys,time; time.sleep(4); pathlib.Path(sys.argv[1]).touch()",
+    marker,
+]
+kwargs = {}
+if mode == "detached":
+    kwargs = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+subprocess.Popen(child, **kwargs)
+time.sleep(10)
+PY
+  chmod +x "$command"
+
+  python3 - "$catalog" "$command" "$detached_marker" "$inherited_marker" <<'PY'
+import json
+import sys
+
+catalog, command, detached_marker, inherited_marker = sys.argv[1:]
+with open(catalog, "w", encoding="utf-8") as handle:
+    json.dump(
+        {
+            "services": [
+                {
+                    "name": "timeout-detached",
+                    "kind": "service",
+                    "runtime": "test",
+                    "required": True,
+                    "check": {"type": "command", "command": [command, detached_marker, "detached"]},
+                },
+                {
+                    "name": "timeout-inherited",
+                    "kind": "service",
+                    "runtime": "test",
+                    "required": False,
+                    "check": {"type": "command", "command": [command, inherited_marker, "inherited"]},
+                },
+                {
+                    "name": "later-service",
+                    "kind": "service",
+                    "runtime": "test",
+                    "required": False,
+                    "check": {"type": "none"},
+                },
+            ]
+        },
+        handle,
+    )
+PY
+
+  run "$TEST_ROOT/bin/base-demo-services" --catalog "$catalog" check
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"timeout-detached fail command:"* ]]
+  [[ "$output" == *"timeout-inherited skip optional command:"* ]]
+  [[ "$output" == *"later-service ok"* ]]
+  [[ "$output" != *"process group cleanup failed"* ]]
+
+  sleep 5
+  [ ! -e "$detached_marker" ]
+  [ ! -e "$inherited_marker" ]
+}

@@ -359,10 +359,19 @@ def terminate_process_group(
     process_group_id: int,
     process: subprocess.Popen[Any] | None = None,
 ) -> bool:
+    def group_is_running() -> bool:
+        try:
+            os.killpg(process_group_id, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        return True
+
     def stopped() -> bool:
-        if process is not None:
-            return process.poll() is not None
-        return not process_is_running(pid)
+        if process is not None and process.poll() is None:
+            return False
+        return not group_is_running()
 
     try:
         os.killpg(process_group_id, signal.SIGTERM)
@@ -383,6 +392,36 @@ def terminate_process_group(
             return True
         time.sleep(0.1)
     return stopped()
+
+
+def run_command_check(command: list[str], root: Path, label: str) -> CheckResult:
+    process: subprocess.Popen[bytes] | None = None
+    try:
+        process = subprocess.Popen(
+            command,
+            cwd=root,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True,
+        )
+        try:
+            process.communicate(timeout=3.0)
+        except subprocess.TimeoutExpired as exc:
+            stopped = terminate_process_group(process.pid, process.pid, process)
+            try:
+                process.communicate(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                stopped = False
+            detail = f"{label} ({exc})"
+            if not stopped:
+                detail = f"{detail}; process group cleanup failed"
+            return CheckResult(False, label, detail)
+    except OSError as exc:
+        return CheckResult(False, label, f"{label} ({exc})")
+
+    if process is None:
+        return CheckResult(False, label, f"{label} (process did not start)")
+    return CheckResult(process.returncode == 0, label, label)
 
 
 def readiness_timeout(service: dict[str, Any]) -> float:
@@ -743,18 +782,7 @@ def check_service(
         if not isinstance(command, list) or not all(isinstance(item, str) for item in command):
             return CheckResult(False, "command:<invalid command>", "command:<invalid command>")
         label = f"command:{shlex.join(command)}"
-        try:
-            result = subprocess.run(
-                command,
-                cwd=root,
-                check=False,
-                capture_output=True,
-                text=False,
-                timeout=3.0,
-            )
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            return CheckResult(False, label, f"{label} ({exc})")
-        return CheckResult(result.returncode == 0, label, label)
+        return run_command_check(command, root, label)
 
     detail = f"unsupported:{check_type}"
     return CheckResult(False, detail, detail)
