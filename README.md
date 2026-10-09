@@ -208,12 +208,21 @@ basectl history --project base-demo --limit 5 --report
 basectl config show  # redacted machine-local configuration
 basectl prompt list  # list repo-owned prompts without rendering one
 basectl clean --keep-last 1 --dry-run  # preview cleanup without deleting
+basectl uninstall base-demo --dry-run  # preview removal of Base-managed state
+basectl uninstall base-demo --verify  # verify removable state without changing it
 basectl update base-demo --dry-run  # clean default branch only; no pull
 basectl build base-demo
 basectl demo base-demo  # macOS only
 basectl docs --show-url
 basectl export-context base-demo --format markdown --print
 ```
+
+For local teardown, preview `basectl uninstall base-demo` and review the plan
+before applying it with `--yes`. Base removes only its managed trust, check
+state, external project environment, and runtime-cache state; it never deletes
+the project checkout or manifest. Use `--verify` for a read-only confirmation.
+This cleanup path is intentionally not part of the CI baseline because it
+mutates machine-local state.
 
 If `just` or Task are already installed, optional wrappers are available:
 
