@@ -36,6 +36,9 @@ Binding promises between the manifest, demo, services, installer, CI, and docs
 are tracked in [Contracts](docs/contracts.md). Update that registry whenever a
 new invariant becomes part of the reference project.
 
+Maintainers can use the [CI required-checks runbook](docs/ci-required-checks.md)
+when reviewing branch protection and required workflow contexts.
+
 The release-aware view of demonstrated, intentionally omitted, and upstream-
 blocked Base capabilities is maintained in the [Base capability and evidence
 matrix](docs/base-capability-matrix.md). Use it during Base release reviews and

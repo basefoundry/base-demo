@@ -1419,6 +1419,11 @@ grep -Fq 'docs/contracts.md' CONTRIBUTING.md || {
   exit 1
 }
 
+grep -Fq 'docs/ci-required-checks.md' README.md || {
+  printf 'README.md does not reference docs/ci-required-checks.md.\n' >&2
+  exit 1
+}
+
 grep -Fq 'basectl trust allow base-demo' CONTRIBUTING.md || {
   printf 'CONTRIBUTING.md does not include the manifest trust approval command in useful commands.\n' >&2
   exit 1
