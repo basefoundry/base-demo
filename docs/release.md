@@ -73,17 +73,17 @@ access to Actions evidence during verification.
 
 The current source `install.sh` release path is pinned to reviewed immutable
 inputs. These guarantees do **not** apply to the historical v0.1.0 installer.
-The README downloads the checksum-verified `v0.2.0` release asset. It installs
-the supported Base v1.9.0 and base-demo v0.2.0 checkouts recorded below. The
-release asset is finalized from the annotated tag target, so its self-commit
-pin is the exact immutable v0.2.0 commit.
+The README still downloads the checksum-verified `v0.2.0` release asset while
+the `v0.2.1` release is being prepared. That historical asset installs Base
+v1.9.0 and base-demo v0.2.0. After v0.2.1 publication, update the README quick
+start and this section together with the public asset checksum.
 
 The consumed inputs are:
 
 - Base installer: the version, full commit and SHA-256 selected by
   `.release/supported-dependencies.json`, materialized in current `install.sh`;
-- base-demo checkout: release ref `v0.2.0` and commit
-  `c5709ed8dfa623539e9c326554712490e14f1774`.
+- base-demo checkout: prepared release ref `v0.2.1`; the external installer
+  asset binds its commit to the annotated tag target after publication.
 
 When preparing a release, update `PROJECT_RELEASE_REF` in the reviewed
 `install.sh` source to the new release tag. Keep `PROJECT_RELEASE_COMMIT` as a
@@ -116,12 +116,12 @@ silently accepted by the release path.
 
 ## Release procedure
 
-For the current train, use the [v0.2.0 owner handoff](v0.2.0-readiness.md).
+For the current train, use the [v0.2.1 owner handoff](v0.2.1-readiness.md).
 Implementation/merge authority does not grant tag/publication authority or
 waive the minor-release bake and independent-review decision.
 
 1. Keep post-release work under `## [Unreleased]` in `CHANGELOG.md`.
-2. In a release PR, choose the next SemVer version, update `VERSION` and all
+2. In the v0.2.1 release PR, update `VERSION` and all
    governed metadata, promote `Unreleased` into a dated version section, and
    update the README badge strip, release links, and bootstrap pins in
    `install.sh`.

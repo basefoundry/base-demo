@@ -2,18 +2,18 @@
   "schema_version": 1,
   "release": {
     "repository": "basefoundry/base-demo",
-    "version": "0.2.0",
-    "tag": "v0.2.0",
-    "commit": "40ba3e32a93a495fc3fe934d088c34fa4f36531d"
+    "version": "0.2.1",
+    "tag": "v0.2.1",
+    "commit": "6b7d67f41392e48f1b428c6984bc1d4e1b559161"
   },
   "components": [
     {
       "repository": "basefoundry/base-demo",
-      "version": "0.2.0",
-      "tag": "v0.2.0",
-      "commit": "40ba3e32a93a495fc3fe934d088c34fa4f36531d",
+      "version": "0.2.1",
+      "tag": "v0.2.1",
+      "commit": "6b7d67f41392e48f1b428c6984bc1d4e1b559161",
       "source_mode": "release",
-      "api_schema_version": "base-demo-release@0.2.0",
+      "api_schema_version": "base-demo-release@0.2.1",
       "platforms": [
         "macos-14",
         "ubuntu-24.04"

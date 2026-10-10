@@ -2,9 +2,9 @@
 
 ![Tests](https://github.com/basefoundry/base-demo/actions/workflows/tests.yml/badge.svg)
 ![Platform: macOS + Ubuntu/Debian](https://img.shields.io/badge/platform-macOS%20%2B%20Ubuntu%2FDebian-lightgrey)
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.1-blue)
 
-[Current release: v0.2.0](https://github.com/basefoundry/base-demo/releases/tag/v0.2.0) · [Release policy](docs/release.md)
+[Current release: v0.2.1](https://github.com/basefoundry/base-demo/releases/tag/v0.2.1) · [Release policy](docs/release.md)
 
 Reference Base-managed project and representative demo environment.
 
