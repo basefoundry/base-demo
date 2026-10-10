@@ -73,17 +73,17 @@ access to Actions evidence during verification.
 
 The current source `install.sh` release path is pinned to reviewed immutable
 inputs. These guarantees do **not** apply to the historical v0.1.0 installer.
-The README still downloads the checksum-verified `v0.2.0` release asset while
-the `v0.2.1` release is being prepared. That historical asset installs Base
-v1.9.0 and base-demo v0.2.0. After v0.2.1 publication, update the README quick
-start and this section together with the public asset checksum.
+The README downloads the checksum-verified `v0.2.1` release asset. It installs
+Base v1.10.0 and base-demo v0.2.1 at the exact commits recorded in the public
+release BOM. The asset is finalized from the annotated tag target, so its
+self-commit pin is the exact immutable v0.2.1 commit.
 
 The consumed inputs are:
 
 - Base installer: the version, full commit and SHA-256 selected by
   `.release/supported-dependencies.json`, materialized in current `install.sh`;
-- base-demo checkout: prepared release ref `v0.2.1`; the external installer
-  asset binds its commit to the annotated tag target after publication.
+- base-demo checkout: release ref `v0.2.1` and commit
+  `784c8c975fe4954b5274219cb0a86ffec821e029`.
 
 When preparing a release, update `PROJECT_RELEASE_REF` in the reviewed
 `install.sh` source to the new release tag. Keep `PROJECT_RELEASE_COMMIT` as a
