@@ -7,8 +7,8 @@
       "installer_sha256": "f0522bf20b13e2f487767324f4688f1b1ed33b1c1bc1158a404f0e428ea3e993"
     },
     "base-cli": {
-      "version": "0.4.3",
-      "commit": "8a93d22156ba75a99965f7c355f867acba630069"
+      "version": "0.5.0",
+      "commit": "2de15733de52d7bb311a9e9b9f0e89bea8282e22"
     },
     "base-bash-libs": {
       "version": "2.1.0",
