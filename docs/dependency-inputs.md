@@ -3,8 +3,8 @@
 `.release/supported-dependencies.json` is the reviewed input selection shared
 with Base's downstream updater (#2289). Version 1 names exactly Base, base-cli
 and base-bash-libs by stable version and full commit, plus Base's installer
-SHA-256. The initial supported selection is Base 1.9.0 / base-cli 0.4.3 /
-base-bash-libs 2.1.0. Tags are independently resolved to their commits in CI.
+SHA-256. The current supported selection is Base 1.10.0 / base-cli 0.5.1 /
+base-bash-libs 2.2.2. Tags are independently resolved to their commits in CI.
 The validator is an immutable snapshot of Base's dependency-input contract.
 
 ```bash
@@ -50,16 +50,17 @@ No successful run, wrong input, failed job, or unavailable GitHub lookup means
 no publication. Finalizing without `--evidence-run` remains useful for identity
 fixtures but does not certify the artifacts for publication.
 
-The published README installer is pinned to the reviewed v0.2.0 release asset,
-which consumes Base 1.9.0 and demo v0.2.0. The stable source inputs remain
-unchanged while Base v1.10.0 is still a candidate. Refreshing the advisory
-candidate source revision is tracked by #324; it must not be mistaken for a
-stable dependency update or a final release asset. #303 owns the public
-release-asset URL.
+The published README installer remains pinned to the reviewed v0.2.0 release
+asset until the next base-demo release is published. That historical asset
+consumes Base 1.9.0; current source and the next release train consume the
+published Base v1.10.0 inputs above. The old candidate issue and advisory
+revision are no longer release evidence. #303 owns the public release-asset
+URL.
 
-## Candidate boundary
+## Stable and extended scenario boundary
 
-Stable input selection remains Base 1.9.0. The implemented v1.10 trust/workspace
-scenarios (#298/#297) must be invoked in a separate exact-commit candidate lane,
-with its revision recorded. Candidate evidence is advisory and cannot satisfy
-or overwrite the stable release gate. Publication is a separate human decision.
+Stable input selection is Base 1.10.0. The stable scenario lane exercises the
+baseline contracts, while the extended lane runs the v1.10 trust/workspace
+assertions against the same immutable released commit. Both are repository
+checks; neither becomes release BOM evidence until the exact post-merge run is
+verified by the release gate.

@@ -21,15 +21,15 @@ def arguments(description):
     args = parser.parse_args()
     for name, path, expected in (
         ("base", args.base, args.base_commit),
-        ("base-cli", args.base_cli, "8a93d22156ba75a99965f7c355f867acba630069"),
-        ("base-bash-libs", args.bash_libs, "36fec50c446dcea8c521a1ba3e7fee2394f169c0"),
+        ("base-cli", args.base_cli, "aa20cfe89bc3568ff19f8cc1414372feadb00fd4"),
+        ("base-bash-libs", args.bash_libs, "1333c0e7e4c3004663cda635e04965cb9d76511d"),
     ):
         actual = subprocess.check_output(["git", "-C", str(path), "rev-parse", "HEAD"], text=True).strip()
         dirty = subprocess.check_output(["git", "-C", str(path), "status", "--porcelain"], text=True)
         if actual != expected or dirty:
             parser.error(f"{name} must be a clean exact-commit checkout")
-    if not args.candidate and args.base_commit != "ac8d294421e1bfc14afa8c6a2a12f1affb5268ee":
-        parser.error("stable lane requires supported Base v1.9.0; pass --candidate for separately recorded source")
+    if not args.candidate and args.base_commit != "167947add351b8d609b5ab17342425e9a337acbb":
+        parser.error("stable lane requires supported Base v1.10.0; pass --candidate for the extended scenario lane")
     return args
 
 

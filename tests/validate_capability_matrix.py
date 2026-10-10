@@ -57,8 +57,8 @@ def main() -> int:
         fail(f"missing {MATRIX.relative_to(ROOT)}")
     text = MATRIX.read_text(encoding="utf-8")
     required_markers = (
-        "Current Base release: `1.9.0`",
-        "Planned Base release: `1.10.0`",
+        "Current Base release: `1.10.0`",
+        "Planned Base release: `1.11.0`",
         "## Capability matrix",
         "## Release review checklist",
         "stale",

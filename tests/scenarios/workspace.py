@@ -101,7 +101,7 @@ def main():
         assert not list(fixture.workspace.rglob("tested")), "read-only inventory executed a test"
         if not args.candidate:
             print("PASS: stable workspace status, onboarding and agent-brief are read-only")
-            print("BOUNDARY: selected workspace tests, expanded inventory, targeted next_actions and workspace-update preflight safety require the v1.10 candidate")
+            print("BOUNDARY: selected workspace tests, expanded inventory, targeted next_actions and workspace-update preflight safety run in the extended v1.10 lane")
             return
 
         assert "test" in fixture.run("workspace", "--help").stdout

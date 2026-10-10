@@ -48,8 +48,8 @@ The [workspace scenarios](docs/workspace-scenarios.md) prove selected execution,
 failure aggregation and checkout-bound recovery in disposable peers.
 The [isolated trust and consent scenarios](docs/trust-scenarios.md) demonstrate
 denial, approval, invalidation and revocation without changing your trust store
-or IDE settings. They explicitly separate Base v1.9 behavior from the stronger
-implemented v1.10 candidate contracts.
+or IDE settings. They explicitly separate the stable Base v1.10 behavior from
+the extended scenario assertions that exercise its newer contracts.
 
 The external tooling direction is tracked in
 [Tooling Test Bed](docs/tooling-testbed.md). That matrix separates active
@@ -239,11 +239,11 @@ task ci-check
 Those wrappers delegate to `basectl`; installing `just` or Task is not required
 for setup, validation, CI, or the baseline demo.
 
-Current source CI and installer inputs select Base v1.9.0, base-cli v0.4.3, and
-base-bash-libs v2.1.0 through `.release/supported-dependencies.json`. This differs
+Current source CI and installer inputs select Base v1.10.0, base-cli v0.5.1, and
+base-bash-libs v2.2.2 through `.release/supported-dependencies.json`. This differs
 from the historical-release quick start above. CI verifies exact commits on
-macOS 14 and Ubuntu 24.04. The v1.10 candidate lane is separately invoked and
-never replaces these stable pins. See [dependency inputs](docs/dependency-inputs.md).
+macOS 14 and Ubuntu 24.04. The extended v1.10 scenario lane is separately
+invoked against the same released commit. See [dependency inputs](docs/dependency-inputs.md).
 
 ## Python CLI Provider Policy
 

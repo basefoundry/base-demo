@@ -20,13 +20,13 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     },
     {
       "repository": "basefoundry/base",
-      "version": "1.9.0",
-      "tag": "v1.9.0",
-      "commit": "ac8d294421e1bfc14afa8c6a2a12f1affb5268ee",
+      "version": "1.10.0",
+      "tag": "v1.10.0",
+      "commit": "167947add351b8d609b5ab17342425e9a337acbb",
       "source_mode": "release",
       "api_schema_version": "manifest-1",
       "platforms": [
@@ -35,37 +35,37 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     },
     {
       "repository": "basefoundry/base-cli",
-      "version": "0.4.3",
-      "tag": "v0.4.3",
-      "commit": "8a93d22156ba75a99965f7c355f867acba630069",
+      "version": "0.5.1",
+      "tag": "v0.5.1",
+      "commit": "aa20cfe89bc3568ff19f8cc1414372feadb00fd4",
       "source_mode": "release",
-      "api_schema_version": "base-cli-api@0.4.3",
+      "api_schema_version": "base-cli-api@0.5.1",
       "platforms": [
         "macos-14",
         "ubuntu-24.04"
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     },
     {
       "repository": "basefoundry/base-bash-libs",
-      "version": "2.1.0",
-      "tag": "v2.1.0",
-      "commit": "36fec50c446dcea8c521a1ba3e7fee2394f169c0",
+      "version": "2.2.2",
+      "tag": "v2.2.2",
+      "commit": "1333c0e7e4c3004663cda635e04965cb9d76511d",
       "source_mode": "release",
-      "api_schema_version": "base-bash-libs-api@2.1.0",
+      "api_schema_version": "base-bash-libs-api@2.0.0",
       "platforms": [
         "macos-14",
         "ubuntu-24.04"
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     }
   ],
   "combinations": [
@@ -80,7 +80,7 @@
       "platform": "macos-14",
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     },
     {
       "name": "demo-release-stack-ubuntu-24.04",
@@ -93,7 +93,7 @@
       "platform": "ubuntu-24.04",
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     }
   ]
 }

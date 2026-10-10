@@ -406,7 +406,7 @@ base_bash_libs_pin_count="$(
   grep -Fc 'ref: ${{ steps.dependencies.outputs.base_bash_libs_commit }}' .github/workflows/tests.yml || true
 )"
 if [[ "$base_bash_libs_pin_count" -ne 3 ]]; then
-  printf '.github/workflows/tests.yml must pin every base-bash-libs checkout to the immutable v2.1.0 release commit.\n' >&2
+  printf '.github/workflows/tests.yml must pin every base-bash-libs checkout to the immutable v2.2.2 release commit.\n' >&2
   exit 1
 fi
 
@@ -513,7 +513,7 @@ grep -Fq 'git -C ../base fetch --depth 1 origin "${{ steps.dependencies.outputs.
 }
 
 grep -Fq 'ref: ${{ steps.dependencies.outputs.base_bash_libs_commit }}' .github/workflows/tests.yml || {
-  printf '.github/workflows/tests.yml does not use the v2.1.0 base-bash-libs source required by this compatibility job.\n' >&2
+  printf '.github/workflows/tests.yml does not use the v2.2.2 base-bash-libs source required by this compatibility job.\n' >&2
   exit 1
 }
 
