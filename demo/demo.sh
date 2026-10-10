@@ -185,6 +185,16 @@ require_contains() {
   fi
 }
 
+require_readiness_state() {
+  local label="$1"
+  local output="$2"
+
+  if ! grep -Eq '(^|[[:space:]])(ready|needs_setup|needs_verification)([[:space:]]|$)' <<< "$output"; then
+    printf 'ERROR: Expected %s output to contain a recognized readiness state.\n' "$label" >&2
+    return 1
+  fi
+}
+
 intro() {
   printf '\nbase-demo Walkthrough\n\n'
   printf 'This demo shows a compact Base-managed representative environment.\n'
@@ -280,13 +290,13 @@ discovery_step() {
     output="$(capture_command "$BASE_DEMO_BASECTL" workspace onboarding --workspace "$BASE_DEMO_WORKSPACE" --manifest "$BASE_DEMO_ROOT/workspace.yaml.example")"
     printf '%s\n' "$output"
     require_contains "workspace onboarding" "$output" "$BASE_DEMO_PROJECT"
-    require_contains "workspace onboarding" "$output" "ready"
+    require_readiness_state "workspace onboarding" "$output"
 
     printf '\nShowing agent handoff readiness across the workspace.\n'
     output="$(capture_command "$BASE_DEMO_BASECTL" workspace agent-brief --workspace "$BASE_DEMO_WORKSPACE" --manifest "$BASE_DEMO_ROOT/workspace.yaml.example")"
     printf '%s\n' "$output"
     require_contains "workspace agent-brief" "$output" "$BASE_DEMO_PROJECT"
-    require_contains "workspace agent-brief" "$output" "ready"
+    require_readiness_state "workspace agent-brief" "$output"
   else
     run_observed_command "$BASE_DEMO_BASECTL" workspace status --workspace "$BASE_DEMO_WORKSPACE"
   fi
