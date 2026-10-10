@@ -239,8 +239,8 @@ task ci-check
 Those wrappers delegate to `basectl`; installing `just` or Task is not required
 for setup, validation, CI, or the baseline demo.
 
-Current source CI and installer inputs select Base v1.9.0, base-cli v0.4.3, and
-base-bash-libs v2.1.0 through `.release/supported-dependencies.json`. This differs
+Current source CI and installer inputs select Base v1.9.0, base-cli v0.5.1, and
+base-bash-libs v2.2.2 through `.release/supported-dependencies.json`. This differs
 from the historical-release quick start above. CI verifies exact commits on
 macOS 14 and Ubuntu 24.04. The v1.10 candidate lane is separately invoked and
 never replaces these stable pins. See [dependency inputs](docs/dependency-inputs.md).

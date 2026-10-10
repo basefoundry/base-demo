@@ -6,7 +6,7 @@ demonstrated contracts, intentional omissions and future work.
 
 For these **current-source** paths, use the exact stable versions in
 [supported inputs](../.release/supported-dependencies.json): Base 1.9.0,
-base-cli 0.4.3 and base-bash-libs 2.1.0. Start in your reviewed base-demo checkout
+base-cli 0.5.1 and base-bash-libs 2.2.2. Start in your reviewed base-demo checkout
 with Base already configured and its `basectl` on PATH. Full setup, activation,
 build, test and demo paths require macOS. Bash must be 4.2 or newer. Contributors
 need the toolchains declared by the manifest/mise configuration; setup may

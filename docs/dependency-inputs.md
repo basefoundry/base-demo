@@ -3,8 +3,8 @@
 `.release/supported-dependencies.json` is the reviewed input selection shared
 with Base's downstream updater (#2289). Version 1 names exactly Base, base-cli
 and base-bash-libs by stable version and full commit, plus Base's installer
-SHA-256. The initial supported selection is Base 1.9.0 / base-cli 0.4.3 /
-base-bash-libs 2.1.0. Tags are independently resolved to their commits in CI.
+SHA-256. The current supported selection is Base 1.9.0 / base-cli 0.5.1 /
+base-bash-libs 2.2.2. Tags are independently resolved to their commits in CI.
 The validator is an immutable snapshot of Base's dependency-input contract.
 
 ```bash

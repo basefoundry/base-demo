@@ -32,9 +32,9 @@ class InputsTests(unittest.TestCase):
                 if filename == "install.sh":
                     text = text.replace("BASE_RELEASE_REF:-v1.9.0", "BASE_RELEASE_REF:-v1.8.0")
                 elif filename == "pyproject.toml":
-                    text = text.replace("base-cli==0.4.3", "base-cli==0.4.2")
+                    text = text.replace("base-cli==0.5.1", "base-cli==0.5.0")
                 elif filename == "uv.lock":
-                    text = text.replace('name = "base-cli"\nversion = "0.4.3"', 'name = "base-cli"\nversion = "0.4.2"')
+                    text = text.replace('name = "base-cli"\nversion = "0.5.1"', 'name = "base-cli"\nversion = "0.5.0"')
                 else:
                     document = json.loads(text)
                     document["components"][1]["commit"] = "f" * 40
@@ -49,7 +49,7 @@ class InputsTests(unittest.TestCase):
                                 capture_output=True, text=True, check=True)
         output = dict(line.split("=", 1) for line in result.stdout.splitlines())
         self.assertEqual(output["base_version"], "1.9.0")
-        self.assertEqual(output["base_cli_version"], "0.4.3")
+        self.assertEqual(output["base_cli_version"], "0.5.1")
         self.assertEqual(len(output["base_commit"]), 40)
 
     def test_advisory_candidate_pin_matches_documented_references(self):

@@ -21,8 +21,8 @@ def arguments(description):
     args = parser.parse_args()
     for name, path, expected in (
         ("base", args.base, args.base_commit),
-        ("base-cli", args.base_cli, "8a93d22156ba75a99965f7c355f867acba630069"),
-        ("base-bash-libs", args.bash_libs, "36fec50c446dcea8c521a1ba3e7fee2394f169c0"),
+        ("base-cli", args.base_cli, "aa20cfe89bc3568ff19f8cc1414372feadb00fd4"),
+        ("base-bash-libs", args.bash_libs, "1333c0e7e4c3004663cda635e04965cb9d76511d"),
     ):
         actual = subprocess.check_output(["git", "-C", str(path), "rev-parse", "HEAD"], text=True).strip()
         dirty = subprocess.check_output(["git", "-C", str(path), "status", "--porcelain"], text=True)

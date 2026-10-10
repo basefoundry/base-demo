@@ -10,8 +10,8 @@ tiny shell fixture; uv remains the dependency owner for the normal demo.
 python3 tests/scenarios/trust.py \
   --base /path/to/base-v1.9.0 \
   --base-commit ac8d294421e1bfc14afa8c6a2a12f1affb5268ee \
-  --base-cli /path/to/base-cli-v0.4.3 \
-  --bash-libs /path/to/base-bash-libs-v2.1.0 \
+  --base-cli /path/to/base-cli-v0.5.1 \
+  --bash-libs /path/to/base-bash-libs-v2.2.2 \
   --python /path/to/base-compatible-venv/bin/python
 ```
 
