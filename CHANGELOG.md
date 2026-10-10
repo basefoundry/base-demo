@@ -16,6 +16,19 @@ promotes this section into a dated version heading before tagging.
   documented the review-gated Base-managed uninstall preview and verification
   commands.
 
+## [0.2.1] - 2026-10-10
+
+### Changed
+
+- Aligned the supported ecosystem stack with Base 1.10.0, base-cli 0.5.1,
+  and base-bash-libs 2.2.2 at immutable released commits.
+- Updated the installer, compatibility BOM inputs, workspace/trust scenarios,
+  capability matrix, and current-source documentation for the Base 1.10.0
+  release contract.
+- Accepted Base 1.10's `needs_verification` state for existing unverified
+  workspaces in CI and the walkthrough, while preserving explicit readiness
+  state validation.
+
 ## [0.2.0] - 2026-09-28
 
 ### Changed

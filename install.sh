@@ -16,8 +16,8 @@ BASE_INSTALL_URL="${BASE_INSTALL_URL:-https://raw.githubusercontent.com/basefoun
 # The empty-value form is intentional: an explicit empty checksum must not
 # silently restore the release checksum and bypass the release-mode guard.
 BASE_INSTALL_SHA256="${BASE_INSTALL_SHA256-94840a0e37b993065781fac3efa86ed692f974917d57a77170dae29efff539ca}"
-PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-v0.2.0}"
-PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-40ba3e32a93a495fc3fe934d088c34fa4f36531d}"
+PROJECT_RELEASE_REF="${PROJECT_RELEASE_REF:-v0.2.1}"
+PROJECT_RELEASE_COMMIT="${PROJECT_RELEASE_COMMIT:-6b7d67f41392e48f1b428c6984bc1d4e1b559161}"
 BASE_DEMO_DEV_MODE="${BASE_DEMO_DEV_MODE:-false}"
 RUN_UPDATE_PROFILE="${RUN_UPDATE_PROFILE:-true}"
 
