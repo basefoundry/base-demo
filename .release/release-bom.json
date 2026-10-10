@@ -20,7 +20,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     },
     {
       "repository": "basefoundry/base",
@@ -35,13 +35,13 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     },
     {
       "repository": "basefoundry/base-cli",
-      "version": "0.4.3",
-      "tag": "v0.4.3",
-      "commit": "8a93d22156ba75a99965f7c355f867acba630069",
+      "version": "0.5.1",
+      "tag": "v0.5.1",
+      "commit": "aa20cfe89bc3568ff19f8cc1414372feadb00fd4",
       "source_mode": "release",
       "api_schema_version": "base-cli-api@0.4.3",
       "platforms": [
@@ -50,7 +50,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     },
     {
       "repository": "basefoundry/base-bash-libs",
@@ -65,7 +65,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     }
   ],
   "combinations": [
@@ -80,7 +80,7 @@
       "platform": "macos-14",
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     },
     {
       "name": "demo-release-stack-ubuntu-24.04",
@@ -93,7 +93,7 @@
       "platform": "ubuntu-24.04",
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: dependency inputs changed; rerun compatibility"
     }
   ]
 }
