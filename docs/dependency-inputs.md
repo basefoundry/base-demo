@@ -50,12 +50,11 @@ No successful run, wrong input, failed job, or unavailable GitHub lookup means
 no publication. Finalizing without `--evidence-run` remains useful for identity
 fixtures but does not certify the artifacts for publication.
 
-The published README installer remains pinned to the reviewed v0.2.0 release
-asset until the next base-demo release is published. That historical asset
-consumes Base 1.9.0; current source and the next release train consume the
-published Base v1.10.0 inputs above. The old candidate issue and advisory
-revision are no longer release evidence. #303 owns the public release-asset
-URL.
+The published README installer is pinned to the reviewed v0.2.1 release asset,
+which consumes Base 1.10.0 and demo v0.2.1 at the immutable identities recorded
+by the public release BOM. The old v0.2.0 asset remains immutable historical
+evidence, and the old candidate issue and advisory revision are no longer
+release evidence. #303 owns the public release-asset URL.
 
 ## Stable and extended scenario boundary
 

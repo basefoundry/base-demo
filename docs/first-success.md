@@ -14,9 +14,9 @@ install tools and change the project environment, so preview it first.
 
 Need Base first? Follow the canonical [adopter golden path](https://github.com/basefoundry/base/blob/v1.10.0/docs/adopter-golden-path.md)
 for install and consent decisions, then select the stable inputs above. The
-README's checksum-verified [Quick Start](../README.md#quick-start) remains the
-historical published demo route until v0.2.1 is released; do not mix its results
-with moving-source development evidence or reset a divergent checkout.
+README's checksum-verified [Quick Start](../README.md#quick-start) is the
+published Base v1.10/demo v0.2.1 route; do not mix its results with moving-source
+development evidence or reset a divergent checkout.
 
 Ubuntu/Debian (including WSL2 on its native filesystem) supports Base setup and
 the CI-safe read-only project-health path, not the full demo loop. Native Windows

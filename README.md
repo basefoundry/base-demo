@@ -17,7 +17,7 @@ Reference Base-managed project and representative demo environment.
 Each path states prerequisites, a completion check, and one safe recovery.
 This demo is a **curated representative subset**, not every Base contract.
 Current-source paths use the [supported inputs](.release/supported-dependencies.json);
-the release Quick Start below installs the verified v0.2.0 assets. Neither path
+the release Quick Start below installs the verified v0.2.1 assets. Neither path
 implies native Windows or a full Linux demo.
 
 This repository is the public reference project for Base-managed repositories.
@@ -93,8 +93,8 @@ in the Base repository.
 
 ## Quick Start
 
-Use the verified v0.2.0 release asset. It installs **Base v1.9.0 and
-base-demo v0.2.0** at the exact commits recorded in the release BOM. Run this
+Use the verified v0.2.1 release asset. It installs **Base v1.10.0 and
+base-demo v0.2.1** at the exact commits recorded in the release BOM. Run this
 macOS quick start in a temporary directory; inspect the script before execution
 if required by your environment:
 
@@ -102,8 +102,8 @@ if required by your environment:
 bootstrap_dir="$(mktemp -d)"
 (
   cd "$bootstrap_dir" || exit 1
-  curl -fsSL https://github.com/basefoundry/base-demo/releases/download/v0.2.0/install.sh -o install.sh &&
-  printf '%s  install.sh\n' fab41851d0f7b3f0d533cc7fbc336cde851332e8cb4382a100fe1aeebbde593d | shasum -a 256 -c - &&
+  curl -fsSL https://github.com/basefoundry/base-demo/releases/download/v0.2.1/install.sh -o install.sh &&
+  printf '%s  install.sh\n' fabba78e4047e9dc67ab82114a63c05c7de30961419421a3a5f6896483db1587 | shasum -a 256 -c - &&
   RUN_UPDATE_PROFILE=false bash install.sh
 )
 ```
@@ -118,7 +118,7 @@ deleting or resetting its checkouts to make this release route pass.
 
 The historical **v0.1.0/install.sh does not provide these guarantees**: it uses
 a moving Base installer, permits an absent checksum, and can pull an existing
-checkout. Do not substitute that old script for the checksum-verified v0.2.0
+checkout. Do not substitute that old script for the checksum-verified v0.2.1
 asset above.
 
 Contributors with current source peer checkouts under one workspace should opt
