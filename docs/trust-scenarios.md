@@ -8,8 +8,8 @@ tiny shell fixture; uv remains the dependency owner for the normal demo.
 
 ```bash
 python3 tests/scenarios/trust.py \
-  --base /path/to/base-v1.9.0 \
-  --base-commit ac8d294421e1bfc14afa8c6a2a12f1affb5268ee \
+  --base /path/to/base-v1.10.0 \
+  --base-commit 167947add351b8d609b5ab17342425e9a337acbb \
   --base-cli /path/to/base-cli-v0.5.1 \
   --bash-libs /path/to/base-bash-libs-v2.2.2 \
   --python /path/to/base-compatible-venv/bin/python
@@ -22,22 +22,19 @@ not errors the learner needs to repair. Each completed boundary prints `PASS`.
 Unchanged external scripts are **not** bound by command approval; this is not a
 sandbox or a guarantee that every referenced executable is safe.
 
-## Candidate-only guarantees
+## Extended v1.10 guarantees
 
-**Base v1.9.0 does not guarantee complete historical-approval revocation.**
-Do not infer that the stable example proves cleanup of every previously reviewed
-manifest version. Full historical revocation and static-by-default runtime
-inspection are demonstrated only against the implemented v1.10 candidate.
-The stable lane prints this boundary and does not invoke candidate-only flags.
+The stable lane covers the released Base v1.10 baseline. The extended lane
+adds assertions for complete historical-approval revocation and
+static-by-default runtime inspection.
 
-The separate advisory lane uses exact Base commit
-`06715fed19aceff27844aba546ba2a0b4c594ac7`. Run the same command with that
-checkout/commit and add `--candidate`. A published v1.10 release is not required,
-but a moving branch is not an acceptable substitute for the recorded revision.
-Both lanes run in [isolated scenario CI](../.github/workflows/scenarios.yml).
-Candidate success does not replace stable compatibility evidence.
+The extended lane uses the exact released Base commit
+`167947add351b8d609b5ab17342425e9a337acbb`; run the same command with that
+checkout/commit and add `--candidate`. Both lanes run in [isolated scenario
+CI](../.github/workflows/scenarios.yml). Extended success does not replace the
+exact post-merge compatibility evidence required by the release BOM.
 
-The candidate additionally approves multiple manifest versions, revokes them,
+The extended scenario additionally approves multiple manifest versions, revokes them,
 and proves that reverting to an older manifest does not restore execution.
 It uses a harmless marker-producing interpreter fixture to prove static
 inspection does not execute runtime code—even after command approval—and that
@@ -62,4 +59,4 @@ that the host is ready. Local temporary paths are redacted from assertion
 diagnostics. `tests/scenario_harness_test.py` verifies cleanup and redaction.
 
 For the authoritative boundaries, see Base's
-[command-trust policy](https://github.com/basefoundry/base/blob/06715fed19aceff27844aba546ba2a0b4c594ac7/docs/manifest-command-trust.md).
+[command-trust policy](https://github.com/basefoundry/base/blob/v1.10.0/docs/manifest-command-trust.md).

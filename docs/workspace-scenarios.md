@@ -13,27 +13,26 @@ Run with clean exact-provider checkouts and an existing Base-compatible Python:
 
 ```bash
 python3 tests/scenarios/workspace.py \
-  --base /path/to/base-v1.9.0 \
-  --base-commit ac8d294421e1bfc14afa8c6a2a12f1affb5268ee \
+  --base /path/to/base-v1.10.0 \
+  --base-commit 167947add351b8d609b5ab17342425e9a337acbb \
   --base-cli /path/to/base-cli-v0.5.1 \
   --bash-libs /path/to/base-bash-libs-v2.2.2 \
   --python /path/to/base-compatible-venv/bin/python
 ```
 
-Base 1.9 checks the existing status, onboarding and agent-brief reports, their
-workspace identity, missing-peer reporting and read-only behavior. It prints
-an explicit supported-version boundary without invoking newer flags.
+The stable lane checks the existing status, onboarding and agent-brief reports,
+their workspace identity, missing-peer reporting and read-only behavior.
 
-The candidate update fixtures use `git init --initial-branch` and `git switch`;
+The extended update fixtures use `git init --initial-branch` and `git switch`;
 local runs therefore require Git 2.28 or newer, matching the hosted runner
 toolchain.
 
-For the implemented 1.10 candidate, select its checkout and exact commit
-`06715fed19aceff27844aba546ba2a0b4c594ac7`, and add `--candidate`.
+For the extended v1.10 contract, select the released checkout and exact commit
+`167947add351b8d609b5ab17342425e9a337acbb`, and add `--candidate`.
 [Scenario CI](../.github/workflows/scenarios.yml) runs both lanes. This is
-advisory candidate evidence, not a stable-release compatibility claim.
+repository scenario evidence, not final release BOM evidence by itself.
 
-The candidate asserts:
+The extended lane asserts:
 
 - Onboarding actions are ordered clone, setup, trust, verify; final verification
   retains the workspace and workspace-manifest identity. Agent-brief actions
@@ -56,5 +55,5 @@ The candidate asserts:
 
 Each completed assertion group prints `PASS`; fixtures are removed on success
 or exception. There is no second application stack and no host-readiness claim.
-See the exact candidate's [workspace contract](https://github.com/basefoundry/base/blob/06715fed19aceff27844aba546ba2a0b4c594ac7/docs/workspace-manifest.md)
+See the released [workspace contract](https://github.com/basefoundry/base/blob/v1.10.0/docs/workspace-manifest.md)
 for the authoritative API.

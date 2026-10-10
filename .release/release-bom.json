@@ -20,13 +20,13 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     },
     {
       "repository": "basefoundry/base",
-      "version": "1.9.0",
-      "tag": "v1.9.0",
-      "commit": "ac8d294421e1bfc14afa8c6a2a12f1affb5268ee",
+      "version": "1.10.0",
+      "tag": "v1.10.0",
+      "commit": "167947add351b8d609b5ab17342425e9a337acbb",
       "source_mode": "release",
       "api_schema_version": "manifest-1",
       "platforms": [
@@ -35,7 +35,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     },
     {
       "repository": "basefoundry/base-cli",
@@ -50,7 +50,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     },
     {
       "repository": "basefoundry/base-bash-libs",
@@ -65,7 +65,7 @@
       ],
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     }
   ],
   "combinations": [
@@ -80,7 +80,7 @@
       "platform": "macos-14",
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     },
     {
       "name": "demo-release-stack-ubuntu-24.04",
@@ -93,7 +93,7 @@
       "platform": "ubuntu-24.04",
       "required": true,
       "result": "not_tested",
-      "evidence": "pending: exact candidate compatibility run required"
+      "evidence": "pending: exact post-merge compatibility run required"
     }
   ]
 }

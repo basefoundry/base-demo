@@ -22,11 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - lane: stable-v1.9
-            base: ac8d294421e1bfc14afa8c6a2a12f1affb5268ee
+          - lane: stable-v1.10
+            base: 167947add351b8d609b5ab17342425e9a337acbb
             options: ""
-          - lane: advisory-v1.10-candidate
-            base: 06715fed19aceff27844aba546ba2a0b4c594ac7
+          - lane: extended-v1.10
+            base: 167947add351b8d609b5ab17342425e9a337acbb
             options: --candidate
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5

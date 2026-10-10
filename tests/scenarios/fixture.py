@@ -28,8 +28,8 @@ def arguments(description):
         dirty = subprocess.check_output(["git", "-C", str(path), "status", "--porcelain"], text=True)
         if actual != expected or dirty:
             parser.error(f"{name} must be a clean exact-commit checkout")
-    if not args.candidate and args.base_commit != "ac8d294421e1bfc14afa8c6a2a12f1affb5268ee":
-        parser.error("stable lane requires supported Base v1.9.0; pass --candidate for separately recorded source")
+    if not args.candidate and args.base_commit != "167947add351b8d609b5ab17342425e9a337acbb":
+        parser.error("stable lane requires supported Base v1.10.0; pass --candidate for the extended scenario lane")
     return args
 
 

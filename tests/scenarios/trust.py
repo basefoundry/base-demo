@@ -28,8 +28,7 @@ def main():
         fixture.run("run", "demo", "hello", *workspace, expected=1)
         assert not (project / "executed").exists()
         if args.candidate:
-            # Historical multi-approval cleanup is the implemented v1.10
-            # contract, not a guarantee of the older stable release.
+            # The extended lane exercises the additional Base v1.10 contract.
             fixture.run("trust", "allow", "demo", *workspace)
         fixture.run("trust", "revoke", "demo", *workspace)
         fixture.run("run", "demo", "hello", *workspace, expected=1)
@@ -83,7 +82,7 @@ def main():
             fixture.no_ide_settings()
             print("PASS: saved command approval does not grant runtime inspection; explicit verification probes only the fixture")
         else:
-            print("BOUNDARY: full historical revocation and --verify-project-runtime require the implemented v1.10 candidate")
+            print("BOUNDARY: extended historical revocation and --verify-project-runtime assertions run in the extended v1.10 lane")
         print(f"PASS: isolated trust scenario at Base {args.base_commit}; fixture cleanup on success and failure")
 
 
