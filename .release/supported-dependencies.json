@@ -2,8 +2,8 @@
   "schema_version": 1,
   "components": {
     "base": {
-      "version": "1.10.0",
-      "commit": "167947add351b8d609b5ab17342425e9a337acbb",
+      "version": "1.10.1",
+      "commit": "9bd1a5484ac10acda2c3a012ab89f7d9393e8d26",
       "installer_sha256": "94840a0e37b993065781fac3efa86ed692f974917d57a77170dae29efff539ca"
     },
     "base-cli": {
