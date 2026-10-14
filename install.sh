@@ -10,8 +10,8 @@ BASE_REPO_URL="${BASE_REPO_URL:-https://github.com/basefoundry/base.git}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/work}"
 BASE_DIR="${BASE_DIR:-$WORKSPACE_DIR/base}"
 PROJECT_DIR="${PROJECT_DIR:-$WORKSPACE_DIR/$PROJECT_NAME}"
-BASE_RELEASE_REF="${BASE_RELEASE_REF:-v1.10.0}"
-BASE_RELEASE_COMMIT="${BASE_RELEASE_COMMIT:-167947add351b8d609b5ab17342425e9a337acbb}"
+BASE_RELEASE_REF="${BASE_RELEASE_REF:-v1.10.5}"
+BASE_RELEASE_COMMIT="${BASE_RELEASE_COMMIT:-4036bdb704fcf2e3845e588f55a606f1db4e5eaf}"
 BASE_INSTALL_URL="${BASE_INSTALL_URL:-https://raw.githubusercontent.com/basefoundry/base/${BASE_RELEASE_REF}/install.sh}"
 # The empty-value form is intentional: an explicit empty checksum must not
 # silently restore the release checksum and bypass the release-mode guard.

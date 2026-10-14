@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -56,8 +57,10 @@ def main() -> int:
     if not MATRIX.is_file():
         fail(f"missing {MATRIX.relative_to(ROOT)}")
     text = MATRIX.read_text(encoding="utf-8")
+    supported = json.loads((ROOT / ".release/supported-dependencies.json").read_text(encoding="utf-8"))
+    current_base = supported["components"]["base"]["version"]
     required_markers = (
-        "Current Base release: `1.10.0`",
+        f"Current Base release: `{current_base}`",
         "Planned Base release: `1.11.0`",
         "## Capability matrix",
         "## Release review checklist",

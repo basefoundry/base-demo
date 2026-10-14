@@ -8,8 +8,8 @@ tiny shell fixture; uv remains the dependency owner for the normal demo.
 
 ```bash
 python3 tests/scenarios/trust.py \
-  --base /path/to/base-v1.10.0 \
-  --base-commit 167947add351b8d609b5ab17342425e9a337acbb \
+  --base /path/to/base-v1.10.5 \
+  --base-commit 4036bdb704fcf2e3845e588f55a606f1db4e5eaf \
   --base-cli /path/to/base-cli-v0.5.1 \
   --bash-libs /path/to/base-bash-libs-v2.2.2 \
   --python /path/to/base-compatible-venv/bin/python
@@ -29,7 +29,7 @@ adds assertions for complete historical-approval revocation and
 static-by-default runtime inspection.
 
 The extended lane uses the exact released Base commit
-`167947add351b8d609b5ab17342425e9a337acbb`; run the same command with that
+`4036bdb704fcf2e3845e588f55a606f1db4e5eaf`; run the same command with that
 checkout/commit and add `--candidate`. Both lanes run in [isolated scenario
 CI](../.github/workflows/scenarios.yml). Extended success does not replace the
 exact post-merge compatibility evidence required by the release BOM.
@@ -59,4 +59,4 @@ that the host is ready. Local temporary paths are redacted from assertion
 diagnostics. `tests/scenario_harness_test.py` verifies cleanup and redaction.
 
 For the authoritative boundaries, see Base's
-[command-trust policy](https://github.com/basefoundry/base/blob/v1.10.0/docs/manifest-command-trust.md).
+[command-trust policy](https://github.com/basefoundry/base/blob/v1.10.5/docs/manifest-command-trust.md).

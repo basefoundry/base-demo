@@ -3,7 +3,7 @@
 `.release/supported-dependencies.json` is the reviewed input selection shared
 with Base's downstream updater (#2289). Version 1 names exactly Base, base-cli
 and base-bash-libs by stable version and full commit, plus Base's installer
-SHA-256. The current supported selection is Base 1.10.0 / base-cli 0.5.1 /
+SHA-256. The current supported selection is Base 1.10.5 / base-cli 0.5.1 /
 base-bash-libs 2.2.2. Tags are independently resolved to their commits in CI.
 The validator is an immutable snapshot of Base's dependency-input contract.
 
@@ -58,7 +58,7 @@ release evidence. #303 owns the public release-asset URL.
 
 ## Stable and extended scenario boundary
 
-Stable input selection is Base 1.10.0. The stable scenario lane exercises the
+Stable input selection is Base 1.10.5. The stable scenario lane exercises the
 baseline contracts, while the extended lane runs the v1.10 trust/workspace
 assertions against the same immutable released commit. Both are repository
 checks; neither becomes release BOM evidence until the exact post-merge run is
