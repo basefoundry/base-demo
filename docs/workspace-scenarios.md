@@ -13,8 +13,8 @@ Run with clean exact-provider checkouts and an existing Base-compatible Python:
 
 ```bash
 python3 tests/scenarios/workspace.py \
-  --base /path/to/base-v1.10.0 \
-  --base-commit 167947add351b8d609b5ab17342425e9a337acbb \
+  --base /path/to/base-v1.10.5 \
+  --base-commit 4036bdb704fcf2e3845e588f55a606f1db4e5eaf \
   --base-cli /path/to/base-cli-v0.5.1 \
   --bash-libs /path/to/base-bash-libs-v2.2.2 \
   --python /path/to/base-compatible-venv/bin/python
@@ -28,7 +28,7 @@ local runs therefore require Git 2.28 or newer, matching the hosted runner
 toolchain.
 
 For the extended v1.10 contract, select the released checkout and exact commit
-`167947add351b8d609b5ab17342425e9a337acbb`, and add `--candidate`.
+`4036bdb704fcf2e3845e588f55a606f1db4e5eaf`, and add `--candidate`.
 [Scenario CI](../.github/workflows/scenarios.yml) runs both lanes. This is
 repository scenario evidence, not final release BOM evidence by itself.
 
@@ -55,5 +55,5 @@ The extended lane asserts:
 
 Each completed assertion group prints `PASS`; fixtures are removed on success
 or exception. There is no second application stack and no host-readiness claim.
-See the released [workspace contract](https://github.com/basefoundry/base/blob/v1.10.0/docs/workspace-manifest.md)
+See the released [workspace contract](https://github.com/basefoundry/base/blob/v1.10.5/docs/workspace-manifest.md)
 for the authoritative API.

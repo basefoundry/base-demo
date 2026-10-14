@@ -11,6 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class InputsTests(unittest.TestCase):
+    def supported_base(self):
+        document = json.loads((ROOT / ".release/supported-dependencies.json").read_text())
+        return document["components"]["base"]
+
     def check(self, root):
         return subprocess.run(["python3", str(ROOT / "bin/base-demo-dependencies"), "--repo", str(root), "--check"],
                               capture_output=True, text=True)
@@ -30,7 +34,8 @@ class InputsTests(unittest.TestCase):
                 path = root / filename
                 text = path.read_text()
                 if filename == "install.sh":
-                    text = text.replace("BASE_RELEASE_REF:-v1.10.0", "BASE_RELEASE_REF:-v1.9.0")
+                    current = self.supported_base()["version"]
+                    text = text.replace(f"BASE_RELEASE_REF:-v{current}", "BASE_RELEASE_REF:-v1.9.0")
                 elif filename == "pyproject.toml":
                     text = text.replace("base-cli==0.5.1", "base-cli==0.5.0")
                 elif filename == "uv.lock":
@@ -48,7 +53,7 @@ class InputsTests(unittest.TestCase):
         result = subprocess.run(["python3", str(ROOT / "bin/base-demo-dependencies"), "--github-output"],
                                 capture_output=True, text=True, check=True)
         output = dict(line.split("=", 1) for line in result.stdout.splitlines())
-        self.assertEqual(output["base_version"], "1.10.0")
+        self.assertEqual(output["base_version"], self.supported_base()["version"])
         self.assertEqual(output["base_cli_version"], "0.5.1")
         self.assertEqual(len(output["base_commit"]), 40)
 

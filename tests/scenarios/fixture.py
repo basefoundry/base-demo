@@ -10,6 +10,10 @@ import subprocess
 import tempfile
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SUPPORTED = json.loads((REPO_ROOT / ".release/supported-dependencies.json").read_text())["components"]
+
+
 def arguments(description):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--base", type=Path, required=True)
@@ -21,15 +25,18 @@ def arguments(description):
     args = parser.parse_args()
     for name, path, expected in (
         ("base", args.base, args.base_commit),
-        ("base-cli", args.base_cli, "aa20cfe89bc3568ff19f8cc1414372feadb00fd4"),
-        ("base-bash-libs", args.bash_libs, "1333c0e7e4c3004663cda635e04965cb9d76511d"),
+        ("base-cli", args.base_cli, SUPPORTED["base-cli"]["commit"]),
+        ("base-bash-libs", args.bash_libs, SUPPORTED["base-bash-libs"]["commit"]),
     ):
         actual = subprocess.check_output(["git", "-C", str(path), "rev-parse", "HEAD"], text=True).strip()
         dirty = subprocess.check_output(["git", "-C", str(path), "status", "--porcelain"], text=True)
         if actual != expected or dirty:
             parser.error(f"{name} must be a clean exact-commit checkout")
-    if not args.candidate and args.base_commit != "167947add351b8d609b5ab17342425e9a337acbb":
-        parser.error("stable lane requires supported Base v1.10.0; pass --candidate for the extended scenario lane")
+    if not args.candidate and args.base_commit != SUPPORTED["base"]["commit"]:
+        parser.error(
+            f"stable lane requires supported Base v{SUPPORTED['base']['version']}; "
+            "pass --candidate for the extended scenario lane"
+        )
     return args
 
 
