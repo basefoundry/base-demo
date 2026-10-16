@@ -38,7 +38,7 @@ source tree or retag a release.
 preparation check. It runs Base's governed validator plus the demo policy in
 `lib/release_contract/`. It requires all four immutable participants, supported
 dependency-input identity, coherent platforms, and passing required combinations
-for **both macos-14 and ubuntu-24.04**. Duplicate rows/participants, scalar type
+for **both the macos-14 support platform (executed on macos-15) and ubuntu-24.04**. Duplicate rows/participants, scalar type
 errors, unknown source modes, stale pins, and any failed required row fail closed.
 
 Evidence must name a concrete

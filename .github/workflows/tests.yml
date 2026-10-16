@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   validate:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 35
     env:
       BASE_CACHE_DIR: ${{ github.workspace }}/.base-cache
@@ -220,7 +220,7 @@ jobs:
         run: ../base/bin/basectl demo base-demo --workspace .. -- --non-interactive
 
   validate-base-cli-source:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 25
     env:
       BASE_CACHE_DIR: ${{ github.workspace }}/.base-cache

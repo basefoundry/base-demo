@@ -21,8 +21,9 @@ checkout; it verifies actual checked-out commits and prints the input record.
 The locked-wheel lane checks installed package metadata separately from the
 explicit source-provider lane. Neither silently substitutes a sibling provider.
 
-CI uses macOS 14 for the full demo and Ubuntu 24.04 for Base setup/read-only
-health. This does not expand the Linux support boundary. The three named jobs
+CI exercises the macOS 14 support platform on the pinned macOS 15 runner for
+the full demo, and uses Ubuntu 24.04 for Base setup/read-only health. This does
+not expand the Linux support boundary. The three named jobs
 are stable evidence interfaces for the release gate. A run is evidence only
 when its repository, exact demo commit, successful jobs, runner labels and
 tested input record are independently verified by `base-demo-release-bom-check`.

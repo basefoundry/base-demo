@@ -45,7 +45,7 @@ class BomTests(unittest.TestCase):
                     "path": ".github/workflows/tests.yml", "event": "push",
                     "status": "completed", "conclusion": "success"}
         self.jobs = {"total_count": 3, "jobs": [
-            {"name": name, "labels": [platform], "status": "completed", "conclusion": "success"}
+            {"name": name, "labels": [demo_bom.RUNNER_LABELS[platform]], "status": "completed", "conclusion": "success"}
             for platform, name in demo_bom.PLATFORMS.items()
         ] + [{"name": "validate-base-cli-source", "status": "completed", "conclusion": "success"}]}
         self.tested_inputs = copy.deepcopy(self.inputs)
