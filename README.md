@@ -241,8 +241,9 @@ for setup, validation, CI, or the baseline demo.
 
 Current source CI and installer inputs select Base v1.10.5, base-cli v0.5.1, and
 base-bash-libs v2.2.2 through `.release/supported-dependencies.json`. This differs
-from the historical-release quick start above. CI verifies exact commits on
-macOS 14 and Ubuntu 24.04. The extended v1.10 scenario lane is separately
+from the historical-release quick start above. CI verifies exact commits for
+the macOS 14 support platform on the pinned macOS 15 runner, and on Ubuntu
+24.04. The extended v1.10 scenario lane is separately
 invoked against the same released commit. See [dependency inputs](docs/dependency-inputs.md).
 
 ## Python CLI Provider Policy

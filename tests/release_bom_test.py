@@ -45,7 +45,7 @@ class BomTests(unittest.TestCase):
                     "path": ".github/workflows/tests.yml", "event": "push",
                     "status": "completed", "conclusion": "success"}
         self.jobs = {"total_count": 3, "jobs": [
-            {"name": name, "labels": [platform], "status": "completed", "conclusion": "success"}
+            {"name": name, "labels": [demo_bom.RUNNER_LABELS[platform]], "status": "completed", "conclusion": "success"}
             for platform, name in demo_bom.PLATFORMS.items()
         ] + [{"name": "validate-base-cli-source", "status": "completed", "conclusion": "success"}]}
         self.tested_inputs = copy.deepcopy(self.inputs)
@@ -115,6 +115,10 @@ class BomTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.check()
             self.jobs = original
+
+    def test_historical_macos_runner_remains_accepted(self):
+        self.jobs["jobs"][0]["labels"] = ["macos-14"]
+        self.check()
 
     def test_run_input_drift(self):
         self.tested_inputs["components"]["base"]["commit"] = "f" * 40

@@ -16,7 +16,7 @@ concurrency:
 jobs:
   trust:
     name: Trust and workspace scenarios (${{ matrix.lane }})
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 15
     strategy:
       fail-fast: false
