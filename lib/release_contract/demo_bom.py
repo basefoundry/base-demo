@@ -13,6 +13,7 @@ REPOSITORY = "basefoundry/base-demo"
 PARTICIPANTS = {REPOSITORY, "basefoundry/base", "basefoundry/base-cli", "basefoundry/base-bash-libs"}
 PLATFORMS = {"macos-14": "validate", "ubuntu-24.04": "validate-ubuntu"}
 RUNNER_LABELS = {"macos-14": "macos-15", "ubuntu-24.04": "ubuntu-24.04"}
+ACCEPTED_RUNNER_LABELS = {"macos-14": {"macos-14", "macos-15"}, "ubuntu-24.04": {"ubuntu-24.04"}}
 RUN_URL = re.compile(r"https://github\.com/basefoundry/base-demo/actions/runs/([1-9][0-9]*)\Z")
 
 
@@ -53,8 +54,11 @@ def verify_run(evidence, platform, commit, inputs):
             continue
         if name in found or job.get("status") != "completed" or job.get("conclusion") != "success":
             raise ValueError("required evidence job must uniquely complete successfully")
-        if name == PLATFORMS[platform] and RUNNER_LABELS[platform] not in job.get("labels", []):
-            raise ValueError(f"evidence job must execute on runner {RUNNER_LABELS[platform]} for logical platform {platform}")
+        if name == PLATFORMS[platform] and not any(
+            label in ACCEPTED_RUNNER_LABELS[platform] for label in job.get("labels", [])
+        ):
+            accepted = ", ".join(sorted(ACCEPTED_RUNNER_LABELS[platform]))
+            raise ValueError(f"evidence job must execute on one of [{accepted}] for logical platform {platform}")
         found.add(name)
     if found != required:
         raise ValueError("evidence is missing required platform or source-provider jobs")

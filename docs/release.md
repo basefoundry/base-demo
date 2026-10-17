@@ -38,7 +38,8 @@ source tree or retag a release.
 preparation check. It runs Base's governed validator plus the demo policy in
 `lib/release_contract/`. It requires all four immutable participants, supported
 dependency-input identity, coherent platforms, and passing required combinations
-for **both the macos-14 support platform (executed on macos-15) and ubuntu-24.04**. Duplicate rows/participants, scalar type
+for **both the macos-14 support platform (executed on macos-15) and
+ubuntu-24.04**. Duplicate rows/participants, scalar type
 errors, unknown source modes, stale pins, and any failed required row fail closed.
 
 Evidence must name a concrete
@@ -49,7 +50,9 @@ unique passing platform job on its exact runner label, and passing
 `validate-base-cli-source` job. It also retrieves the supported-input JSON at
 that exact commit and compares it with the release input. Component evidence
 must point to a verified combination run. A syntactically valid URL alone is
-not proof; unavailable or mismatched GitHub evidence blocks publication.
+not proof; unavailable or mismatched GitHub evidence blocks publication. For
+the logical macos-14 platform, the verifier accepts the historical macos-14
+label and the current macos-15 label; new hosted validation uses macos-15.
 
 The trust root is the reviewed workflow at the reviewed commit: CI must consume
 the structured pins and assert resolved inputs. This verifies repository-owned

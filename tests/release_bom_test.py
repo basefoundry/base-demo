@@ -116,6 +116,10 @@ class BomTests(unittest.TestCase):
                 self.check()
             self.jobs = original
 
+    def test_historical_macos_runner_remains_accepted(self):
+        self.jobs["jobs"][0]["labels"] = ["macos-14"]
+        self.check()
+
     def test_run_input_drift(self):
         self.tested_inputs["components"]["base"]["commit"] = "f" * 40
         with self.assertRaisesRegex(ValueError, "dependency inputs"):
